@@ -65,7 +65,7 @@ if (!dir.exists("figures")) dir.create("figures")
 ```
 
 
-```{r load-data, echo=FALSE}
+```{r load-data, echo=FALSE, results='asis'}
 #### IMPORT DATA & INSPECTION #### -------------------------------------------------------------
 knitr::opts_knit$set(root.dir = dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
 # setwd("C:\Users\ASUSTeK\OneDrive\2021-2022\internship\projects")
