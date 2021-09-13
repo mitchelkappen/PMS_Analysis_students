@@ -43,7 +43,7 @@ library(emmeans)
 library(fitdistrplus)
 library(dplyr)
 library(car)
-library(MuMIn)
+# library(MuMIn)
 library(ggplot2)
 library(ggsignif)
 library(gridExtra)
@@ -90,7 +90,7 @@ data$Moment <- factor(data$Moment)
 
 # Define the formula for the model & check which model fits the data best
 Formula <- PSS ~ PMSScore*Moment + (1|Subject)
-t
+
 
 d0.1 <- lmer(Formula,data=data)
 d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
@@ -127,6 +127,24 @@ utils::View(tabel)
 #if data$order == A-B and if data$Moment ==B then volgorde = 2
 #if data$order == B-A and if data$Moment == B then volgorde = 1
 #if data$order == B-A and if data$Moment == A then volgorde = 2
+
+# Mitchel stukje
+
+data$TestMoment[data$Order == "A-B" & data$Moment == "A"] = 1
+data$TestMoment[data$Order == "B-A" & data$Moment == "A"] = 2
+data$TestMoment[data$Order == "A-B" & data$Moment == "B"] = 2
+data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
+
+for x = 1 tot de lengte van data$Order
+  if data$Order[x] == "A-B"
+    doe iets
+    
+    
+if (data$Order == "A-B"){
+  print('HALLO')
+}
+  
+# Sofie Stukje
 
 variabele aanmaken met juiste lengte met enkel nullen 
 
