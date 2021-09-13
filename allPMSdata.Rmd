@@ -1,0 +1,17 @@
+---
+title: "PMS data"
+output: html_notebook
+author: "Sofie Raeymakers"
+date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
+output:
+  html_document:
+    code_download: yes
+    code_folding: hide
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+bibliography: references.bib
+---
+
+
