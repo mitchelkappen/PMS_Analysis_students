@@ -50,6 +50,9 @@ library(gridExtra)
 library(tidyverse)
 library(ggeffects)
 library(pander)
+library(hrbrthemes)
+library(viridis)
+library (yarrr)
 recode <- dplyr::recode
 # Suppress summarize info
 options(dplyr.summarise.inform = FALSE)
@@ -92,11 +95,18 @@ data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
 #check if there are still values missing (NA)
 sum(is.na(data$TestMoment))
 
+# new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1, 
+data$PMSScoreNew[data$PMSScore==0] = 0
+data$PMSScoreNew[data$PMSScore==1] = 1
+data$PMSScoreNew[data$PMSScore==2] = 1
+sum(is.na(data$PMSScoreNew))
+
 
 # Check whether R recognizes the variable types correctly
 #we make factors of the independable variables
 
 data$PMSScore <- factor(data$PMSScore)
+data$PMSScoreNew <- factor(data$PMSScoreNew)
 
 data$Moment <- factor(data$TestMoment)
 
@@ -104,7 +114,7 @@ data$Moment <- factor(data$TestMoment)
 
 
 # Define the formula for the model & check which model fits the data best
-Formula <- PSS ~ PMSScore*TestMoment + (1|Subject)
+Formula <- PSS ~ PMSScoreNew*TestMoment + (1|Subject)
 
 
 d0.1 <- lmer(Formula,data=data)
@@ -123,43 +133,121 @@ d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerCo
 # Remove the models that produced errors in the line below, the one with the lowest value is the best fitting model
 tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
 utils::View(tabel)
-#d0.1 has the lowest AIC. so general linear model with inverse gaussian is the best fitting model
+#d0.1 has the lowest AIC. so linear model is the best fitting model
 
 ```
 
-``` {r statistics}
-  print(Anova(d0.3)) # Run Anova, double square brackets because of list properties
+``` {r}
+  print(Anova(d0.1)) # Run Anova, double square brackets because of list properties
 # Analysis of Deviance Table (Type II Wald chisquare tests)
 # 
 # Response: PSS
-#                        Chisq Df Pr(>Chisq)    
-# PMSScore              5.5924  2    0.06104 .  
-# TestMoment          197.4098  1    < 2e-16 ***
-# PMSScore:TestMoment 179.7476  2    < 2e-16 ***
+#                          Chisq Df Pr(>Chisq)    
+# PMSScoreNew             17.199  1  3.367e-05 ***
+# TestMoment             245.477  1  < 2.2e-16 ***
+# PMSScoreNew:TestMoment 130.346  1  < 2.2e-16 ***
 # ---
 # Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
   print("Stats")
-  print(emmeans(d0.3, pairwise ~ TestMoment , adjust ="fdr", type="response"))
-  
-#    TestMoment response    SE  df asymp.LCL asymp.UCL
-#           1     30.3 0.331 Inf      29.7      31.0
-#           2     30.1 0.329 Inf      29.5      30.8
+  print(emmeans(d0.1, pairwise ~ TestMoment , adjust ="fdr", type="response"))
+#   
+#  TestMoment emmean    SE  df asymp.LCL asymp.UCL
+#           1   30.2 0.142 Inf      30.0      30.5
+#           2   29.8 0.143 Inf      29.5      30.1
 # 
-# Results are averaged over the levels of: PMSScore 
+# Results are averaged over the levels of: PMSScoreNew 
+# Degrees-of-freedom method: asymptotic 
 # Confidence level used: 0.95 
-# Intervals are back-transformed from the log scale 
 # 
 # $contrasts
-#  contrast ratio       SE  df null z.ratio p.value
-#  1 / 2    1.006 0.001256 Inf    1   5.104  <.0001
+#  contrast estimate     SE  df z.ratio p.value
+#  1 - 2       0.429 0.0326 Inf  13.146  <.0001
 # 
-# Results are averaged over the levels of: PMSScore 
-# Tests are performed on the log scale 
+# Results are averaged over the levels of: PMSScoreNew 
+# Degrees-of-freedom method: asymptotic 
+
 
 ```
-```{r new variable Volgorde}
+```{r}
+plot(data$PSS)
+boxplot(data$PSS~data$TestMoment)
+ggplot(data, aes(PMSScore, TestMoment))
 
 
+#data %>%
+ggplot(data, aes(x=as.factor(TestMoment), y=PSS)) + 
+    geom_boxplot(fill="slateblue", alpha=0.2) + 
+    xlab("TestMoment")
+
+ggplot(data, aes(x=as.factor(PMSScoreNew), y=PSS)) + 
+    geom_boxplot(fill="slateblue", alpha=0.2) + 
+    xlab("TestMoment")
+
+
+
+ggplot(data = data) + 
+  geom_bar(mapping = aes(x = PMSScoreNew))
+
+ggplot(data = data) + 
+  geom_bar(mapping = aes(x = TestMoment))
+
+ggplot(data = data) + 
+  geom_bar(mapping = aes(x = PSS))
+
+##PIRATE PLOT:
+
+ # Plotting
+  dpi=600    #pixels per square inch
+  
+  # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
+  par(mfcol = c(1, 1))
+  plotPSS_1 <- pirateplot(
+    formula = PSS ~ TestMoment,
+    data = data,
+    theme = 1,
+    pal = "info",
+    main = PSS ~ PMSScore*TestMoment,
+    bean.f.o = .6, # Bean fill
+    point.o = .3,  # Points
+    inf.f.o = .7,  # Inference fill
+    inf.b.o = .8,  # Inference border
+    avg.line.o = 1,  # Average line
+    # bar.f.o = .5, # Bar
+    inf.f.col = "white",  # Inf fill col
+    inf.b.col = "black",  # Inf border col
+    avg.line.col = "black",  # avg line col
+    bar.f.col = gray(.8),  # bar filling color
+    point.pch = 21,
+    point.bg = "white",
+    point.col = "black",
+    point.cex = .7,
+   
+    xlab = "",
+  )
+  
+    plotPSS_2 <- pirateplot(
+    formula = PSS ~ PMSScoreNew:TestMoment,
+    data = data,
+    theme = 1,
+    pal = "info",
+    main = PSS ~ PMSScore*TestMoment,
+    bean.f.o = .6, # Bean fill
+    point.o = .3,  # Points
+    inf.f.o = .7,  # Inference fill
+    inf.b.o = .8,  # Inference border
+    avg.line.o = 1,  # Average line
+    # bar.f.o = .5, # Bar
+    inf.f.col = "white",  # Inf fill col
+    inf.b.col = "black",  # Inf border col
+    avg.line.col = "black",  # avg line col
+    bar.f.col = gray(.8),  # bar filling color
+    point.pch = 21,
+    point.bg = "white",
+    point.col = "black",
+    point.cex = .7,
+   
+    xlab = "",
+  )
 
 ```
