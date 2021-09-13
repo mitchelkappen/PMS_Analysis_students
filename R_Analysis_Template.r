@@ -19,8 +19,9 @@ library(ggeffects)
 library(pander)
 
 #### IMPORT DATA & INSPECTION #### -------------------------------------------------------------
-setwd("C:/Users/jensy/Google Drive/Jens/PSYCHOLOGIE/WORK/Projects/tDCS rDLPFC - Social Feedback/2020_Allaert_tDCS_Social_Feedback_Left_Right_DLPFC/Data/Processed/Pupil/")
-data <- read.table("R_Ready_PD_avg_500.txt",sep="\t", header=TRUE)
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
+# setwd("C:\Users\ASUSTeK\OneDrive\2021-2022\internship\projects")
+data <- read.table("Data/allPMSdata.csv",sep="\t", header=TRUE)
 
 # Check whether R recognizes the variable types correctly
 str(data)

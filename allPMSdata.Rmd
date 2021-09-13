@@ -14,4 +14,103 @@ output:
 bibliography: references.bib
 ---
 
+```{r libraries}
+# we will first write some pseudocode to describe what we want to do
+#upload files
+#find best linear model to represent data with AI
 
+#     PSS ~ PMSScore*Moment + (1|Subject)
+# 
+#     PSS deppendent variablle
+#     pMS = 1 geen PMS
+#     keer moment: moment v afname
+#     1 out of subject: random effect toevoegen
+#     straks factoren vd PMS score en van moment: hoeveel levels? 
+#       formules van doen
+#     laten weten welke formule beste
+#     
+
+    
+#### Settings & Packages #### -----------------------------------------------------
+rm(list = ls())
+options(contrasts = c("contr.sum","contr.poly")) #use this for the p value of the t test
+library(lme4)
+library(lmerTest)
+library(effects)
+library(dplyr)
+library(car)
+library(emmeans)
+library(fitdistrplus)
+library(dplyr)
+library(car)
+library(MuMIn)
+library(ggplot2)
+library(ggsignif)
+library(gridExtra)
+library(tidyverse)
+library(ggeffects)
+library(pander)
+recode <- dplyr::recode
+# Suppress summarize info
+options(dplyr.summarise.inform = FALSE)
+count <- dplyr::count 
+# set the theme to theme_bw for all ggplot2 figures
+theme_set(theme_bw())
+# create folder to save figures
+if (!dir.exists("figures")) dir.create("figures")
+```
+
+
+
+```{r load-data}
+#### IMPORT DATA & INSPECTION #### -------------------------------------------------------------
+knitr::opts_knit$set(root.dir = dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
+# setwd("C:\Users\ASUSTeK\OneDrive\2021-2022\internship\projects")
+data <- read.csv("Data/allPMSdata.csv", header=TRUE)
+# data <- read.table("Data/allPMSdata.csv",sep="\t", header=TRUE)
+
+
+# from wide to long
+#check if subject column is a facctor
+str(data)
+head(data)
+# data <-as.numeric(data)
+data$Subject <- factor(data$ID)
+typeof(data$Subject)
+head (data$Subject)
+
+# Check whether R recognizes the variable types correctly
+
+data$PMSScore <- factor(data$PMSScore)
+
+data$Moment <- factor(data$Moment)
+
+# Exclude data?
+
+
+# Define the formula for the model & check which model fits the data best
+Formula <- PSS ~ PMSScore*Moment + (1|Subject)
+t
+
+d0.1 <- lmer(Formula,data=data)
+d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+
+d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+
+d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+
+
+# Remove the models that produced errors in the line below, the one with the lowest value is the best fitting model
+tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+utils::View(tabel)
+emphasize.strong.cells(which(tabel == min(tabel), arr.ind = TRUE))
+# pandoc.table(tabel)
+utils::View(tabel)
+#V3 has the lowest AIC. so general linear model with log gaussian is the best fitting model
+
+```
