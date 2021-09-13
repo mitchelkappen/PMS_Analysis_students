@@ -114,3 +114,50 @@ utils::View(tabel)
 #V3 has the lowest AIC. so general linear model with log gaussian is the best fitting model
 
 ```
+
+``` {r statistics}
+  print(Anova(d0.3)) # Run Anova, double square brackets because of list properties
+  print("Stats")
+  print(emmeans(d0.3, pairwise ~ Moment , adjust ="fdr", type="response"))
+
+```
+```{r new variable Volgorde}
+#we will make a new variable volgorde with a boolean vector
+#if data$order == A-B and if data$Moment == A then volgorde = 1
+#if data$order == A-B and if data$Moment ==B then volgorde = 2
+#if data$order == B-A and if data$Moment == B then volgorde = 1
+#if data$order == B-A and if data$Moment == A then volgorde = 2
+
+variabele aanmaken met juiste lengte met enkel nullen 
+
+data.volgorde <- []
+
+if ((data$Order == "A-B") &(data$Moment =="A")) {volgorde= 1}
+
+volgorde_AB <- data%<%
+  if (data$order== A-B) and if (data$Moment ==A) {
+    volgorde = 1
+  } else volgorde =2
+
+volgorde mapply (function(x) {if ((x=='A-B')&())})
+
+# volgorde <- mapply(function(x,y)
+# {if ((data$Order == "A-B")&(data$Moment =="A")) return (1)
+#   else if ((x =="A-B")(y =="B")) return (2)
+#   else if ((x =="B-A")(y =="B")) return (1)
+#   else if ((x =="B-A")(y =="A")) return (2)
+#   },data$Order, data$Moment)
+
+
+volgorde <- if ()
+
+
+A_moments <- mapply(function(x){if (x=="A")return (TRUE) else return (FALSE), data$Moment})
+
+volgorde <- ifelse ((data$Order== "A-B")&(data$Moment =="A"), 1, 2)
+
+
+
+
+
+```
