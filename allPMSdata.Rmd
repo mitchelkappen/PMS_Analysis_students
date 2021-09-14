@@ -369,10 +369,10 @@ The End!
 
 TO DO:
 
-
 -hoe de markdown images doen (want je maakt de pirateplot en voegt er een stuk code aan toe dat de significantie aangeeft. )
+-doe beiden
 
-
+TO DO Woensdag:
 
 PMS vs noPMS op het gebied van:
 - PSS
@@ -395,11 +395,13 @@ Next:
 --- waarchuwing; ze gaan veel van elkaar afwijken. 
 
 
-Stimuli onderverdelen in negatiev, positief en neutral, om daar een subdivisie analyse op te maken
+Stimuli onderverdelen in negatief, positief en neutral, om daar een subdivisie analyse op te maken
 *noot: iaos images, ze zijn getagged (zoek op om ze te kunnen onderverdelen). 22, gematched (dus bv naald in arm vs naald in been)
 
 ---------------- Overig:
 Normgroepen opzoeken voor PSS bij (jonge) vrouwen
+https://www.cambridge.org/core/journals/spanish-journal-of-psychology/article/abs/perceived-stress-scale-pss-normative-data-and-factor-structure-for-a-largescale-sample-in-mexico/752B62D15A932A2D148D04376E949F67
 
+https://bmcpsychiatry.biomedcentral.com/articles/10.1186/s12888-016-0875-9/tables/6
 
 
