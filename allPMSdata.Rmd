@@ -5,6 +5,7 @@ date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
 output:
   html_document: default
   pdf_document: default
+  html_notebook
 ---
 
 ```{r setup, include=FALSE}
@@ -121,87 +122,74 @@ dataBig = data # Saved all the data here
 data = data[, -which(names(data) == "X" | names(data) == "Stimulus" | names(data) == "Valence" | names(data) == "Arousal" | names(data) == "rt")]
 data = distinct(data)
 
+# exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
+data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor.Coil")
+
 # Define the formula for the model & check which model fits the data best
-Formula <- PSS ~ PMSScoreNew*TestMoment + (1|Subject)
+formulas = c('PSS ~ PMSScoreNew*TestMoment', '..', '..', '..')
+
+plotTitles = c('PMSScore*TestMoment', '..', '..', '..')
+
+data_temp <- data #to get back to
+
+# Define the formula for the model & check which model fits the data best
+for (i in 1){
+  d0.1 <- lmer(Formula,data=data)
+  d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+  d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+  d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
 
 
-d0.1 <- lmer(Formula,data=data)
-d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-
-d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-
-d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-
-
-# Remove the models that produced errors in the line below, the one with the lowest value is the best fitting model
-tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
-#show table in html
-kable (tabel, caption = "table showing the different AIC")
-# utils::View(tabel)
-# d0.1 has the lowest AIC. so linear model is the best fitting model
+  # Remove the models that produced errors in the line below, the one with the lowest value is the best fitting model
+  tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+  #show table in html
+  kable (tabel, caption = "table showing the different AIC")
+  chosenModel = modelNames[which(tabel == min(tabel))]
+  
+  Anova(chosenModel[[1]])
+  
+  print(emmeans(chosenModel[[1]], pairwise ~ block , adjust ="fdr", type="response"))
+  
+    # Plotting
+  dpi=600    #pixels per square inch
+  # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
+  par(mfcol = c(1, 1))
+  plot <- pirateplot(
+    formula = formulas[i],
+    data = data,
+    theme = 1,
+    pal = "info",
+    main = plotTitles[i],
+    bean.f.o = .6, # Bean fill
+    point.o = .3,  # Points
+    inf.f.o = .7,  # Inference fill
+    inf.b.o = .8,  # Inference border
+    avg.line.o = 1,  # Average line
+    # bar.f.o = .5, # Bar
+    inf.f.col = "white",  # Inf fill col
+    inf.b.col = "black",  # Inf border col
+    avg.line.col = "black",  # avg line col
+    bar.f.col = gray(.8),  # bar filling color
+    point.pch = 21,
+    point.bg = "white",
+    point.col = "black",
+    point.cex = .7,
+    
+    xlab = "",
+  )
+  # abline(lm(formulas[i], data=data), lwd=4, lty=2, col = "red")
+}
 
 ```
 
-d0.1 <- lmer(Formula,data=data)
-d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
 
-d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-
-d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-
-
-After evaluating different linear models, we found that the best fitting model for the data is d0.4. 
-
-Model: PSS ~ PMSScoreNew*TestMoment + (1|Subject)
-
-
-## Anova test
-
-``` {r Statistics, echo = FALSE}
-Anova(d0.4) 
-# Run Anova, double square brackets because of list properties
-# Analysis of Deviance Table (Type II Wald chisquare tests)
-# 
-# Response: PSS
-#                          Chisq Df Pr(>Chisq)    
-# PMSScoreNew             17.199  1  3.367e-05 ***
-# TestMoment             245.477  1  < 2.2e-16 ***
-# PMSScoreNew:TestMoment 130.346  1  < 2.2e-16 ***
-# ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-
-```
-
-
-## Least Square Test, estimated Marg Means
-```{r echo=FALSE}
-emmeans(d0.1, pairwise ~ TestMoment*PMSScoreNew , adjust ="fdr", type="response")
-#   
-#  TestMoment emmean    SE  df asymp.LCL asymp.UCL
-#           1   30.2 0.142 Inf      30.0      30.5
-#           2   29.8 0.143 Inf      29.5      30.1
-# 
-# Results are averaged over the levels of: PMSScoreNew 
-# Degrees-of-freedom method: asymptotic 
-# Confidence level used: 0.95 
-# 
-# $contrasts
-#  contrast estimate     SE  df z.ratio p.value
-#  1 - 2       0.429 0.0326 Inf  13.146  <.0001
-# 
-# Results are averaged over the levels of: PMSScoreNew 
-# Degrees-of-freedom method: asymptotic 
 
 ```
 
@@ -376,8 +364,13 @@ The End!
 
 ############ Hyptothesen en onderzoeksvragen:
 
-Exclude everyone who uses the pill
-- Only take participants with contraception == "Natural"
+TO DO:
+
+
+-code met for loop voor vergelijken modellen
+-hoe de markdown images doen (want je maakt de pirateplot en voegt er een stuk code aan toe dat de significantie aangeeft. )
+
+
 
 PMS vs noPMS op het gebied van:
 - PSS
@@ -399,7 +392,9 @@ Next:
 -- Om te zien of ze niet te veel van elkaar afwijken
 --- waarchuwing; ze gaan veel van elkaar afwijken. 
 
+
 Stimuli onderverdelen in negatiev, positief en neutral, om daar een subdivisie analyse op te maken
+*noot: iaos images, ze zijn getagged (zoek op om ze te kunnen onderverdelen). 22, gematched (dus bv naald in arm vs naald in been)
 
 ---------------- Overig:
 Normgroepen opzoeken voor PSS bij (jonge) vrouwen
