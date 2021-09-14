@@ -5,7 +5,7 @@ date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
 output:
   html_document: default
   pdf_document: default
-  # html_notebook: default
+  html_notebook: default
 ---
 
 ```{r setup, include=FALSE}
@@ -126,14 +126,16 @@ data = distinct(data)
 data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor.Coil")
 
 # Define the formula for the model & check which model fits the data best
-formulas = c('PSS ~ PMSScoreNew*TestMoment', '..', '..', '..')
+formulas = c('PSS ~ PMSScoreNew*TestMoment') # important! after the ~should be the same every time
 
-plotTitles = c('PMSScore*TestMoment', '..', '..', '..')
+plotTitles = c('PMSScore*TestMoment')
 
 data_temp <- data #to get back to
 
 # Define the formula for the model & check which model fits the data best
 for (i in 1){
+
+  Formula <- paste0(formulas[i], ' + (1|Subject)')
   d0.1 <- lmer(Formula,data=data)
   d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
   d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
@@ -145,17 +147,20 @@ for (i in 1){
   d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
   d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
   d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-
+  
+  modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
 
   # Remove the models that produced errors in the line below, the one with the lowest value is the best fitting model
   tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
   #show table in html
   kable (tabel, caption = "table showing the different AIC")
   chosenModel = modelNames[which(tabel == min(tabel))]
+
   
   Anova(chosenModel[[1]])
   
-  print(emmeans(chosenModel[[1]], pairwise ~ block , adjust ="fdr", type="response"))
+  emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment , adjust ="fdr", type="response")
+
   
     # Plotting
   dpi=600    #pixels per square inch
