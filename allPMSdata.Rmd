@@ -178,7 +178,7 @@ Anova(d0.1)
 ```
 
 
-## pairwise ~Testmoment emmeans
+## Least Square Test, estimated Marg Means
 ```{r echo=FALSE}
 emmeans(d0.1, pairwise ~ TestMoment , adjust ="fdr", type="response")
 #   
