@@ -1,0 +1,134 @@
+---
+title: "PMS Study"
+author: "Mitchel Kappen & Sofie Raeymakers"
+date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## PMS Study
+
+This is the data processing html for the PMS study
+
+
+```{r libraries, include = FALSE}
+# we will first write some pseudocode to describe what we want to do
+#upload files
+#find best linear model to represent data with AI
+
+#     PSS ~ PMSScore*Moment + (1|Subject)
+# 
+#     PSS deppendent variablle
+#     pMS = 1 geen PMS
+#     keer moment: moment v afname
+#     1 out of subject: random effect toevoegen
+#     straks factoren vd PMS score en van moment: hoeveel levels? 
+#       formules van doen
+#     laten weten welke formule beste
+#     
+
+    
+#### Settings & Packages #### -----------------------------------------------------
+rm(list = ls())
+options(contrasts = c("contr.sum","contr.poly")) #use this for the p value of the t test
+library(lme4)
+library(lmerTest)
+library(effects)
+library(dplyr)
+library(car)
+library(emmeans)
+library(fitdistrplus)
+library(dplyr)
+library(car)
+# library(MuMIn)
+library(ggplot2)
+library(ggstatsplot)
+library(ggsignif)
+library(gridExtra)
+library(tidyverse)
+library(ggeffects)
+library(pander)
+# library(viridis)
+library (yarrr)
+library(knitr)
+recode <- dplyr::recode
+# Suppress summarize info
+options(dplyr.summarise.inform = FALSE)
+count <- dplyr::count 
+# set the theme to theme_bw for all ggplot2 figures
+theme_set(theme_bw())
+# create folder to save figures
+if (!dir.exists("figures")) dir.create("figures")
+
+
+# General settings
+nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
+```
+
+```{r load-data, echo=FALSE, results='asis'}
+#### IMPORT DATA & INSPECTION #### -------------------------------------------------------------
+knitr::opts_knit$set(root.dir = dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
+# setwd("C:\Users\ASUSTeK\OneDrive\2021-2022\internship\projects")
+data <- read.csv("Data/allPMSdata.csv", header=TRUE)
+# data <- read.table("Data/allPMSdata.csv",sep="\t", header=TRUE)
+
+
+# from wide to long
+#check if subject column is a facctor
+#str(data)
+#head(data)
+# data <-as.numeric(data)
+data$Subject <- factor(data$ID)
+#typeof(data$Subject)
+
+
+#we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
+#These moments were counterbalanced
+#when the order was B-A and the moment is B, this means it is the first test moment
+#and vice versa for A-B and moment A. 
+
+# TestMoment 1 == Follicular phase
+# TestMoment 2 == Luteal phase
+data$TestMoment[data$Order == "A-B" & data$Moment == "A"] = 1
+data$TestMoment[data$Order == "B-A" & data$Moment == "A"] = 2
+data$TestMoment[data$Order == "A-B" & data$Moment == "B"] = 2
+data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
+#check if there are still values missing (NA)
+#sum(is.na(data$TestMoment))
+
+# new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1, 
+data$PMSScoreNew[data$PMSScore==0] = 'noPMS'
+data$PMSScoreNew[data$PMSScore==1] = 'PMS'
+data$PMSScoreNew[data$PMSScore==2] = 'PMS'
+#sum(is.na(data$PMSScoreNew))
+
+
+# Check whether R recognizes the variable types correctly
+#we make factors of the independable variables
+
+data$PMSScore <- factor(data$PMSScore)
+data$PMSScoreNew <- factor(data$PMSScoreNew)
+
+data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 now
+
+# Exclude data?
+dataBig = data # Saved all the data here
+data = data[, -which(names(data) == "X" | names(data) == "Stimulus" | names(data) == "Valence" | names(data) == "Arousal" | names(data) == "rt")]
+data = distinct(data)
+
+# exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
+data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor.Coil")
+
+# Define the formula for the model & check which model fits the data best
+formulas = c('PSS ~ PMSScoreNew*TestMoment') # important! after the ~should be the same every time
+
+plotTitles = c('PMSScore*TestMoment')
+
+data_temp <- data #to get back to
+
+
+
+```
