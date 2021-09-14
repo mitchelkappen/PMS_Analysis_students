@@ -2,9 +2,7 @@
 title: "PMS Study"
 author: "Mitchel Kappen & Sofie Raeymakers"
 date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
-output:
-  html_document: default
-  pdf_document: default
+output: html_notebook
 ---
 
 ```{r setup, include=FALSE}
@@ -46,14 +44,15 @@ library(dplyr)
 library(car)
 # library(MuMIn)
 library(ggplot2)
+library(ggstatsplot)
 library(ggsignif)
 library(gridExtra)
 library(tidyverse)
 library(ggeffects)
 library(pander)
-library(hrbrthemes)
-library(viridis)
+# library(viridis)
 library (yarrr)
+library(knitr)
 recode <- dplyr::recode
 # Suppress summarize info
 options(dplyr.summarise.inform = FALSE)
@@ -62,10 +61,14 @@ count <- dplyr::count
 theme_set(theme_bw())
 # create folder to save figures
 if (!dir.exists("figures")) dir.create("figures")
+
+
+# General settings
+nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
 ```
 
 
-```{r load-data, echo=FALSE}
+```{r load-data, echo=FALSE, results='asis'}
 #### IMPORT DATA & INSPECTION #### -------------------------------------------------------------
 knitr::opts_knit$set(root.dir = dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
 # setwd("C:\Users\ASUSTeK\OneDrive\2021-2022\internship\projects")
@@ -75,8 +78,8 @@ data <- read.csv("Data/allPMSdata.csv", header=TRUE)
 
 # from wide to long
 #check if subject column is a facctor
-str(data)
-head(data)
+#str(data)
+#head(data)
 # data <-as.numeric(data)
 data$Subject <- factor(data$ID)
 #typeof(data$Subject)
@@ -87,7 +90,8 @@ data$Subject <- factor(data$ID)
 #when the order was B-A and the moment is B, this means it is the first test moment
 #and vice versa for A-B and moment A. 
 
-
+# TestMoment 1 == Follicular phase
+# TestMoment 2 == Luteal phase
 data$TestMoment[data$Order == "A-B" & data$Moment == "A"] = 1
 data$TestMoment[data$Order == "B-A" & data$Moment == "A"] = 2
 data$TestMoment[data$Order == "A-B" & data$Moment == "B"] = 2
@@ -96,9 +100,9 @@ data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
 #sum(is.na(data$TestMoment))
 
 # new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1, 
-data$PMSScoreNew[data$PMSScore==0] = 0
-data$PMSScoreNew[data$PMSScore==1] = 1
-data$PMSScoreNew[data$PMSScore==2] = 1
+data$PMSScoreNew[data$PMSScore==0] = 'noPMS'
+data$PMSScoreNew[data$PMSScore==1] = 'PMS'
+data$PMSScoreNew[data$PMSScore==2] = 'PMS'
 #sum(is.na(data$PMSScoreNew))
 
 
@@ -108,70 +112,125 @@ data$PMSScoreNew[data$PMSScore==2] = 1
 data$PMSScore <- factor(data$PMSScore)
 data$PMSScoreNew <- factor(data$PMSScoreNew)
 
-data$Moment <- factor(data$TestMoment)
+data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 now
 
 # Exclude data?
+dataBig = data # Saved all the data here
+data = data[, -which(names(data) == "X" | names(data) == "Stimulus" | names(data) == "Valence" | names(data) == "Arousal" | names(data) == "rt")]
+data = distinct(data)
 
+# exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
+data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor.Coil")
 
 # Define the formula for the model & check which model fits the data best
-Formula <- PSS ~ PMSScoreNew*TestMoment + (1|Subject)
+formulas = c('PSS ~ PMSScoreNew*TestMoment') # important! after the ~should be the same every time
 
+plotTitles = c('PMSScore*TestMoment')
 
-d0.1 <- lmer(Formula,data=data)
-d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+data_temp <- data #to get back to
 
-d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+# Define the formula for the model & check which model fits the data best
+for (i in 1){
 
-d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+  Formula <- paste0(formulas[i], ' + (1|Subject)')
+  d0.1 <- lmer(Formula,data=data)
+  d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+  d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+  d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+  modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
 
+  # Remove the models that produced errors in the line below, the one with the lowest value is the best fitting model
+  tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+  #show table in html
+  kable (tabel, caption = "table showing the different AIC")
+  chosenModel = modelNames[which(tabel == min(tabel))]
 
-# Remove the models that produced errors in the line below, the one with the lowest value is the best fitting model
-tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
-utils::View(tabel)
-#d0.1 has the lowest AIC. so linear model is the best fitting model
+  
+  Anova(chosenModel[[1]])
+  
+  emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment , adjust ="fdr", type="response")
+
+  
+    # Plotting
+  dpi=600    #pixels per square inch
+  # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
+  par(mfcol = c(1, 1))
+  plot <- pirateplot(
+    formula = formulas[i],
+    data = data,
+    theme = 1,
+    pal = "info",
+    main = plotTitles[i],
+    bean.f.o = .6, # Bean fill
+    point.o = .3,  # Points
+    inf.f.o = .7,  # Inference fill
+    inf.b.o = .8,  # Inference border
+    avg.line.o = 1,  # Average line
+    # bar.f.o = .5, # Bar
+    inf.f.col = "white",  # Inf fill col
+    inf.b.col = "black",  # Inf border col
+    avg.line.col = "black",  # avg line col
+    bar.f.col = gray(.8),  # bar filling color
+    point.pch = 21,
+    point.bg = "white",
+    point.col = "black",
+    point.cex = .7,
+    
+    xlab = "",
+  )
+    # abline(lm(formulas[i], data=data), lwd=4, lty=2, col = "red")
+    dpi=600    #pixels per square inch
+    
+  # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
+    par(mfcol = c(1, 1))
+    plotPSS_1 <- pirateplot(
+      formula = formulas[i],
+      data = data,
+      theme = 3,
+      pal = "info",
+      main = plotTitles[i],
+      bean.f.o = .6, # Bean fill
+      point.o = .3,  # Points
+      inf.f.o = .7,  # Inference fill
+      inf.b.o = .8,  # Inference border
+      avg.line.o = 1,  # Average line
+      # bar.f.o = .5, # Bar
+      inf.f.col = "white",  # Inf fill col
+      inf.b.col = "black",  # Inf border col
+      avg.line.col = "black",  # avg line col
+      bar.f.col = gray(.8),  # bar filling color
+      point.pch = 21,
+      point.bg = "white",
+      point.col = "black",
+      point.cex = .7,
+     
+      xlab = "",
+    )
+    
+    # Insert visual indicators of significance
+  x <- 1:2  # capture x coordinates of bars
+  y <- 35  # create the y coordinate of the line
+  offset <- 0.2  # set an offset for tick lengths
+  lines(c(1.2,1.8),c(y, y))  # draw first horizontal line
+  lines(c(1.2,1.2),c(y, y-offset))  # draw ticks
+  lines(c(1.8,1.8),c(y, y-offset))
+  text(x[1]+((x[2]-x[1])/2),y+offset,"***")  # draw asterics
+
+  
+}
 
 ```
-After evaluating different linear models, we found that the best fitting model for the data is a simple linear model. 
-
-Model: PSS ~ PMSScoreNew*TestMoment + (1|Subject)
 
 
-``` {r Statistics, echo = FALSE}
-  print(Anova(d0.1)) # Run Anova, double square brackets because of list properties
-# Analysis of Deviance Table (Type II Wald chisquare tests)
-# 
-# Response: PSS
-#                          Chisq Df Pr(>Chisq)    
-# PMSScoreNew             17.199  1  3.367e-05 ***
-# TestMoment             245.477  1  < 2.2e-16 ***
-# PMSScoreNew:TestMoment 130.346  1  < 2.2e-16 ***
-# ---
-# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-  print(emmeans(d0.1, pairwise ~ TestMoment , adjust ="fdr", type="response"))
-#   
-#  TestMoment emmean    SE  df asymp.LCL asymp.UCL
-#           1   30.2 0.142 Inf      30.0      30.5
-#           2   29.8 0.143 Inf      29.5      30.1
-# 
-# Results are averaged over the levels of: PMSScoreNew 
-# Degrees-of-freedom method: asymptotic 
-# Confidence level used: 0.95 
-# 
-# $contrasts
-#  contrast estimate     SE  df z.ratio p.value
-#  1 - 2       0.429 0.0326 Inf  13.146  <.0001
-# 
-# Results are averaged over the levels of: PMSScoreNew 
-# Degrees-of-freedom method: asymptotic 
-
-
-```
 
 ## Plots
 
@@ -194,9 +253,9 @@ ggplot(data = data) +
   plotPSS_1 <- pirateplot(
     formula = PSS ~ TestMoment,
     data = data,
-    theme = 1,
+    theme = 3,
     pal = "info",
-    main = PSS ~ PMSScoreNew*TestMoment,
+    main = "PSS ~ Testmoment",
     bean.f.o = .6, # Bean fill
     point.o = .3,  # Points
     inf.f.o = .7,  # Inference fill
@@ -215,24 +274,37 @@ ggplot(data = data) +
     xlab = "",
   )
   
-    plotPSS_2 <- pirateplot(
-    formula = PSS ~ PMSScoreNew:TestMoment,
+  # Insert visual indicators of significance
+x <- 1:2  # capture x coordinates of bars
+y <- 35  # create the y coordinate of the line
+offset <- 0.2  # set an offset for tick lengths
+lines(c(1.2,1.8),c(y, y))  # draw first horizontal line
+lines(c(1.2,1.2),c(y, y-offset))  # draw ticks
+lines(c(1.8,1.8),c(y, y-offset))
+text(x[1]+((x[2]-x[1])/2),y+offset,"***")  # draw asterics
+
+
+
+################################################
+  
+  plotPSS_2 <- pirateplot(
+    formula = PSS ~ PMSScoreNew*TestMoment,
     data = data,
-    theme = 1,
+    theme = 3,
     pal = "info",
-    main = PSS ~ PMSScoreNew*TestMoment,
+    main = "PSS ~ PMSScoreNew: Testmoment",
     bean.f.o = .6, # Bean fill
     point.o = .3,  # Points
     inf.f.o = .7,  # Inference fill
     inf.b.o = .8,  # Inference border
     avg.line.o = 1,  # Average line
     # bar.f.o = .5, # Bar
-    inf.f.col = "white",  # Inf fill col
+    inf.f.col = "red",  # Inf fill col
     inf.b.col = "black",  # Inf border col
     avg.line.col = "black",  # avg line col
-    bar.f.col = gray(.8),  # bar filling color
+    bar.f.col = grey(.8),  # bar filling color
     point.pch = 21,
-    point.bg = "white",
+    point.bg = "grey",
     point.col = "black",
     point.cex = .7,
    
@@ -241,4 +313,116 @@ ggplot(data = data) +
 
 ```
 
+with PMSScore=0 and testmoment = 2 there seem to be some outliers
+This means that people with low PMS scores had more outliers on testmoment 2. 
+we might need to remove some of these outliers
+
+
+
+```{r, echo=FALSE}
+
+ZeroLength<- length(which(data$PMSScoreNew=='noPMS'))
+OneLength <-length(which(data$PMSScoreNew=='PMS'))
+
+
+age_mean <- round(mean(data$Age), 1)
+
+summary(data$PSS)
+
+# count for each participants how many trials are left for each PMSScoreNew by PSS
+trial_count <- as.data.frame(table(data$Subject, data$PMSScoreNew, data$PSS))
+names(trial_count) <- c("subject_id", "PMSScore", "PSS", "count")
+
+trial_mean <- trial_count %>%
+  group_by(PMSScore, PSS) %>%
+  summarize(
+    mean = mean(count),
+    sd = sd(count), 
+    min = min(count),
+    max = max(count)
+  )
+
+```
+##we have more participants with low PMS score
+
+`r plot(data$PMSScoreNew)`
+
+
+There are `r ZeroLength` people with low PMS score and `r OneLength` people with high PMS score
+
+The mean age is `r age_mean`
+
+```{r, echo= FALSE}
+
+outliers <- boxplot(data$PSS, plot=FALSE)$out
+
+Q <- quantile(data$PSS, probs= c(.25, .75), na.rm=TRUE)
+
+iqr <-IQR(data$PSS, na.rm=TRUE)
+up <- Q[2]+1.5*iqr
+
+low<- Q[1]-1.5*iqr
+
+
+#data$PSS_without_out<-
+PSS_without_out<- data[-which(data$PSS %in% outliers),]
+
+
+```
+## Outliers
+`r boxplot(data$PSS, main="some PSS Outliers")$out`
+`r outliers`
+
+## Q
+`r Q`
+
+## IQR UP
+`r up`
+
+## IQR LOW
+`r low`
+
+
 The End! 
+
+
+############ Hyptothesen en onderzoeksvragen:
+
+TO DO:
+
+
+TO DO Woensdag:
+
+re-check Anova etc. 
+
+PMS vs noPMS op het gebied van:
+- PSS
+- BSRI
+
+++ Interactie testmoment
+PMS vs noPMS voor:
+- DASS_alle subschalen
+-- Hoeft niet x testmoment
+
+
+------- Voor de stimuli -----------
+Eerste stap:
+- Bekijken Valence en arousal tussen de groepen en testmomenten, over alle stimuli als een geheel
+
+Next:
+- Per stimulus gemiddelden plotten
+-- Om erachter te komen of er coherent geantwoord wordt
+-- Om te zien of ze niet te veel van elkaar afwijken
+--- waarchuwing; ze gaan veel van elkaar afwijken. 
+
+
+Stimuli onderverdelen in negatief, positief en neutral, om daar een subdivisie analyse op te maken
+*noot: iaos images, ze zijn getagged (zoek op om ze te kunnen onderverdelen). 22, gematched (dus bv naald in arm vs naald in been)
+
+---------------- Overig:
+Normgroepen opzoeken voor PSS bij (jonge) vrouwen
+https://www.cambridge.org/core/journals/spanish-journal-of-psychology/article/abs/perceived-stress-scale-pss-normative-data-and-factor-structure-for-a-largescale-sample-in-mexico/752B62D15A932A2D148D04376E949F67
+
+https://bmcpsychiatry.biomedcentral.com/articles/10.1186/s12888-016-0875-9/tables/6
+
+
