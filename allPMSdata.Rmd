@@ -304,15 +304,18 @@ boxplot(data$PSS, main="some PSS Outliers")$out
 outliers <- boxplot(data$PSS, plot=FALSE)$out
 
 Q <- quantile(data$PSS, probs= c(.25, .75), na.rm=TRUE)
+Q
 iqr <-IQR(data$PSS, na.rm=TRUE)
 up <- Q[2]+1.5*iqr
 up
 low<- Q[1]-1.5*iqr
 low
 
-eliminated <- subset(data, data$PSS > Q[1]-1.5$iqr) & data$PSS < (Q[2]+l1.5*iqr)
 
-boxplot(eliminated, main="PSS Outliers")
+#data$PSS_without_out<-
+data[-which(data$PSS %in% outliers),]
+
+
 ```
 
 The End! 
