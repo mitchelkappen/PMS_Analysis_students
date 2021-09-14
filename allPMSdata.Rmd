@@ -159,8 +159,11 @@ After evaluating different linear models, we found that the best fitting model f
 Model: PSS ~ PMSScoreNew*TestMoment + (1|Subject)
 
 
+## Anova test
+
 ``` {r Statistics, echo = FALSE}
-  print(Anova(d0.1)) # Run Anova, double square brackets because of list properties
+Anova(d0.1) 
+# Run Anova, double square brackets because of list properties
 # Analysis of Deviance Table (Type II Wald chisquare tests)
 # 
 # Response: PSS
@@ -171,7 +174,13 @@ Model: PSS ~ PMSScoreNew*TestMoment + (1|Subject)
 # ---
 # Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-  print(emmeans(d0.1, pairwise ~ TestMoment , adjust ="fdr", type="response"))
+
+```
+
+
+## pairwise ~Testmoment emmeans
+```{r echo=FALSE}
+emmeans(d0.1, pairwise ~ TestMoment , adjust ="fdr", type="response")
 #   
 #  TestMoment emmean    SE  df asymp.LCL asymp.UCL
 #           1   30.2 0.142 Inf      30.0      30.5
@@ -188,8 +197,8 @@ Model: PSS ~ PMSScoreNew*TestMoment + (1|Subject)
 # Results are averaged over the levels of: PMSScoreNew 
 # Degrees-of-freedom method: asymptotic 
 
-
 ```
+
 
 ## Plots
 
@@ -264,14 +273,8 @@ This means that people with low PMS scores had more outliers on testmoment 2.
 we might need to remove some of these outliers
 
 
-Some extra pilot plots
-
 
 ```{r, echo=FALSE}
-
-print('we have more participants with low PMS score')
-
-plot(data$PMSScoreNew)
 
 ZeroLength<- length(which(data$PMSScoreNew==0))
 OneLength <-length(which(data$PMSScoreNew==1))
@@ -295,27 +298,44 @@ trial_mean <- trial_count %>%
   )
 
 ```
+##we have more participants with low PMS score
+
+`r plot(data$PMSScoreNew)`
+
+
 There are `r ZeroLength` people with low PMS score and `r OneLength` people with high PMS score
 
 The mean age is `r age_mean`
 
 ```{r, echo= FALSE}
-boxplot(data$PSS, main="some PSS Outliers")$out
+
 outliers <- boxplot(data$PSS, plot=FALSE)$out
 
 Q <- quantile(data$PSS, probs= c(.25, .75), na.rm=TRUE)
-Q
+
 iqr <-IQR(data$PSS, na.rm=TRUE)
 up <- Q[2]+1.5*iqr
-up
+
 low<- Q[1]-1.5*iqr
-low
 
 
 #data$PSS_without_out<-
-data[-which(data$PSS %in% outliers),]
+PSS_without_out<- data[-which(data$PSS %in% outliers),]
 
 
 ```
+## Outliers
+`r boxplot(data$PSS, main="some PSS Outliers")$out`
+`r outliers`
+
+## Q
+`r Q`
+
+## IQR UP
+`r up`
+
+## IQR LOW
+`r low`
+
 
 The End! 
