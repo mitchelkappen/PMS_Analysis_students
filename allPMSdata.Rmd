@@ -54,6 +54,7 @@ library(pander)
 library(hrbrthemes)
 library(viridis)
 library (yarrr)
+library(knitr)
 recode <- dplyr::recode
 # Suppress summarize info
 options(dplyr.summarise.inform = FALSE)
@@ -75,8 +76,8 @@ data <- read.csv("Data/allPMSdata.csv", header=TRUE)
 
 # from wide to long
 #check if subject column is a facctor
-str(data)
-head(data)
+#str(data)
+#head(data)
 # data <-as.numeric(data)
 data$Subject <- factor(data$ID)
 #typeof(data$Subject)
@@ -132,10 +133,26 @@ d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerCo
 
 # Remove the models that produced errors in the line below, the one with the lowest value is the best fitting model
 tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
-utils::View(tabel)
+#show table in html
+kable (tabel, caption = "table showing the different AIC")
+#utils::View(tabel)
 #d0.1 has the lowest AIC. so linear model is the best fitting model
 
 ```
+
+d0.1 <- lmer(Formula,data=data)
+d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+
+d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+
+d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+
+
 After evaluating different linear models, we found that the best fitting model for the data is a simple linear model. 
 
 Model: PSS ~ PMSScoreNew*TestMoment + (1|Subject)
@@ -194,9 +211,9 @@ ggplot(data = data) +
   plotPSS_1 <- pirateplot(
     formula = PSS ~ TestMoment,
     data = data,
-    theme = 1,
+    theme = 3,
     pal = "info",
-    main = PSS ~ PMSScoreNew*TestMoment,
+    main = "PSS ~ Testmoment",
     bean.f.o = .6, # Bean fill
     point.o = .3,  # Points
     inf.f.o = .7,  # Inference fill
@@ -218,21 +235,21 @@ ggplot(data = data) +
     plotPSS_2 <- pirateplot(
     formula = PSS ~ PMSScoreNew:TestMoment,
     data = data,
-    theme = 1,
+    theme = 3,
     pal = "info",
-    main = PSS ~ PMSScoreNew*TestMoment,
+    main = "PSS ~ PMSScoreNew: Testmoment",
     bean.f.o = .6, # Bean fill
     point.o = .3,  # Points
     inf.f.o = .7,  # Inference fill
     inf.b.o = .8,  # Inference border
     avg.line.o = 1,  # Average line
     # bar.f.o = .5, # Bar
-    inf.f.col = "white",  # Inf fill col
+    inf.f.col = "red",  # Inf fill col
     inf.b.col = "black",  # Inf border col
     avg.line.col = "black",  # avg line col
-    bar.f.col = gray(.8),  # bar filling color
+    bar.f.col = grey(.8),  # bar filling color
     point.pch = 21,
-    point.bg = "white",
+    point.bg = "grey",
     point.col = "black",
     point.cex = .7,
    
@@ -240,5 +257,45 @@ ggplot(data = data) +
   )
 
 ```
+
+with PMSScore=0 and testmoment = 2 there seem to be some outliers
+This means that people with low PMS scores had more outliers on testmoment 2. 
+we might need to remove some of these outliers
+
+
+Some extra pilot plots
+
+
+```{r, echo=FALSE}
+
+print('we have more participants with low PMS score')
+
+plot(data$PMSScoreNew)
+
+ZeroLength<- length(which(data$PMSScoreNew==0))
+OneLength <-length(which(data$PMSScoreNew==1))
+
+
+age_mean <- round(mean(data$Age), 1)
+
+summary(data$PSS)
+
+# count for each participants how many trials are left for each PMSScoreNew by PSS
+trial_count <- as.data.frame(table(data$Subject, data$PMSScoreNew, data$PSS))
+names(trial_count) <- c("subject_id", "PMSScore", "PSS", "count")
+
+trial_mean <- trial_count %>%
+  group_by(PMSScore, PSS) %>%
+  summarize(
+    mean = mean(count),
+    sd = sd(count), 
+    min = min(count),
+    max = max(count)
+  )
+
+```
+There are `r ZeroLength` people with low PMS score and `r OneLength` people with high PMS score
+
+The mean age is `r age_mean`
 
 The End! 
