@@ -3,9 +3,11 @@ title: "PMS Study"
 author: "Mitchel Kappen & Sofie Raeymakers"
 date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
 output:
-  html_document: default
-  pdf_document: default
   html_notebook: default
+  pdf_document: default
+  html_document: default
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -189,7 +191,45 @@ for (i in 1){
     
     xlab = "",
   )
-  # abline(lm(formulas[i], data=data), lwd=4, lty=2, col = "red")
+    # abline(lm(formulas[i], data=data), lwd=4, lty=2, col = "red")
+    dpi=600    #pixels per square inch
+    
+  # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
+    par(mfcol = c(1, 1))
+    plotPSS_1 <- pirateplot(
+      formula = formulas[i],
+      data = data,
+      theme = 3,
+      pal = "info",
+      main = plotTitles[i],
+      bean.f.o = .6, # Bean fill
+      point.o = .3,  # Points
+      inf.f.o = .7,  # Inference fill
+      inf.b.o = .8,  # Inference border
+      avg.line.o = 1,  # Average line
+      # bar.f.o = .5, # Bar
+      inf.f.col = "white",  # Inf fill col
+      inf.b.col = "black",  # Inf border col
+      avg.line.col = "black",  # avg line col
+      bar.f.col = gray(.8),  # bar filling color
+      point.pch = 21,
+      point.bg = "white",
+      point.col = "black",
+      point.cex = .7,
+     
+      xlab = "",
+    )
+    
+    # Insert visual indicators of significance
+  x <- 1:2  # capture x coordinates of bars
+  y <- 35  # create the y coordinate of the line
+  offset <- 0.2  # set an offset for tick lengths
+  lines(c(1.2,1.8),c(y, y))  # draw first horizontal line
+  lines(c(1.2,1.2),c(y, y-offset))  # draw ticks
+  lines(c(1.8,1.8),c(y, y-offset))
+  text(x[1]+((x[2]-x[1])/2),y+offset,"***")  # draw asterics
+
+  
 }
 
 ```
@@ -241,28 +281,14 @@ ggplot(data = data) +
   
   # Insert visual indicators of significance
 x <- 1:2  # capture x coordinates of bars
-y <- 42  # create the y coordinate of the line
+y <- 35  # create the y coordinate of the line
 offset <- 0.2  # set an offset for tick lengths
-lines(c(1.05,1.95),c(y, y))  # draw first horizontal line
-lines(c(1.05,1.05),c(y, y-offset))  # draw ticks
-lines(c(1.95,1.95),c(y, y-offset))
+lines(c(1.2,1.8),c(y, y))  # draw first horizontal line
+lines(c(1.2,1.2),c(y, y-offset))  # draw ticks
+lines(c(1.8,1.8),c(y, y-offset))
 text(x[1]+((x[2]-x[1])/2),y+offset,"***")  # draw asterics
 
-#Bar2
-y <- 21
-offset <- 0.2
-lines(c(2.1,2.9),c(y, y))
-lines(c(2.1,2.1),c(y, y-offset))
-lines(c(2.9,2.9),c(y, y-offset))
-text(x[2]+((x[3]-x[2])/2),y+offset,"***")
 
-#Bar3
-y <- 22
-offset <- 0.2
-lines(c(1.1,2.9),c(y, y))
-lines(c(1.1,1.1),c(y, y-offset))
-lines(c(2.9,2.9),c(y, y-offset))
-text(x[1]+((x[3]-x[1])/2),y+offset,"***")
 
 ################################################
   
@@ -369,10 +395,10 @@ The End!
 
 TO DO:
 
--hoe de markdown images doen (want je maakt de pirateplot en voegt er een stuk code aan toe dat de significantie aangeeft. )
--doe beiden
 
 TO DO Woensdag:
+
+re-check Anova etc. 
 
 PMS vs noPMS op het gebied van:
 - PSS
