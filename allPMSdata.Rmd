@@ -298,4 +298,10 @@ There are `r ZeroLength` people with low PMS score and `r OneLength` people with
 
 The mean age is `r age_mean`
 
+```{r, echo= FALSE}
+boxplot(data$PSS, plot=TRUE, main="some PSS Outliers")$out
+outliers <- boxplot(data$PSS, plot=FALSE)$out
+
+```
+
 The End! 
