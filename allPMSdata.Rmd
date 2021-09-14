@@ -5,7 +5,7 @@ date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
 output:
   html_document: default
   pdf_document: default
-  html_notebook
+  # html_notebook: default
 ---
 
 ```{r setup, include=FALSE}
@@ -191,8 +191,6 @@ for (i in 1){
 
 
 
-```
-
 
 ## Plots
 
@@ -367,7 +365,6 @@ The End!
 TO DO:
 
 
--code met for loop voor vergelijken modellen
 -hoe de markdown images doen (want je maakt de pirateplot en voegt er een stuk code aan toe dat de significantie aangeeft. )
 
 
