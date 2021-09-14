@@ -46,6 +46,7 @@ library(dplyr)
 library(car)
 # library(MuMIn)
 library(ggplot2)
+library(ggstatsplot)
 library(ggsignif)
 library(gridExtra)
 library(tidyverse)
@@ -299,9 +300,19 @@ There are `r ZeroLength` people with low PMS score and `r OneLength` people with
 The mean age is `r age_mean`
 
 ```{r, echo= FALSE}
-boxplot(data$PSS, plot=TRUE, main="some PSS Outliers")$out
+boxplot(data$PSS, main="some PSS Outliers")$out
 outliers <- boxplot(data$PSS, plot=FALSE)$out
 
+Q <- quantile(data$PSS, probs= c(.25, .75), na.rm=TRUE)
+iqr <-IQR(data$PSS, na.rm=TRUE)
+up <- Q[2]+1.5*iqr
+up
+low<- Q[1]-1.5*iqr
+low
+
+eliminated <- subset(data, data$PSS > Q[1]-1.5$iqr) & data$PSS < (Q[2]+l1.5*iqr)
+
+boxplot(eliminated, main="PSS Outliers")
 ```
 
 The End! 
