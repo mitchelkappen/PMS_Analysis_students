@@ -52,8 +52,7 @@ library(gridExtra)
 library(tidyverse)
 library(ggeffects)
 library(pander)
-library(hrbrthemes)
-library(viridis)
+# library(viridis)
 library (yarrr)
 library(knitr)
 recode <- dplyr::recode
@@ -64,6 +63,10 @@ count <- dplyr::count
 theme_set(theme_bw())
 # create folder to save figures
 if (!dir.exists("figures")) dir.create("figures")
+
+
+# General settings
+nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
 ```
 
 
@@ -89,7 +92,8 @@ data$Subject <- factor(data$ID)
 #when the order was B-A and the moment is B, this means it is the first test moment
 #and vice versa for A-B and moment A. 
 
-
+# TestMoment 1 == Follicular phase
+# TestMoment 2 == Luteal phase
 data$TestMoment[data$Order == "A-B" & data$Moment == "A"] = 1
 data$TestMoment[data$Order == "B-A" & data$Moment == "A"] = 2
 data$TestMoment[data$Order == "A-B" & data$Moment == "B"] = 2
@@ -98,9 +102,9 @@ data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
 #sum(is.na(data$TestMoment))
 
 # new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1, 
-data$PMSScoreNew[data$PMSScore==0] = 0
-data$PMSScoreNew[data$PMSScore==1] = 1
-data$PMSScoreNew[data$PMSScore==2] = 1
+data$PMSScoreNew[data$PMSScore==0] = 'noPMS'
+data$PMSScoreNew[data$PMSScore==1] = 'PMS'
+data$PMSScoreNew[data$PMSScore==2] = 'PMS'
 #sum(is.na(data$PMSScoreNew))
 
 
@@ -110,34 +114,36 @@ data$PMSScoreNew[data$PMSScore==2] = 1
 data$PMSScore <- factor(data$PMSScore)
 data$PMSScoreNew <- factor(data$PMSScoreNew)
 
-data$Moment <- factor(data$TestMoment)
+data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 now
 
 # Exclude data?
-
+dataBig = data # Saved all the data here
+data = data[, -which(names(data) == "X" | names(data) == "Stimulus" | names(data) == "Valence" | names(data) == "Arousal" | names(data) == "rt")]
+data = distinct(data)
 
 # Define the formula for the model & check which model fits the data best
 Formula <- PSS ~ PMSScoreNew*TestMoment + (1|Subject)
 
 
 d0.1 <- lmer(Formula,data=data)
-d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
 
-d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
 
-d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
-d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
 
 
 # Remove the models that produced errors in the line below, the one with the lowest value is the best fitting model
 tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
 #show table in html
 kable (tabel, caption = "table showing the different AIC")
-#utils::View(tabel)
-#d0.1 has the lowest AIC. so linear model is the best fitting model
+# utils::View(tabel)
+# d0.1 has the lowest AIC. so linear model is the best fitting model
 
 ```
 
@@ -154,7 +160,7 @@ d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glm
 d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
 
 
-After evaluating different linear models, we found that the best fitting model for the data is a simple linear model. 
+After evaluating different linear models, we found that the best fitting model for the data is d0.4. 
 
 Model: PSS ~ PMSScoreNew*TestMoment + (1|Subject)
 
@@ -162,7 +168,7 @@ Model: PSS ~ PMSScoreNew*TestMoment + (1|Subject)
 ## Anova test
 
 ``` {r Statistics, echo = FALSE}
-Anova(d0.1) 
+Anova(d0.4) 
 # Run Anova, double square brackets because of list properties
 # Analysis of Deviance Table (Type II Wald chisquare tests)
 # 
@@ -180,7 +186,7 @@ Anova(d0.1)
 
 ## Least Square Test, estimated Marg Means
 ```{r echo=FALSE}
-emmeans(d0.1, pairwise ~ TestMoment , adjust ="fdr", type="response")
+emmeans(d0.1, pairwise ~ TestMoment*PMSScoreNew , adjust ="fdr", type="response")
 #   
 #  TestMoment emmean    SE  df asymp.LCL asymp.UCL
 #           1   30.2 0.142 Inf      30.0      30.5
@@ -242,8 +248,35 @@ ggplot(data = data) +
     xlab = "",
   )
   
-    plotPSS_2 <- pirateplot(
-    formula = PSS ~ PMSScoreNew:TestMoment,
+  # Insert visual indicators of significance
+x <- 1:2  # capture x coordinates of bars
+y <- 42  # create the y coordinate of the line
+offset <- 0.2  # set an offset for tick lengths
+lines(c(1.05,1.95),c(y, y))  # draw first horizontal line
+lines(c(1.05,1.05),c(y, y-offset))  # draw ticks
+lines(c(1.95,1.95),c(y, y-offset))
+text(x[1]+((x[2]-x[1])/2),y+offset,"***")  # draw asterics
+
+#Bar2
+y <- 21
+offset <- 0.2
+lines(c(2.1,2.9),c(y, y))
+lines(c(2.1,2.1),c(y, y-offset))
+lines(c(2.9,2.9),c(y, y-offset))
+text(x[2]+((x[3]-x[2])/2),y+offset,"***")
+
+#Bar3
+y <- 22
+offset <- 0.2
+lines(c(1.1,2.9),c(y, y))
+lines(c(1.1,1.1),c(y, y-offset))
+lines(c(2.9,2.9),c(y, y-offset))
+text(x[1]+((x[3]-x[1])/2),y+offset,"***")
+
+################################################
+  
+  plotPSS_2 <- pirateplot(
+    formula = PSS ~ PMSScoreNew*TestMoment,
     data = data,
     theme = 3,
     pal = "info",
@@ -276,8 +309,8 @@ we might need to remove some of these outliers
 
 ```{r, echo=FALSE}
 
-ZeroLength<- length(which(data$PMSScoreNew==0))
-OneLength <-length(which(data$PMSScoreNew==1))
+ZeroLength<- length(which(data$PMSScoreNew=='noPMS'))
+OneLength <-length(which(data$PMSScoreNew=='PMS'))
 
 
 age_mean <- round(mean(data$Age), 1)
@@ -339,3 +372,37 @@ PSS_without_out<- data[-which(data$PSS %in% outliers),]
 
 
 The End! 
+
+
+############ Hyptothesen en onderzoeksvragen:
+
+Exclude everyone who uses the pill
+- Only take participants with contraception == "Natural"
+
+PMS vs noPMS op het gebied van:
+- PSS
+- BSRI
+
+++ Interactie testmoment
+PMS vs noPMS voor:
+- DASS_alle subschalen
+-- Hoeft niet x testmoment
+
+
+------- Voor de stimuli -----------
+Eerste stap:
+- Bekijken Valence en arousal tussen de groepen en testmomenten, over alle stimuli als een geheel
+
+Next:
+- Per stimulus gemiddelden plotten
+-- Om erachter te komen of er coherent geantwoord wordt
+-- Om te zien of ze niet te veel van elkaar afwijken
+--- waarchuwing; ze gaan veel van elkaar afwijken. 
+
+Stimuli onderverdelen in negatiev, positief en neutral, om daar een subdivisie analyse op te maken
+
+---------------- Overig:
+Normgroepen opzoeken voor PSS bij (jonge) vrouwen
+
+
+
