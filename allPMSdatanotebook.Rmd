@@ -3,6 +3,8 @@ title: "PMS Study"
 author: "Mitchel Kappen & Sofie Raeymakers"
 date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
 output: html_notebook
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
