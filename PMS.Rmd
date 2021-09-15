@@ -139,35 +139,44 @@ data_temp <- data #to get back to
 
 
 selectInput("formula_choice", label="Which Formula:",
-            choices= c('PSS ~ PMSScoreNew*TestMoment'),
-            selected='PSS ~ PMSScoreNew*TestMoment')
+            choices= c('PSS ~ TestMoment'),
+            selected='PSS ~ TestMoment')
 
+```
+## Now we get a plot!
 
-  # renderPlot({
-  #   pirateplot(
-  #     formula= formula_choice,
-  #     data= data,
-  #         theme = 1,
-  #     pal = "info",
-  #     main = formula_choice,
-  #     bean.f.o = .6, # Bean fill
-  #     point.o = .3,  # Points
-  #     inf.f.o = .7,  # Inference fill
-  #     inf.b.o = .8,  # Inference border
-  #     avg.line.o = 1,  # Average line
-  #     # bar.f.o = .5, # Bar
-  #     inf.f.col = "white",  # Inf fill col
-  #     inf.b.col = "black",  # Inf border col
-  #     avg.line.col = "black",  # avg line col
-  #     bar.f.col = gray(.8),  # bar filling color
-  #     point.pch = 21,
-  #     point.bg = "white",
-  #     point.col = "black",
-  #     point.cex = .7,
-  #     
-  #     xlab = "",
-  #     )
-  #   })
+```{r echo=FALSE}
+
+renderPrint(input$formula_choice)
+  # Plotting
+  dpi=600    #pixels per square inch
+  # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
+  par(mfcol = c(1, 1))
+  
+renderPlot({
+  pirateplot(
+    formula= input$formula_choice,
+    data=data,
+    theme= 1,
+    pal= "info",
+    main= "This is our formula!",
+    bean.f.o = .6, # Bean fill
+    point.o = .3,  # Points
+    inf.f.o = .7,  # Inference fill
+    inf.b.o = .8,  # Inference border
+    avg.line.o = 1,  # Average line
+    bar.f.o = .5, # Bar
+    inf.f.col = "white",  # Inf fill col
+    inf.b.col = "black",  # Inf border col
+    avg.line.col = "black",  # avg line col
+    bar.f.col = gray(.8),  # bar filling color
+    point.pch = 21,
+    point.bg = "white",
+    point.col = "black",
+    point.cex = .7,
+    xlab="",
+  )
+})
 
 ```
 
