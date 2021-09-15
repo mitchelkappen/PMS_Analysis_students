@@ -54,7 +54,7 @@ if (!dir.exists("figures")) dir.create("figures")
 
 # General settings
 nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
-```
+
 
 
 
@@ -105,8 +105,8 @@ data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 
 
 # Exclude data?
 dataBig = data # Saved all the data here
-data_uniq = data[, -which(names(data) == "X" | names(data) == "Stimulus" | names(data) == "Valence" | names(data) == "Arousal" | names(data) == "rt")]
-data = distinct(data_uniq)
+data = data[, -which(names(data) == "X" | names(data) == "Stimulus" | names(data) == "Valence" | names(data) == "Arousal" | names(data) == "rt")]
+data = distinct(data)
 
 # exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
 data<-subset(data_uniq, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor.Coil")
@@ -241,7 +241,7 @@ for (i in 1){
   
 }
 
-```
+
 
 
 
