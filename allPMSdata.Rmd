@@ -2,12 +2,17 @@
 title: "PMS Study"
 author: "Mitchel Kappen & Sofie Raeymakers"
 date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
-output: html_notebook
+runtime: shiny
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+### Here are two Shiny widgets
+
+
 
 ## PMS Study
 
@@ -128,6 +133,8 @@ data = distinct(data)
 # exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
 data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor.Coil")
 
+data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
+
 # Define the formula for the model & check which model fits the data best
 formulas = c('PSS ~ PMSScoreNew*TestMoment') # important! after the ~should be the same every time
 
@@ -163,6 +170,7 @@ for (i in 1){
   Anova(chosenModel[[1]])
   
   emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment , adjust ="fdr", type="response")
+
 
   
     # Plotting
@@ -229,7 +237,7 @@ for (i in 1){
   lines(c(1.2,1.2),c(y, y-offset))  # draw ticks
   lines(c(1.8,1.8),c(y, y-offset))
   text(x[1]+((x[2]-x[1])/2),y+offset,"***")  # draw asterics
-
+  
   
 }
 
@@ -400,7 +408,7 @@ TO DO:
 zodat je for loop kan aanpassen: for i in 1, for i in 2 etc.  
 -par functie: plotjes naast elkaar
 
-re-check Anova etc. 
+summary() voor Anova functie? 
 
 -Mitchel Raincloud plots
 
