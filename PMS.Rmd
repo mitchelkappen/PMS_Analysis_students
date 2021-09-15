@@ -139,7 +139,7 @@ data_temp <- data #to get back to
 
 
 selectInput("formula_choice", label="Which Formula:",
-            choices= c('PSS ~ TestMoment'),
+            choices= c('PSS ~ TestMoment', 'BSRI ~ TestMoment', 'PSS~PMSScoreNew*TestMoment'),
             selected='PSS ~ TestMoment')
 
 ```
@@ -159,7 +159,7 @@ renderPlot({
     data=data,
     theme= 1,
     pal= "info",
-    main= "This is our formula!",
+    main= input$formula_choice,
     bean.f.o = .6, # Bean fill
     point.o = .3,  # Points
     inf.f.o = .7,  # Inference fill
