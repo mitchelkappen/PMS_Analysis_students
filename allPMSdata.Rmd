@@ -2,12 +2,7 @@
 title: "PMS Study"
 author: "Mitchel Kappen & Sofie Raeymakers"
 date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
-output:
-  html_notebook: default
-  pdf_document: default
-  html_document: default
-editor_options: 
-  chunk_output_type: inline
+output: html_notebook
 ---
 
 ```{r setup, include=FALSE}
@@ -71,6 +66,12 @@ if (!dir.exists("figures")) dir.create("figures")
 # General settings
 nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
 ```
+
+
+
+
+
+
 
 
 ```{r load-data, echo=FALSE, results='asis'}
@@ -167,7 +168,7 @@ for (i in 1){
     # Plotting
   dpi=600    #pixels per square inch
   # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
-  par(mfcol = c(1, 1))
+  par(mfcol = c(1, 2))
   plot <- pirateplot(
     formula = formulas[i],
     data = data,
@@ -195,7 +196,7 @@ for (i in 1){
     dpi=600    #pixels per square inch
     
   # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
-    par(mfcol = c(1, 1))
+    par(mfcol = c(2, 2))
     plotPSS_1 <- pirateplot(
       formula = formulas[i],
       data = data,
@@ -395,10 +396,14 @@ The End!
 
 TO DO:
 
-
-TO DO Woensdag:
+-Rmarkdown probeer interactieve code te maken (simpeler apart bestandje)
+zodat je for loop kan aanpassen: for i in 1, for i in 2 etc.  
+-par functie: plotjes naast elkaar
 
 re-check Anova etc. 
+
+-Mitchel Raincloud plots
+
 
 PMS vs noPMS op het gebied van:
 - PSS
