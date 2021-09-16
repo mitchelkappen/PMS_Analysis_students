@@ -126,6 +126,7 @@ data_temp <- data #to get back to
 ```{r echo=FALSE}
 library(shiny)
 
+
 ui<- fluidPage( # makes the User Interface
   sidebarPanel(
     selectInput("formula_choice", label="Choose a Formula:",
@@ -143,6 +144,8 @@ ui<- fluidPage( # makes the User Interface
 )
 
 server <- function (input, output){ #we have to add this to the server
+  
+  
   output$pirateplot<- renderPlot({ 
       dpi=600    #pixels per square inch
     # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
@@ -198,6 +201,7 @@ server <- function (input, output){ #we have to add this to the server
      # chosenModel = modelNames[which(tabel == min(tabel))]
   })
   
+  
   output$Anova <- renderPrint({
         Formula <- paste0(input$formula_choice, ' + (1|Subject)')
     d0.1 <- lmer(Formula,data=data)
@@ -238,10 +242,36 @@ server <- function (input, output){ #we have to add this to the server
     modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
     tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
     chosenModel = modelNames[which(tabel == min(tabel))]
-    Pairw <- input$formula_choice
-    Pairw <- regmatches(Pairw, gregexpr("(?>=~).*",Pairw, perl=TRUE))
-     #gsub(".*~", "", Pairw)
-    print(emmeans(chosenModel[[1]], pairwise ~ Pairw , adjust ="fdr", type="response"))
+    
+    # cat(sprintf("\n %s ~TestMoment\n", gsub("~.*","",input$formula_choice)))
+    # Emm <- emmeans(chosenModel[[1]], pairwise ~  TestMoment, adjust ="fdr", type="response")
+    # print(Emm)
+    # 
+    cat(sprintf("\n formula: %s\n", input$formula_choice))
+    
+    # check <- function (x){
+    #   if (gsub(".*~", "", x)=="~TestMoment"){
+    #   result <- TestMoment}
+    # if (gsub(".*~", "", x)=="~PMSScoreNew*TestMoment"){
+    #   result <- PMSScoreNew*TestMoment}
+    # 
+    
+    if ((grepl("PMS", input$formula_choice)==FALSE)){
+      cat(sprintf("\n~ TestMoment\n"))
+      Emm <- emmeans(chosenModel[[1]], pairwise ~ TestMoment, adjust ="fdr", type="response")
+      print(Emm)
+    }
+
+    
+    if (grepl("PMS", input$formula_choice)){
+      cat(sprintf("\n~ PMS*TestMoment\n"))
+      Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment, adjust ="fdr", type="response")
+      print(Emm)
+    }
+    
+
+
+
 
   })
 }
