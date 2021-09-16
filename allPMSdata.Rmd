@@ -243,7 +243,7 @@ for (i in 1){
 
 ```
 
-
+The results for this model are `r Anova(d.03)`
 
 
 ## Plots
@@ -400,19 +400,21 @@ PSS_without_out<- data[-which(data$PSS %in% outliers),]
 The End! 
 
 
-############ Hyptothesen en onderzoeksvragen:
-
 TO DO:
 
+Stappen
+-R markdown maak interactieve code met par functie plotjes naast elkaar in PMS.Rmd
+-dan: R markdown maak dat het juiste model selecteert en tabel toont
+-dan: R markdown met shiny maak dat het anova en emmeans toont
+-dan: significantie op de afbeeldingen tonen? (dit gaat hacky zijn om te programmeren)
 -Rmarkdown probeer interactieve code te maken (simpeler apart bestandje)
-zodat je for loop kan aanpassen: for i in 1, for i in 2 etc.  
--par functie: plotjes naast elkaar
+
 
 summary() voor Anova functie? 
+-Mitchel Raincloud plots?
 
--Mitchel Raincloud plots
 
-
+############ Hyptothesen en onderzoeksvragen:
 PMS vs noPMS op het gebied van:
 - PSS
 - BSRI
