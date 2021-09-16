@@ -248,5 +248,50 @@ shinyApp(ui=ui, server=server)
 
 ```
 
+TO DO:
+
+
+-raincoud plots
+-dan: R markdown met shiny maak dat het emmeans toont
+-dan: significantie op de afbeeldingen tonen? (dit gaat hacky zijn om te programmeren)
+
+TO DO Vr:
+-verderwerken hypotheses (zie hieronder)
+
+
+
+
+############ Hyptothesen en onderzoeksvragen:
+PMS vs noPMS op het gebied van:
+- PSS
+- BSRI
+
+++ Interactie testmoment
+
+PMS vs noPMS voor:
+- DASS_alle subschalen
+-- Hoeft niet x testmoment
+
+
+------- Voor de stimuli -----------
+Eerste stap:
+- Bekijken Valence en arousal tussen de groepen en testmomenten, over alle stimuli als een geheel
+
+Next:
+- Per stimulus gemiddelden plotten
+-- Om erachter te komen of er coherent geantwoord wordt
+-- Om te zien of ze niet te veel van elkaar afwijken
+--- waarchuwing; ze gaan veel van elkaar afwijken. 
+
+
+Stimuli onderverdelen in negatief, positief en neutral, om daar een subdivisie analyse op te maken
+*noot: iaos images, ze zijn getagged (zoek op om ze te kunnen onderverdelen). 22, gematched (dus bv naald in arm vs naald in been)
+
+---------------- Overig:
+Normgroepen opzoeken voor PSS bij (jonge) vrouwen
+https://www.cambridge.org/core/journals/spanish-journal-of-psychology/article/abs/perceived-stress-scale-pss-normative-data-and-factor-structure-for-a-largescale-sample-in-mexico/752B62D15A932A2D148D04376E949F67
+
+https://bmcpsychiatry.biomedcentral.com/articles/10.1186/s12888-016-0875-9/tables/6
+
 
 
