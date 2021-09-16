@@ -152,7 +152,8 @@ selectInput("formula_choice", label="Which Formula:",
 
 mainPanel(
    tabsetPanel(type = "tab",
-                tabPanel("Model", verbatimTextOutput("AD"))
+                tabPanel("Model", verbatimTextOutput("AD")),
+               tabPanel("Visualization", plotOutput("VP"))
        )
 )
 
