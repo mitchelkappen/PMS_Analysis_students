@@ -129,14 +129,15 @@ library(shiny)
 ui<- fluidPage( # makes the User Interface
   sidebarPanel(
     selectInput("formula_choice", label="Choose a Formula:",
-            choices= c('PSS ~ TestMoment', 'BSRI ~ TestMoment', 'PSS~PMSScoreNew*TestMoment'),
+            choices= c('PSS ~ TestMoment', 'BSRI ~ TestMoment', 'PSS~ PMSScoreNew*TestMoment'),
             selected='PSS ~ TestMoment'), # puts the choices in the first element which is accessed via input$formula_choice
   ),
   mainPanel(
      tabsetPanel(type = "tab",
                   tabPanel("visualisation", plotOutput("pirateplot")),
                  tabPanel("AIC table", tableOutput("table")),
-                 tabPanel("Anova", verbatimTextOutput("Anova"))
+                 tabPanel("Anova", verbatimTextOutput("Anova")),
+                 tabPanel("emmeans",verbatimTextOutput("emmeans"))
          )
   )
   # plotOutput(outputId="pirateplot"),
@@ -214,7 +215,34 @@ server <- function (input, output){ #we have to add this to the server
      print(summary(Anova_1))
 
   })
+  
+  output$emmeans <- renderPrint({
+            Formula <- paste0(input$formula_choice, ' + (1|Subject)')
+    d0.1 <- lmer(Formula,data=data)
+    d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+    d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+    d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+    modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
+    tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+     chosenModel = modelNames[which(tabel == min(tabel))]
+     Pairw <- input$formula_choice
+     Pairw <- regmatches(Pairw, gregexpr("(?>=~).*",Pairw, perl=TRUE))
+     #gsub(".*~", "", Pairw)
+     print(emmeans(chosenModel[[1]], pairwise ~ Pairw , adjust ="fdr", type="response"))
+    
+  })
 }
+
+
+
 
 shinyApp(ui=ui, server=server)
 
