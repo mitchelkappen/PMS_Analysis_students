@@ -287,8 +287,8 @@ TO DO:
 
 
 -raincoud plots
--dan: R markdown met shiny maak dat het emmeans toont
 -dan: significantie op de afbeeldingen tonen? (dit gaat hacky zijn om te programmeren)
+https://stackoverflow.com/questions/17084566/put-stars-on-ggplot-barplots-and-boxplots-to-indicate-the-level-of-significanc
 
 TO DO Vr:
 -add info in file over PMS en welke databewerkingen je hebt gedaan
