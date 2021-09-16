@@ -33,10 +33,16 @@ library(ggstatsplot)
 library(ggsignif)
 library(ggformula)
 library(ggdist)
+library(raincloudplots)
 library(gridExtra)
 library(tidyverse)
 library(ggeffects)
 library(pander)
+
+
+library(cowplot)
+library(readr)
+
 # library(viridis)
 library (yarrr)
 library(knitr)
@@ -177,8 +183,38 @@ server <- function (input, output){ #we have to add this to the server
     )
 
   })
+
+  #https://wellcomeopenresearch.org/articles/4-63
   
-  output$raincloud <- renderPlot({ggplot(data, aes(x= data$PSS, y=data$TestMoment)) })
+  output$raincloud <- renderPlot({
+    # width and height variables for saved plots
+    w = 6
+    h = 3
+    geom_flat_violin <- function(mapping = NULL, data = NULL, stat = "ydensity",
+                                 position = "dodge", trim = TRUE, scale = "area",
+                                 show.legend = NA, inherit.aes = TRUE, ...) {
+      layer(
+      data = data,
+      mapping = mapping,
+      stat = stat,
+      geom = GeomFlatViolin,
+      position = position,
+      show.legend = show.legend,
+      inherit.aes = inherit.aes,
+      params = list(
+        trim = trim,
+        scale = scale,
+        ...
+     )
+    )
+  }
+    p1 <- ggplot(data, aes(x = PMSScoreNew, y = PSS))+
+      geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
+      geom_point(position=position_jitter(width=.15), size=.25)+
+      ylab('PSS')+xlab('PMSScoreNew')+theme_cowplot()+
+      ggtitle("basic Rainclouds")
+    p1
+  })
 
   output$table <- renderTable ({
     Formula <- paste0(input$formula_choice, ' + (1|Subject)')
