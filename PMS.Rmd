@@ -110,7 +110,7 @@ data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 
 # Exclude data?
 dataBig = data # Saved all the data here
 data = data[, -which(names(data) == "X" | names(data) == "Stimulus" | names(data) == "Valence" | names(data) == "Arousal" | names(data) == "rt")]
-data = distinct(data)
+data= distinct(data)
 
 # exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
 data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor.Coil")
@@ -150,7 +150,7 @@ data_temp <- data #to get back to
 ```{r echo=FALSE}
 
 ```
-## 
+
 
 
 
@@ -207,7 +207,7 @@ server <- function (input, output){ #we have to add this to the server
 
   })
 
-  #https://wellcomeopenresearch.org/articles/4-63
+  #https://wellcomeopenresearch.org/articles/4-63   some info on rainclouds
   
   output$raincloud <- renderPlot({
       p1 <- ggplot(data, aes(x = PMSScoreNew, y = PSS, fill=PMSScoreNew))+
@@ -216,7 +216,7 @@ server <- function (input, output){ #we have to add this to the server
         ylab('PSS')+xlab('PMSScoreNew')+coord_flip()+theme_cowplot()+
         theme(legend.position="none")+
         guides(fill=FALSE)+
-        ggtitle("effect PMS on PSS")
+        ggtitle("distribution PSS in PMS vs no PMS")
       
       p2 <- ggplot(data, aes(x = PMSScoreNew, y = BSRI, fill=PMSScoreNew))+
         geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
@@ -224,7 +224,7 @@ server <- function (input, output){ #we have to add this to the server
         ylab('BSRI')+xlab('PMSScoreNew')+coord_flip()+theme_cowplot()+
         theme(legend.position="none")+
         guides(fill=FALSE)+
-        ggtitle("effect PMS on BSRI")
+        ggtitle("distribution BSRI in PMS vs no PMS")
       gridExtra::grid.arrange(p1, p2, ncol=1)
   })
 
@@ -329,16 +329,12 @@ shinyApp(ui=ui, server=server)
 
 ```
 
+
+
+
 TO DO:
 
-
--raincoud plots
--dan: significantie op de afbeeldingen tonen? (dit gaat hacky zijn om te programmeren)
-https://stackoverflow.com/questions/17084566/put-stars-on-ggplot-barplots-and-boxplots-to-indicate-the-level-of-significanc
-
-
 -add info in file over PMS en welke databewerkingen je hebt gedaan
--verderwerken hypotheses (zie hieronder)
 
 
 
