@@ -31,6 +31,8 @@ library(car)
 library(ggplot2)
 library(ggstatsplot)
 library(ggsignif)
+library(ggformula)
+library(ggdist)
 library(gridExtra)
 library(tidyverse)
 library(ggeffects)
@@ -135,7 +137,8 @@ ui<- fluidPage( # makes the User Interface
   ),
   mainPanel(
      tabsetPanel(type = "tab",
-                  tabPanel("visualisation", plotOutput("pirateplot")),
+                  tabPanel("pirateplot", plotOutput("pirateplot")),
+                 tabPanel("raincloud", plotOutput("raincloud")),
                  tabPanel("AIC table", tableOutput("table")),
                  tabPanel("Anova", verbatimTextOutput("Anova")),
                  tabPanel("emmeans",verbatimTextOutput("emmeans"))
@@ -172,16 +175,11 @@ server <- function (input, output){ #we have to add this to the server
       point.cex = .7,
       xlab="",
     )
-            # Insert visual indicators of significance
-    x <- 1:2  # capture x coordinates of bars
-    y <- 35  # create the y coordinate of the line
-    offset <- 0.2  # set an offset for tick lengths
-    lines(c(1.2,1.8),c(y, y))  # draw first horizontal line
-    lines(c(1.2,1.2),c(y, y-offset))  # draw ticks
-    lines(c(1.8,1.8),c(y, y-offset))
-    text(x[1]+((x[2]-x[1])/2),y+offset,"***")  # draw asterics
+
   })
   
+  output$raincloud <- renderPlot({ggplot(data, aes(x= data$PSS, y=data$TestMoment)) })
+
   output$table <- renderTable ({
     Formula <- paste0(input$formula_choice, ' + (1|Subject)')
     d0.1 <- lmer(Formula,data=data)
@@ -290,7 +288,7 @@ TO DO:
 -dan: significantie op de afbeeldingen tonen? (dit gaat hacky zijn om te programmeren)
 https://stackoverflow.com/questions/17084566/put-stars-on-ggplot-barplots-and-boxplots-to-indicate-the-level-of-significanc
 
-TO DO Vr:
+
 -add info in file over PMS en welke databewerkingen je hebt gedaan
 -verderwerken hypotheses (zie hieronder)
 
