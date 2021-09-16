@@ -140,9 +140,6 @@ ui<- fluidPage( # makes the User Interface
                  tabPanel("emmeans",verbatimTextOutput("emmeans"))
          )
   )
-  # plotOutput(outputId="pirateplot"),
-  # tableOutput(outputId="table"),
-  # verbatimTextOutput(outputId="Anova")
 )
 
 server <- function (input, output){ #we have to add this to the server
@@ -172,6 +169,14 @@ server <- function (input, output){ #we have to add this to the server
       point.cex = .7,
       xlab="",
     )
+            # Insert visual indicators of significance
+    x <- 1:2  # capture x coordinates of bars
+    y <- 35  # create the y coordinate of the line
+    offset <- 0.2  # set an offset for tick lengths
+    lines(c(1.2,1.8),c(y, y))  # draw first horizontal line
+    lines(c(1.2,1.2),c(y, y-offset))  # draw ticks
+    lines(c(1.8,1.8),c(y, y-offset))
+    text(x[1]+((x[2]-x[1])/2),y+offset,"***")  # draw asterics
   })
   
   output$table <- renderTable ({
@@ -221,23 +226,23 @@ server <- function (input, output){ #we have to add this to the server
     d0.1 <- lmer(Formula,data=data)
     d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
     d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  
+
     d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
     d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
     d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  
+
     d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
     d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
     d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  
+
     modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
     tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
-     chosenModel = modelNames[which(tabel == min(tabel))]
-     Pairw <- input$formula_choice
-     Pairw <- regmatches(Pairw, gregexpr("(?>=~).*",Pairw, perl=TRUE))
+    chosenModel = modelNames[which(tabel == min(tabel))]
+    Pairw <- input$formula_choice
+    Pairw <- regmatches(Pairw, gregexpr("(?>=~).*",Pairw, perl=TRUE))
      #gsub(".*~", "", Pairw)
-     print(emmeans(chosenModel[[1]], pairwise ~ Pairw , adjust ="fdr", type="response"))
-    
+    print(emmeans(chosenModel[[1]], pairwise ~ Pairw , adjust ="fdr", type="response"))
+
   })
 }
 
@@ -256,6 +261,7 @@ TO DO:
 -dan: significantie op de afbeeldingen tonen? (dit gaat hacky zijn om te programmeren)
 
 TO DO Vr:
+-add info in file over PMS en welke databewerkingen je hebt gedaan
 -verderwerken hypotheses (zie hieronder)
 
 
