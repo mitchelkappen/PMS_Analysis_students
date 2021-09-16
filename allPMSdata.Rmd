@@ -146,6 +146,7 @@ data_temp <- data #to get back to
 for (i in 1){
 
   Formula <- paste0(formulas[i], ' + (1|Subject)')
+  # Formula <- paste0(PSS~PMSScoreNew*TestMoment, ' + (1|Subject)')
   d0.1 <- lmer(Formula,data=data)
   d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
   d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
@@ -169,7 +170,9 @@ for (i in 1){
   
   Anova(chosenModel[[1]])
   
-  emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment , adjust ="fdr", type="response")
+  gsub(".*~", "", formulas[i])
+  
+  emmeans(chosenModel[[1]], pairwise ~ TestMoment , adjust ="fdr", type="response")
 
 
   
