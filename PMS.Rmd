@@ -1,0 +1,244 @@
+---
+title: "PMS Study"
+author: "Mitchel Kappen & Sofie Raeymakers"
+date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## PMS Study
+
+This is the data processing html for the PMS study
+
+```{r libraries, include = FALSE}
+# we will first write some pseudocode to describe what we want to do
+#upload files
+#find best linear model to represent data with AI
+
+#     PSS ~ PMSScore*Moment + (1|Subject)
+# 
+#     PSS deppendent variablle
+#     pMS = 1 geen PMS
+#     keer moment: moment v afname
+#     1 out of subject: random effect toevoegen
+#     straks factoren vd PMS score en van moment: hoeveel levels? 
+#       formules van doen
+#     laten weten welke formule beste
+#     
+
+    
+#### Settings & Packages #### -----------------------------------------------------
+rm(list = ls())
+options(contrasts = c("contr.sum","contr.poly")) #use this for the p value of the t test
+library(lme4)
+library(lmerTest)
+library(effects)
+library(dplyr)
+library(car)
+library(emmeans)
+library(fitdistrplus)
+library(dplyr)
+library(car)
+# library(MuMIn)
+library(ggplot2)
+library(ggsignif)
+library(gridExtra)
+library(tidyverse)
+library(ggeffects)
+library(pander)
+library(hrbrthemes)
+library(viridis)
+library (yarrr)
+recode <- dplyr::recode
+# Suppress summarize info
+options(dplyr.summarise.inform = FALSE)
+count <- dplyr::count 
+# set the theme to theme_bw for all ggplot2 figures
+theme_set(theme_bw())
+# create folder to save figures
+if (!dir.exists("figures")) dir.create("figures")
+```
+
+
+```{r load-data, echo=FALSE}
+#### IMPORT DATA & INSPECTION #### -------------------------------------------------------------
+knitr::opts_knit$set(root.dir = dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
+# setwd("C:\Users\ASUSTeK\OneDrive\2021-2022\internship\projects")
+data <- read.csv("Data/allPMSdata.csv", header=TRUE)
+# data <- read.table("Data/allPMSdata.csv",sep="\t", header=TRUE)
+
+
+# from wide to long
+#check if subject column is a facctor
+str(data)
+head(data)
+# data <-as.numeric(data)
+data$Subject <- factor(data$ID)
+#typeof(data$Subject)
+
+
+#we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
+#These moments were counterbalanced
+#when the order was B-A and the moment is B, this means it is the first test moment
+#and vice versa for A-B and moment A. 
+
+
+data$TestMoment[data$Order == "A-B" & data$Moment == "A"] = 1
+data$TestMoment[data$Order == "B-A" & data$Moment == "A"] = 2
+data$TestMoment[data$Order == "A-B" & data$Moment == "B"] = 2
+data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
+#check if there are still values missing (NA)
+#sum(is.na(data$TestMoment))
+
+# new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1, 
+data$PMSScoreNew[data$PMSScore==0] = 0
+data$PMSScoreNew[data$PMSScore==1] = 1
+data$PMSScoreNew[data$PMSScore==2] = 1
+#sum(is.na(data$PMSScoreNew))
+
+
+# Check whether R recognizes the variable types correctly
+#we make factors of the independable variables
+
+data$PMSScore <- factor(data$PMSScore)
+data$PMSScoreNew <- factor(data$PMSScoreNew)
+
+data$Moment <- factor(data$TestMoment)
+
+# Exclude data?
+
+
+# Define the formula for the model & check which model fits the data best
+Formula <- PSS ~ PMSScoreNew*TestMoment + (1|Subject)
+
+
+d0.1 <- lmer(Formula,data=data)
+d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+
+d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+
+d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=0)
+
+
+# Remove the models that produced errors in the line below, the one with the lowest value is the best fitting model
+tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+utils::View(tabel)
+#d0.1 has the lowest AIC. so linear model is the best fitting model
+
+```
+After evaluating different linear models, we found that the best fitting model for the data is a simple linear model. 
+
+Model: PSS ~ PMSScoreNew*TestMoment + (1|Subject)
+
+
+``` {r Statistics, echo = FALSE}
+  print(Anova(d0.1)) # Run Anova, double square brackets because of list properties
+# Analysis of Deviance Table (Type II Wald chisquare tests)
+# 
+# Response: PSS
+#                          Chisq Df Pr(>Chisq)    
+# PMSScoreNew             17.199  1  3.367e-05 ***
+# TestMoment             245.477  1  < 2.2e-16 ***
+# PMSScoreNew:TestMoment 130.346  1  < 2.2e-16 ***
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+  print(emmeans(d0.1, pairwise ~ TestMoment , adjust ="fdr", type="response"))
+#   
+#  TestMoment emmean    SE  df asymp.LCL asymp.UCL
+#           1   30.2 0.142 Inf      30.0      30.5
+#           2   29.8 0.143 Inf      29.5      30.1
+# 
+# Results are averaged over the levels of: PMSScoreNew 
+# Degrees-of-freedom method: asymptotic 
+# Confidence level used: 0.95 
+# 
+# $contrasts
+#  contrast estimate     SE  df z.ratio p.value
+#  1 - 2       0.429 0.0326 Inf  13.146  <.0001
+# 
+# Results are averaged over the levels of: PMSScoreNew 
+# Degrees-of-freedom method: asymptotic 
+
+
+```
+
+## Plots
+
+Here are some plots:
+
+```{r Plots, echo=FALSE}
+
+
+
+ggplot(data = data) + 
+  geom_bar(mapping = aes(x = PSS))
+
+##PIRATE PLOT:
+
+# Plotting
+  dpi=600    #pixels per square inch
+  
+# jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
+  par(mfcol = c(1, 1))
+  plotPSS_1 <- pirateplot(
+    formula = PSS ~ TestMoment,
+    data = data,
+    theme = 1,
+    pal = "info",
+    main = PSS ~ PMSScoreNew*TestMoment,
+    bean.f.o = .6, # Bean fill
+    point.o = .3,  # Points
+    inf.f.o = .7,  # Inference fill
+    inf.b.o = .8,  # Inference border
+    avg.line.o = 1,  # Average line
+    # bar.f.o = .5, # Bar
+    inf.f.col = "white",  # Inf fill col
+    inf.b.col = "black",  # Inf border col
+    avg.line.col = "black",  # avg line col
+    bar.f.col = gray(.8),  # bar filling color
+    point.pch = 21,
+    point.bg = "white",
+    point.col = "black",
+    point.cex = .7,
+   
+    xlab = "",
+  )
+  
+    plotPSS_2 <- pirateplot(
+    formula = PSS ~ PMSScoreNew:TestMoment,
+    data = data,
+    theme = 1,
+    pal = "info",
+    main = PSS ~ PMSScoreNew*TestMoment,
+    bean.f.o = .6, # Bean fill
+    point.o = .3,  # Points
+    inf.f.o = .7,  # Inference fill
+    inf.b.o = .8,  # Inference border
+    avg.line.o = 1,  # Average line
+    # bar.f.o = .5, # Bar
+    inf.f.col = "white",  # Inf fill col
+    inf.b.col = "black",  # Inf border col
+    avg.line.col = "black",  # avg line col
+    bar.f.col = gray(.8),  # bar filling color
+    point.pch = 21,
+    point.bg = "white",
+    point.col = "black",
+    point.cex = .7,
+   
+    xlab = "",
+  )
+
+```
+
+The End! 
