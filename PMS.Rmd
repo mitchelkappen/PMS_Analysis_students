@@ -121,6 +121,29 @@ data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
 
 data_temp <- data #to get back to
 
+
+
+  # violin function
+
+    geom_flat_violin <- function(mapping = NULL, data = NULL, stat = "ydensity",
+                                 position = "dodge", trim = TRUE, scale = "area",
+                                 show.legend = NA, inherit.aes = TRUE, ...) {
+      layer(
+      data = data,
+      mapping = mapping,
+      stat = stat,
+      geom = GeomFlatViolin,
+      position = position,
+      show.legend = show.legend,
+      inherit.aes = inherit.aes,
+      params = list(
+        trim = trim,
+        scale = scale,
+        ...
+     )
+    )
+  }
+
 ```
 
 
@@ -187,33 +210,15 @@ server <- function (input, output){ #we have to add this to the server
   #https://wellcomeopenresearch.org/articles/4-63
   
   output$raincloud <- renderPlot({
-    # width and height variables for saved plots
-    w = 6
-    h = 3
-    geom_flat_violin <- function(mapping = NULL, data = NULL, stat = "ydensity",
-                                 position = "dodge", trim = TRUE, scale = "area",
-                                 show.legend = NA, inherit.aes = TRUE, ...) {
-      layer(
-      data = data,
-      mapping = mapping,
-      stat = stat,
-      geom = GeomFlatViolin,
-      position = position,
-      show.legend = show.legend,
-      inherit.aes = inherit.aes,
-      params = list(
-        trim = trim,
-        scale = scale,
-        ...
-     )
-    )
-  }
-    p1 <- ggplot(data, aes(x = PMSScoreNew, y = PSS))+
+    p2 <- ggplot(data, aes(x = PMSScoreNew, y = PSS, fill=PMSScoreNew))+
       geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
       geom_point(position=position_jitter(width=.15), size=.25)+
-      ylab('PSS')+xlab('PMSScoreNew')+theme_cowplot()+
-      ggtitle("basic Rainclouds")
-    p1
+      ylab('PSS')+xlab('PMSScoreNew')+coord_flip()+theme_cowplot()+
+      theme(legend.position="none")+
+      guides(fill=FALSE)+
+
+      ggtitle("basic Rainclouds with color")
+    p2
   })
 
   output$table <- renderTable ({
