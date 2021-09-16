@@ -8,29 +8,11 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-### Here are two Shiny widgets
-
-
-
 ## PMS Study
 
-This is the data processing html for the PMS study
+This is an interactive, Shiny Rmd file for the PMS study
 
 ```{r libraries, include = FALSE}
-# we will first write some pseudocode to describe what we want to do
-#upload files
-#find best linear model to represent data with AI
-
-#     PSS ~ PMSScore*Moment + (1|Subject)
-# 
-#     PSS deppendent variablle
-#     pMS = 1 geen PMS
-#     keer moment: moment v afname
-#     1 out of subject: random effect toevoegen
-#     straks factoren vd PMS score en van moment: hoeveel levels? 
-#       formules van doen
-#     laten weten welke formule beste
-#     
 
     
 #### Settings & Packages #### -----------------------------------------------------
@@ -132,98 +114,109 @@ data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
 data_temp <- data #to get back to
 
 ```
-## Choose a Formula
+
 
 ```{r echo=FALSE}
 
+```
+## 
 
-selectInput("formula_choice", label="Which Formula:",
+
+
+```{r echo=FALSE}
+library(shiny)
+
+ui<- fluidPage( # makes the User Interface
+  sidebarPanel(
+    selectInput("formula_choice", label="Choose a Formula:",
             choices= c('PSS ~ TestMoment', 'BSRI ~ TestMoment', 'PSS~PMSScoreNew*TestMoment'),
-            selected='PSS ~ TestMoment') # puts the choices in the first element which is accessed via input$formula_choice
-
-```
-
-```{r echo=FALSE}
-
-```
-## ANOVA
-
-```{r echo=FALSE}
-
-mainPanel(
-   tabsetPanel(type = "tab",
-                tabPanel("Model", verbatimTextOutput("AD")),
-               tabPanel("Visualization", plotOutput("VP"))
-       )
+            selected='PSS ~ TestMoment'), # puts the choices in the first element which is accessed via input$formula_choice
+  ),
+  mainPanel(
+     tabsetPanel(type = "tab",
+                  tabPanel("visualisation", plotOutput("pirateplot")),
+                 tabPanel("AIC table", tableOutput("table")),
+                 tabPanel("Anova", verbatimTextOutput("Anova"))
+         )
+  )
+  # plotOutput(outputId="pirateplot"),
+  # tableOutput(outputId="table"),
+  # verbatimTextOutput(outputId="Anova")
 )
 
-output$AD <- renderPrint({
-  Formula <- as.formula(paste0(input$formula_choice, ' + (1|Subject)'))
-    d0.1 <- lmer(input$Formula,data=data)
-    d0.2 <- glmer(input$Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.3 <- glmer(input$Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+server <- function (input, output){ #we have to add this to the server
+  output$pirateplot<- renderPlot({ 
+      dpi=600    #pixels per square inch
+    # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
+    par(mfcol = c(1, 1))
+      pirateplot(
+      formula= input$formula_choice,
+      data=data,
+      theme= 1,
+      pal= "info",
+      main= input$formula_choice,
+      bean.f.o = .6, # Bean fill
+      point.o = .3,  # Points
+      inf.f.o = .7,  # Inference fill
+      inf.b.o = .8,  # Inference border
+      avg.line.o = 1,  # Average line
+      bar.f.o = .5, # Bar
+      inf.f.col = "white",  # Inf fill col
+      inf.b.col = "black",  # Inf border col
+      avg.line.col = "black",  # avg line col
+      bar.f.col = gray(.8),  # bar filling color
+      point.pch = 21,
+      point.bg = "white",
+      point.col = "black",
+      point.cex = .7,
+      xlab="",
+    )
+  })
   
-    d0.4 <- glmer(input$Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.5 <- glmer(input$Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.6 <- glmer(input$Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  output$table <- renderTable ({
+    Formula <- paste0(input$formula_choice, ' + (1|Subject)')
+    d0.1 <- lmer(Formula,data=data)
+    d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
   
-    d0.7 <- glmer(input$Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.8 <- glmer(input$Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.9 <- glmer(input$Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+    d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
   
     modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
+    tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+     # chosenModel = modelNames[which(tabel == min(tabel))]
+  })
   
-  # Remove the models that produced errors in the line below, the one with the lowest value is the best fitting model
- #  tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
- #  #show table in html
- # # renderTable(tabel,, striped= TRUE)
- #  chosenModel = modelNames[which(tabel == min(tabel))]
- #  
- #  print(Anova(chosenModel))
- #  
- #  print(summary(Anova(chosenModel, data=data)))
-})
-
-# ```
-# output$AD <- renderPrint({
-#   summary(Anova(as.formula(chosenModel), data=data))
-# })
-```
-
-## Now we get a plot!
-
-```{r echo=FALSE}
-
-renderPrint(input$formula_choice)
-  # Plotting
-  dpi=600    #pixels per square inch
-  # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
-  par(mfcol = c(1, 1))
+  output$Anova <- renderPrint({
+        Formula <- paste0(input$formula_choice, ' + (1|Subject)')
+    d0.1 <- lmer(Formula,data=data)
+    d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
   
-renderPlot({
-  pirateplot(
-    formula= input$formula_choice,
-    data=data,
-    theme= 1,
-    pal= "info",
-    main= input$formula_choice,
-    bean.f.o = .6, # Bean fill
-    point.o = .3,  # Points
-    inf.f.o = .7,  # Inference fill
-    inf.b.o = .8,  # Inference border
-    avg.line.o = 1,  # Average line
-    bar.f.o = .5, # Bar
-    inf.f.col = "white",  # Inf fill col
-    inf.b.col = "black",  # Inf border col
-    avg.line.col = "black",  # avg line col
-    bar.f.col = gray(.8),  # bar filling color
-    point.pch = 21,
-    point.bg = "white",
-    point.col = "black",
-    point.cex = .7,
-    xlab="",
-  )
-})
+    d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+    d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+    modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
+    tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+     chosenModel = modelNames[which(tabel == min(tabel))]
+     Anova_1 <- Anova(chosenModel[[1]])
+     cat(sprintf("\nAnova\n"))
+     print(summary(Anova_1))
+
+  })
+}
+
+shinyApp(ui=ui, server=server)
 
 ```
 
