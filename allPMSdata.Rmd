@@ -1,38 +1,18 @@
 ---
-title: "PMS Study"
-author: "Mitchel Kappen & Sofie Raeymakers"
-date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
 runtime: shiny
 output: html_document
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-### Here are two Shiny widgets
-
-
-
 ## PMS Study
 
-This is the data processing html for the PMS study
+This is an interactive, Shiny Rmd file for the PMS study
 
 ```{r libraries, include = FALSE}
-# we will first write some pseudocode to describe what we want to do
-#upload files
-#find best linear model to represent data with AI
-
-#     PSS ~ PMSScore*Moment + (1|Subject)
-# 
-#     PSS deppendent variablle
-#     pMS = 1 geen PMS
-#     keer moment: moment v afname
-#     1 out of subject: random effect toevoegen
-#     straks factoren vd PMS score en van moment: hoeveel levels? 
-#       formules van doen
-#     laten weten welke formule beste
-#     
 
     
 #### Settings & Packages #### -----------------------------------------------------
@@ -71,12 +51,6 @@ if (!dir.exists("figures")) dir.create("figures")
 # General settings
 nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
 ```
-
-
-
-
-
-
 
 
 ```{r load-data, echo=FALSE, results='asis'}
@@ -136,90 +110,58 @@ data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraceptio
 data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
 
 # Define the formula for the model & check which model fits the data best
-formulas = c('PSS ~ PMSScoreNew*TestMoment') # important! after the ~should be the same every time
-
-plotTitles = c('PMSScore*TestMoment')
 
 data_temp <- data #to get back to
 
-# Define the formula for the model & check which model fits the data best
-for (i in 1){
-
-  Formula <- paste0(formulas[i], ' + (1|Subject)')
-  # Formula <- paste0(PSS~PMSScoreNew*TestMoment, ' + (1|Subject)')
-  d0.1 <- lmer(Formula,data=data)
-  d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  
-  d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  
-  d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  
-  modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
-
-  # Remove the models that produced errors in the line below, the one with the lowest value is the best fitting model
-  tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
-  #show table in html
-  kable (tabel, caption = "table showing the different AIC")
-  chosenModel = modelNames[which(tabel == min(tabel))]
-
-  
-  Anova(chosenModel[[1]])
-  
-  gsub(".*~", "", formulas[i])
-  
-  emmeans(chosenModel[[1]], pairwise ~ TestMoment , adjust ="fdr", type="response")
+```
 
 
-  
-    # Plotting
-  dpi=600    #pixels per square inch
-  # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
-  par(mfcol = c(1, 2))
-  plot <- pirateplot(
-    formula = formulas[i],
-    data = data,
-    theme = 1,
-    pal = "info",
-    main = plotTitles[i],
-    bean.f.o = .6, # Bean fill
-    point.o = .3,  # Points
-    inf.f.o = .7,  # Inference fill
-    inf.b.o = .8,  # Inference border
-    avg.line.o = 1,  # Average line
-    # bar.f.o = .5, # Bar
-    inf.f.col = "white",  # Inf fill col
-    inf.b.col = "black",  # Inf border col
-    avg.line.col = "black",  # avg line col
-    bar.f.col = gray(.8),  # bar filling color
-    point.pch = 21,
-    point.bg = "white",
-    point.col = "black",
-    point.cex = .7,
-    
-    xlab = "",
+```{r echo=FALSE}
+
+```
+## 
+
+
+
+```{r echo=FALSE}
+library(shiny)
+
+
+ui<- fluidPage( # makes the User Interface
+  sidebarPanel(
+    selectInput("formula_choice", label="Choose a Formula:",
+            choices= c('PSS ~ TestMoment', 'BSRI ~ TestMoment', 'PSS~ PMSScoreNew*TestMoment'),
+            selected='PSS ~ TestMoment'), # puts the choices in the first element which is accessed via input$formula_choice
+  ),
+  mainPanel(
+     tabsetPanel(type = "tab",
+                  tabPanel("visualisation", plotOutput("pirateplot")),
+                 tabPanel("AIC table", tableOutput("table")),
+                 tabPanel("Anova", verbatimTextOutput("Anova")),
+                 tabPanel("emmeans",verbatimTextOutput("emmeans"))
+         )
   )
-    # abline(lm(formulas[i], data=data), lwd=4, lty=2, col = "red")
-    dpi=600    #pixels per square inch
-    
-  # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
-    par(mfcol = c(2, 2))
-    plotPSS_1 <- pirateplot(
-      formula = formulas[i],
-      data = data,
-      theme = 3,
-      pal = "info",
-      main = plotTitles[i],
+)
+
+server <- function (input, output){ #we have to add this to the server
+  
+  
+  output$pirateplot<- renderPlot({ 
+      dpi=600    #pixels per square inch
+    # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
+    par(mfcol = c(1, 1))
+      pirateplot(
+      formula= input$formula_choice,
+      data=data,
+      theme= 1,
+      pal= "info",
+      main= input$formula_choice,
       bean.f.o = .6, # Bean fill
       point.o = .3,  # Points
       inf.f.o = .7,  # Inference fill
       inf.b.o = .8,  # Inference border
       avg.line.o = 1,  # Average line
-      # bar.f.o = .5, # Bar
+      bar.f.o = .5, # Bar
       inf.f.col = "white",  # Inf fill col
       inf.b.col = "black",  # Inf border col
       avg.line.col = "black",  # avg line col
@@ -228,193 +170,131 @@ for (i in 1){
       point.bg = "white",
       point.col = "black",
       point.cex = .7,
-     
-      xlab = "",
+      xlab="",
     )
+            # Insert visual indicators of significance
+    x <- 1:2  # capture x coordinates of bars
+    y <- 35  # create the y coordinate of the line
+    offset <- 0.2  # set an offset for tick lengths
+    lines(c(1.2,1.8),c(y, y))  # draw first horizontal line
+    lines(c(1.2,1.2),c(y, y-offset))  # draw ticks
+    lines(c(1.8,1.8),c(y, y-offset))
+    text(x[1]+((x[2]-x[1])/2),y+offset,"***")  # draw asterics
+  })
+  
+  output$table <- renderTable ({
+    Formula <- paste0(input$formula_choice, ' + (1|Subject)')
+    d0.1 <- lmer(Formula,data=data)
+    d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+    d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+    d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+    modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
+    tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+     # chosenModel = modelNames[which(tabel == min(tabel))]
+  })
+  
+  
+  output$Anova <- renderPrint({
+        Formula <- paste0(input$formula_choice, ' + (1|Subject)')
+    d0.1 <- lmer(Formula,data=data)
+    d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+    d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+    d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  
+    modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
+    tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+     chosenModel = modelNames[which(tabel == min(tabel))]
+     Anova_1 <- Anova(chosenModel[[1]])
+     cat(sprintf("\nAnova\n"))
+     print(summary(Anova_1))
+
+  })
+  
+  output$emmeans <- renderPrint({
+            Formula <- paste0(input$formula_choice, ' + (1|Subject)')
+    d0.1 <- lmer(Formula,data=data)
+    d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+
+    d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+
+    d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+
+    modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
+    tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+    chosenModel = modelNames[which(tabel == min(tabel))]
     
-    # Insert visual indicators of significance
-  x <- 1:2  # capture x coordinates of bars
-  y <- 35  # create the y coordinate of the line
-  offset <- 0.2  # set an offset for tick lengths
-  lines(c(1.2,1.8),c(y, y))  # draw first horizontal line
-  lines(c(1.2,1.2),c(y, y-offset))  # draw ticks
-  lines(c(1.8,1.8),c(y, y-offset))
-  text(x[1]+((x[2]-x[1])/2),y+offset,"***")  # draw asterics
-  
-  
+    # cat(sprintf("\n %s ~TestMoment\n", gsub("~.*","",input$formula_choice)))
+    # Emm <- emmeans(chosenModel[[1]], pairwise ~  TestMoment, adjust ="fdr", type="response")
+    # print(Emm)
+    # 
+    cat(sprintf("\n formula: %s\n", input$formula_choice))
+    
+    # check <- function (x){
+    #   if (gsub(".*~", "", x)=="~TestMoment"){
+    #   result <- TestMoment}
+    # if (gsub(".*~", "", x)=="~PMSScoreNew*TestMoment"){
+    #   result <- PMSScoreNew*TestMoment}
+    # 
+    
+    if ((grepl("PMS", input$formula_choice)==FALSE)){
+      cat(sprintf("\n~ TestMoment\n"))
+      Emm <- emmeans(chosenModel[[1]], pairwise ~ TestMoment, adjust ="fdr", type="response")
+      print(Emm)
+    }
+
+    
+    if (grepl("PMS", input$formula_choice)){
+      cat(sprintf("\n~ PMS*TestMoment\n"))
+      Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment, adjust ="fdr", type="response")
+      print(Emm)
+    }
+    
+
+
+
+
+  })
 }
 
-```
-
-The results for this model are `r Anova(d.03)`
-
-
-## Plots
-
-Here are some plots:
-
-```{r Plots, echo=FALSE}
 
 
 
-ggplot(data = data) + 
-  geom_bar(mapping = aes(x = PSS))
-
-##PIRATE PLOT:
-
-# Plotting
-  dpi=600    #pixels per square inch
-  
-# jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
-  par(mfcol = c(1, 1))
-  plotPSS_1 <- pirateplot(
-    formula = PSS ~ TestMoment,
-    data = data,
-    theme = 3,
-    pal = "info",
-    main = "PSS ~ Testmoment",
-    bean.f.o = .6, # Bean fill
-    point.o = .3,  # Points
-    inf.f.o = .7,  # Inference fill
-    inf.b.o = .8,  # Inference border
-    avg.line.o = 1,  # Average line
-    # bar.f.o = .5, # Bar
-    inf.f.col = "white",  # Inf fill col
-    inf.b.col = "black",  # Inf border col
-    avg.line.col = "black",  # avg line col
-    bar.f.col = gray(.8),  # bar filling color
-    point.pch = 21,
-    point.bg = "white",
-    point.col = "black",
-    point.cex = .7,
-   
-    xlab = "",
-  )
-  
-  # Insert visual indicators of significance
-x <- 1:2  # capture x coordinates of bars
-y <- 35  # create the y coordinate of the line
-offset <- 0.2  # set an offset for tick lengths
-lines(c(1.2,1.8),c(y, y))  # draw first horizontal line
-lines(c(1.2,1.2),c(y, y-offset))  # draw ticks
-lines(c(1.8,1.8),c(y, y-offset))
-text(x[1]+((x[2]-x[1])/2),y+offset,"***")  # draw asterics
-
-
-
-################################################
-  
-  plotPSS_2 <- pirateplot(
-    formula = PSS ~ PMSScoreNew*TestMoment,
-    data = data,
-    theme = 3,
-    pal = "info",
-    main = "PSS ~ PMSScoreNew: Testmoment",
-    bean.f.o = .6, # Bean fill
-    point.o = .3,  # Points
-    inf.f.o = .7,  # Inference fill
-    inf.b.o = .8,  # Inference border
-    avg.line.o = 1,  # Average line
-    # bar.f.o = .5, # Bar
-    inf.f.col = "red",  # Inf fill col
-    inf.b.col = "black",  # Inf border col
-    avg.line.col = "black",  # avg line col
-    bar.f.col = grey(.8),  # bar filling color
-    point.pch = 21,
-    point.bg = "grey",
-    point.col = "black",
-    point.cex = .7,
-   
-    xlab = "",
-  )
+shinyApp(ui=ui, server=server)
 
 ```
-
-with PMSScore=0 and testmoment = 2 there seem to be some outliers
-This means that people with low PMS scores had more outliers on testmoment 2. 
-we might need to remove some of these outliers
-
-
-
-```{r, echo=FALSE}
-
-ZeroLength<- length(which(data$PMSScoreNew=='noPMS'))
-OneLength <-length(which(data$PMSScoreNew=='PMS'))
-
-
-age_mean <- round(mean(data$Age), 1)
-
-summary(data$PSS)
-
-# count for each participants how many trials are left for each PMSScoreNew by PSS
-trial_count <- as.data.frame(table(data$Subject, data$PMSScoreNew, data$PSS))
-names(trial_count) <- c("subject_id", "PMSScore", "PSS", "count")
-
-trial_mean <- trial_count %>%
-  group_by(PMSScore, PSS) %>%
-  summarize(
-    mean = mean(count),
-    sd = sd(count), 
-    min = min(count),
-    max = max(count)
-  )
-
-```
-##we have more participants with low PMS score
-
-`r plot(data$PMSScoreNew)`
-
-
-There are `r ZeroLength` people with low PMS score and `r OneLength` people with high PMS score
-
-The mean age is `r age_mean`
-
-```{r, echo= FALSE}
-
-outliers <- boxplot(data$PSS, plot=FALSE)$out
-
-Q <- quantile(data$PSS, probs= c(.25, .75), na.rm=TRUE)
-
-iqr <-IQR(data$PSS, na.rm=TRUE)
-up <- Q[2]+1.5*iqr
-
-low<- Q[1]-1.5*iqr
-
-
-#data$PSS_without_out<-
-PSS_without_out<- data[-which(data$PSS %in% outliers),]
-
-
-```
-## Outliers
-`r boxplot(data$PSS, main="some PSS Outliers")$out`
-`r outliers`
-
-## Q
-`r Q`
-
-## IQR UP
-`r up`
-
-## IQR LOW
-`r low`
-
-
-The End! 
-
 
 TO DO:
 
-Stappen
--R markdown maak interactieve code met par functie plotjes naast elkaar in PMS.Rmd
--dan: R markdown maak dat het juiste model selecteert en tabel toont
--dan: R markdown met shiny maak dat het anova en emmeans toont
+
+-raincoud plots
 -dan: significantie op de afbeeldingen tonen? (dit gaat hacky zijn om te programmeren)
--Rmarkdown probeer interactieve code te maken (simpeler apart bestandje)
+https://stackoverflow.com/questions/17084566/put-stars-on-ggplot-barplots-and-boxplots-to-indicate-the-level-of-significanc
 
 
-summary() voor Anova functie? 
--Mitchel Raincloud plots?
+-add info in file over PMS en welke databewerkingen je hebt gedaan
+-verderwerken hypotheses (zie hieronder)
+
+
 
 
 ############ Hyptothesen en onderzoeksvragen:
@@ -423,6 +303,7 @@ PMS vs noPMS op het gebied van:
 - BSRI
 
 ++ Interactie testmoment
+
 PMS vs noPMS voor:
 - DASS_alle subschalen
 -- Hoeft niet x testmoment
@@ -447,5 +328,6 @@ Normgroepen opzoeken voor PSS bij (jonge) vrouwen
 https://www.cambridge.org/core/journals/spanish-journal-of-psychology/article/abs/perceived-stress-scale-pss-normative-data-and-factor-structure-for-a-largescale-sample-in-mexico/752B62D15A932A2D148D04376E949F67
 
 https://bmcpsychiatry.biomedcentral.com/articles/10.1186/s12888-016-0875-9/tables/6
+
 
 
