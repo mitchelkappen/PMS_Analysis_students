@@ -161,7 +161,7 @@ library(shiny)
 ui<- fluidPage( # makes the User Interface
   sidebarPanel(
     selectInput("formula_choice", label="Choose a Formula:",
-            choices= c('PSS ~ TestMoment', 'BSRI ~ TestMoment', 'PSS~ PMSScoreNew*TestMoment'),
+            choices= c('PSS ~ TestMoment', 'BSRI ~ TestMoment', 'PSS~ PMSScoreNew*TestMoment', 'BSRI ~PMSScoreNew*TestMoment'),
             selected='PSS ~ TestMoment'), # puts the choices in the first element which is accessed via input$formula_choice
   ),
   mainPanel(
@@ -216,7 +216,7 @@ server <- function (input, output){ #we have to add this to the server
         ylab('PSS')+xlab('PMSScoreNew')+coord_flip()+theme_cowplot()+
         theme(legend.position="none")+
         guides(fill=FALSE)+
-        ggtitle("basic Rainclouds with color")
+        ggtitle("effect PMS on PSS")
       
       p2 <- ggplot(data, aes(x = PMSScoreNew, y = BSRI, fill=PMSScoreNew))+
         geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
@@ -224,7 +224,7 @@ server <- function (input, output){ #we have to add this to the server
         ylab('BSRI')+xlab('PMSScoreNew')+coord_flip()+theme_cowplot()+
         theme(legend.position="none")+
         guides(fill=FALSE)+
-        ggtitle("basic Rainclouds with color")
+        ggtitle("effect PMS on BSRI")
       gridExtra::grid.arrange(p1, p2, ncol=1)
   })
 
