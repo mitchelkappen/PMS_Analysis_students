@@ -8,7 +8,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## PMS Study
+# PMS Study
 
 This is an interactive, Shiny Rmd file for the PMS study
 
@@ -154,7 +154,31 @@ data_temp <- data #to get back to
 ```
 
 
-## BSRI, PMS & PSS
+## PMS, TestMoment, PSS and BSRI
+
+* #### PMS: 
+three groups originally: low and high PMS and what counts as ... on the questionnaire. 
+These two last groups were taken together to form the 'no PMS' and 'PMS' groups
+
+* #### TestMoment: 
+there are two testmoments, 1 and 2. 1 stands for follicular phase, 2 for mid-luteal phase. 
+these testmoments were counterbalanced across participants
+
+!["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](figures/MC.png){width=80%}
+
+* #### PSS
+Perceived Stress Scale
+
+
+* #### BSRI:
+Bem Sex Role Inventory
+questionnaire with 2 subscales: 
+1. masculinity
+2. femininity
+scores on 1_7 scale (4=middle)
+above median score on both scales= 'androgynous'
+
+https://www.psytoolkit.org/survey-library/sex-role-bem.html
 
 ```{r echo=FALSE}
 library(shiny)
@@ -337,7 +361,7 @@ server <- function (input, output){ #we have to add this to the server
       print(shapiro.test(data$PSS))
     } else {
       print(shapiro.test(data$BSRI))
-    }
+    } # no for loop because we want to try this feature of having two figures next to each other (look at ui part)
   })
   
   output$plotgraph1 <- renderPlot({
@@ -361,7 +385,7 @@ PMS(2 levels) x TestMoment (2 levels)
 
 AIC: Akaike Information Criterion: says which model best (lowest AIC) om beste fit model te vinden.
 
-conclusies
+### conclusions
 
 => PSS is higher in testmoment 2: luteal phase
 sign effect of PMS on PSS
@@ -373,9 +397,15 @@ BSRI is higher in PMS than in noPMS group
 -no effect of testmoment on BSRI
 
 
+## DASS
+
+* #### DASS-21_R
+Depression Anxiety Stress Scale
+DASS: 3 subschalen, depressie, anxiety stress (trait dus geen interactie testmoment, mr 1x)
 
 
 ```{r echo=FALSE}
+# we make a new tab for DASS
 ui<- fluidPage( # makes the User Interface
   sliderInput(inputId= "num", label="choose a number", value=25, min=1, max=100),
   plotOutput(outputId="hist")
@@ -391,39 +421,6 @@ server <- function (input, output){ #we have to add this to the server
 shinyApp(ui=ui, server=server)
 ```
 
-
-
-## information dataset
-
-### data processing
-
-* #### PMS: 
-three groups originally: low and high PMS and what counts as ... on the questionnaire. 
-These two last groups were taken together to form the 'no PMS' and 'PMS' groups
-
-* #### TestMoment: 
-there are two testmoments, 1 and 2. 1 stands for follicular phase, 2 for mid-luteal phase. 
-these testmoments were counterbalanced across participants
-
-!["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](figures/MC.png){width=80%}
-
-* #### PSS
-Perceived Stress Scale
-
-
-* #### BSRI:
-Bem Sex Role Inventory
-questionnaire with 2 subscales: 
-1. masculinity
-2. femininity
-scores on 1_7 scale (4=middle)
-above median score on both scales= 'androgynous'
-
-https://www.psytoolkit.org/survey-library/sex-role-bem.html
-
-* #### DASS-21_R
-Depression Anxiety Stress Scale
-DASS: 3 subschalen, depressie, anxiety stress (trait dus geen interactie testmoment, mr 1x)
 
 
 
