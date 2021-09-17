@@ -180,6 +180,12 @@ above median score on both scales= 'androgynous'
 
 https://www.psytoolkit.org/survey-library/sex-role-bem.html
 
+
+### onderzoeksvraag: PMS vs noPMS op het gebied van:
+- PSS
+- BSRI
++ Interactie testmoment
+
 ```{r echo=FALSE}
 library(shiny)
 
@@ -401,49 +407,227 @@ BSRI is higher in PMS than in noPMS group
 
 * #### DASS-21_R
 Depression Anxiety Stress Scale
-DASS: 3 subschalen, depressie, anxiety stress (trait dus geen interactie testmoment, mr 1x)
+DASS: 3 subschalen
+DASS_Total, DASS_Stress, DASS_Anxiety, DASS_Depression
+effect of PMS vs no PMSS
+-geen interactie want het is trait: mr 1 afname
+-wel interactie PSS: trait vs state?
+
+#### onderzoeksvraag: PMS vs noPMS voor:
+- DASS_alle subschalen
++interactie PSS
+
+DASS_Stress ~ PMSScoreNew
+DASS_Anxiety ~ PMSScoreNew
+DASS_Depression ~ PMSScoreNew
+DASS_Total ~ PMSScoreNew
+
+DASS_Stress ~ PMSScoreNew * TestMoment
+DASS_Anxiety ~ PMSScoreNew * TestMoment
+DASS_Depression ~ PMSScoreNew * TestMoment
+DASS_Total ~ PMSScoreNew * TestMoment
 
 
 ```{r echo=FALSE}
-# we make a new tab for DASS
+
 ui<- fluidPage( # makes the User Interface
-  sliderInput(inputId= "num", label="choose a number", value=25, min=1, max=100),
-  plotOutput(outputId="hist")
+  sidebarPanel(
+    selectInput("formula_choice", label="Choose a Formula:",
+            choices= c('DASS_Stress ~ PMSScoreNew', 'DASS_Anxiety ~ PMSScoreNew', 'DASS_Depression ~ PMSScoreNew', 'DASS_Total ~ PMSScoreNew', 'DASS_Stress ~ PMSScoreNew * TestMoment', 'DASS_Anxiety ~ PMSScoreNew * TestMoment', 'DASS_Depression ~ PMSScoreNew * TestMoment', 'DASS_Total ~ PMSScoreNew * TestMoment'),
+            selected='DASS_Stress ~ PMSScoreNew'), # puts the choices in the first element which is accessed via input$formula_choice
+  ),
+  
+
+  mainPanel(
+     tabsetPanel(type = "tab",
+                  tabPanel("pirateplot", plotOutput("pirateplot")),
+                  tabPanel("raincloud", plotOutput("raincloud")),
+                 tabPanel("AIC table", tableOutput("table")),
+                 tabPanel("Anova", verbatimTextOutput("Anova")),
+                 tabPanel("emmeans",verbatimTextOutput("emmeans")),
+                 tabPanel("normality", verbatimTextOutput("normality")),
+                 tabPanel("density",
+                          fluidRow(
+                            splitLayout(style="border: 1px solid silver:", cellWidths=c(300,200,100),
+                                        plotOutput("plotgraph1"),
+                                        plotOutput("plotgraph2"))
+                          )
+                          )
+         )
+  )
 )
 
 server <- function (input, output){ #we have to add this to the server
-  output$hist<- renderPlot({ # here we say what we want to do with output$hist and make it with render
-    title <- "100 random normal values" #you can add as many code as you want between these braces
-    hist(rnorm(input$num))
-    })
+
+
+  output$pirateplot<- renderPlot({
+      dpi=600    #pixels per square inch
+    # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
+    par(mfcol = c(1, 1))
+      pirateplot(
+      formula= input$formula_choice,
+      data=data,
+      theme= 1,
+      pal= "info",
+      main= input$formula_choice,
+      bean.f.o = .6, # Bean fill
+      point.o = .3,  # Points
+      inf.f.o = .7,  # Inference fill
+      inf.b.o = .8,  # Inference border
+      avg.line.o = 1,  # Average line
+      bar.f.o = .5, # Bar
+      inf.f.col = "white",  # Inf fill col
+      inf.b.col = "black",  # Inf border col
+      avg.line.col = "black",  # avg line col
+      bar.f.col = gray(.8),  # bar filling color
+      point.pch = 21,
+      point.bg = "white",
+      point.col = "black",
+      point.cex = .7,
+      xlab="",
+    )
+  })
+# 
+#   #https://wellcomeopenresearch.org/articles/4-63   some info on rainclouds
+#   
+#   # output$raincloud <- renderPlot({
+#   #   if ((grepl("PSS", input$formula_choice))){
+#   #     p1 <- ggplot(data, aes(x = PMSScoreNew, y = PSS, fill=PMSScoreNew))+
+#   #       geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
+#   #       geom_point(position=position_jitter(width=.15), size=.25)+
+#   #       ylab('PSS')+xlab('PMSScoreNew')+coord_flip()+theme_cowplot()+
+#   #       theme(legend.position="none")+
+#   #       guides(fill=FALSE)+
+#   #       ggtitle("distribution PSS in PMS vs no PMS")
+#   #     p1
+#   #   }else{
+#   #     p2 <- ggplot(data, aes(x = PMSScoreNew, y = BSRI, fill=PMSScoreNew))+
+#   #       geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
+#   #       geom_point(position=position_jitter(width=.15), size=.25)+
+#   #       ylab('BSRI')+xlab('PMSScoreNew')+coord_flip()+theme_cowplot()+
+#   #       theme(legend.position="none")+
+#   #       guides(fill=FALSE)+
+#   #       ggtitle("distribution BSRI in PMS vs no PMS")
+#   #     p2
+#   #   }
+#   # })
+#   # 
+#   # output$table <- renderTable ({
+#   #   Formula <- paste0(input$formula_choice, ' + (1|Subject)')
+#   #   d0.1 <- lmer(Formula,data=data)
+#   #   d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   # 
+#   #   d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   # 
+#   #   d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   # 
+#   #   modelNames= c('d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9')
+#   #   tabel <-round(cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9)), digits=2)
+#   #   chosenModel = modelNames[which(tabel == min(tabel))]
+#   #   tabel <- data.frame(Models=c('chosen  Model:','d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9'), AIC= c(cbind(chosenModel, tabel)))
+#   #   tabel
+#   # 
+#   # })
+#   # 
+#   # 
+#   # output$Anova <- renderPrint({
+#   #       Formula <- paste0(input$formula_choice, ' + (1|Subject)')
+#   #   d0.1 <- lmer(Formula,data=data)
+#   #   d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   # 
+#   #   d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   # 
+#   #   d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   # 
+#   #   modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
+#   #   tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+#   #    chosenModel = modelNames[which(tabel == min(tabel))]
+#   #    Anova_1 <- Anova(chosenModel[[1]])
+#   #    cat(sprintf("\nAnova\n"))
+#   #    Anova_1
+#   # 
+#   # })
+#   # 
+#   # output$emmeans <- renderPrint({
+#   #           Formula <- paste0(input$formula_choice, ' + (1|Subject)')
+#   #   d0.1 <- lmer(Formula,data=data)
+#   #   d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   # 
+#   #   d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   # 
+#   #   d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   #   d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+#   # 
+#   #   modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
+#   #   tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+#   #   chosenModel = modelNames[which(tabel == min(tabel))]
+#   #   
+#   #   # cat(sprintf("\n %s ~TestMoment\n", gsub("~.*","",input$formula_choice)))
+#   #   # Emm <- emmeans(chosenModel[[1]], pairwise ~  TestMoment, adjust ="fdr", type="response")
+#   #   # print(Emm)
+#   #   # 
+#   #   cat(sprintf("\n formula: %s\n", input$formula_choice))
+#   #   
+#   #   # check <- function (x){
+#   #   #   if (gsub(".*~", "", x)=="~TestMoment"){
+#   #   #   result <- TestMoment}
+#   #   # if (gsub(".*~", "", x)=="~PMSScoreNew*TestMoment"){
+#   #   #   result <- PMSScoreNew*TestMoment}
+#   #   # 
+#   #   
+#   #   if ((grepl("PMS", input$formula_choice)==FALSE)){
+#   #     cat(sprintf("\n~ TestMoment\n"))
+#   #     Emm <- emmeans(chosenModel[[1]], pairwise ~ TestMoment, adjust ="fdr", type="response")
+#   #     print(Emm)
+#   #   }
+#   #   if (grepl("PMS", input$formula_choice)){
+#   #     cat(sprintf("\n~ PMS*TestMoment\n"))
+#   #     Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment, adjust ="fdr", type="response")
+#   #     print(Emm)
+#   #   }
+#   # })
+#   # 
+#   # 
+#   # output$normality <-renderPrint({
+#   #   cat(sprintf("\n shapiro normality test. if p <.05: not-normal distribution\n"))
+#   #   if((grepl("PSS", input$formula_choice))){
+#   #     print(shapiro.test(data$PSS))
+#   #   } else {
+#   #     print(shapiro.test(data$BSRI))
+#   #   } # no for loop because we want to try this feature of having two figures next to each other (look at ui part)
+#   # })
+#   # 
+#   # output$plotgraph1 <- renderPlot({
+#   #   ggdensity(data$PSS, xlab="PSS" )
+#   # })
+#   # output$plotgraph2 <- renderPlot({
+#   #   ggdensity(data$BSRI, xlab="BSRI")
+#   # })
 }
 
+
 shinyApp(ui=ui, server=server)
+
 ```
 
 
 
 
-TO DO:
--nieuwe tabpagina voor DASS
--Dass subschalen: in beeld, statistiek etc. Dass voor alle subschalen. 
-niet x testmoment (mr 1 afname), wel: interactie met PSS state vragenlijst? trait vs state
-
-
--variabelen steekproef in beeld (puur omdat interessant: PMS vs no PMS: leeftijd, duur cyclus (gemm))
-
--stimuli plotten, outliers eruit 
-
-
 # Hyptothesen en onderzoeksvragen:
-#### PMS vs noPMS op het gebied van:
-- PSS
-- BSRI
-+ Interactie testmoment
-
-#### PMS vs noPMS voor:
-- DASS_alle subschalen
-+interactie PSS
 
 
 
@@ -468,4 +652,12 @@ https://www.cambridge.org/core/journals/spanish-journal-of-psychology/article/ab
 https://bmcpsychiatry.biomedcentral.com/articles/10.1186/s12888-016-0875-9/tables/6
 
 
+TO DO:
 
+-Dass subschalen: in beeld, statistiek etc. Dass voor alle subschalen. 
+niet x testmoment (mr 1 afname), wel: interactie met PSS state vragenlijst? trait vs state
+
+
+-variabelen steekproef in beeld (puur omdat interessant: PMS vs no PMS: leeftijd, duur cyclus (gemm))
+
+-stimuli plotten, outliers eruit 
