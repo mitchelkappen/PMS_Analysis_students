@@ -43,6 +43,7 @@ library(pander)
 library(cowplot)
 library(readr)
 library(jpeg)
+library(ggpubr)
 
 # library(viridis)
 library (yarrr)
@@ -96,7 +97,7 @@ data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
 # new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1, 
 data$PMSScoreNew[data$PMSScore==0] = 'noPMS'
 data$PMSScoreNew[data$PMSScore==1] = 'PMS'
-data$PMSScoreNew[data$PMSScore==2] = 'PMS'
+data$PMSScoreNew[data$PMSScore==2] = 'PMS' #PMDD, mr niet officiële diagnose dus gewoon PMS
 #sum(is.na(data$PMSScoreNew))
 
 
@@ -171,7 +172,15 @@ ui<- fluidPage( # makes the User Interface
                  tabPanel("raincloud", plotOutput("raincloud")),
                  tabPanel("AIC table", tableOutput("table")),
                  tabPanel("Anova", verbatimTextOutput("Anova")),
-                 tabPanel("emmeans",verbatimTextOutput("emmeans"))
+                 tabPanel("emmeans",verbatimTextOutput("emmeans")),
+                 tabPanel("normality", verbatimTextOutput("normality")),
+                 tabPanel("density",
+                          fluidRow(
+                            splitLayout(style="border: 1px solid silver:", cellWidths=c(300,200,100),
+                                        plotOutput("plotgraph1"),
+                                        plotOutput("plotgraph2"))
+                          )
+                          )
          )
   )
 )
@@ -247,18 +256,10 @@ server <- function (input, output){ #we have to add this to the server
     d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
   
     modelNames= c('d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9')
-    tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+    tabel <-round(cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9)), digits=2)
     chosenModel = modelNames[which(tabel == min(tabel))]
-    tabel <- cbind(tabel,chosenModel)
-    #tabel <- matrix(cbind(tabel,chosenModel), ncol=10,byrow=FALSE)
-    
-    
-    colnames(tabel)= c('d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9','chosenModel')
+    tabel <- data.frame(Models=c('chosen  Model:','d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9'), AIC= c(cbind(chosenModel, tabel)))
     tabel
-
-    #rownames(tabel)<-c('d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9')
-    #colnames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
-    
 
   })
   
@@ -282,7 +283,7 @@ server <- function (input, output){ #we have to add this to the server
      chosenModel = modelNames[which(tabel == min(tabel))]
      Anova_1 <- Anova(chosenModel[[1]])
      cat(sprintf("\nAnova\n"))
-     print(summary(Anova_1))
+     Anova_1
 
   })
   
@@ -322,18 +323,26 @@ server <- function (input, output){ #we have to add this to the server
       Emm <- emmeans(chosenModel[[1]], pairwise ~ TestMoment, adjust ="fdr", type="response")
       print(Emm)
     }
-
-    
     if (grepl("PMS", input$formula_choice)){
       cat(sprintf("\n~ PMS*TestMoment\n"))
       Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment, adjust ="fdr", type="response")
       print(Emm)
     }
-    
-
-
-
-
+  })
+  
+  
+  # output$normality <-renderPrint({
+  #   cat(sprintf("\n shapiro normality test. if p <.05: not-normal distribution\n"))
+  #   print(shapiro.test(data$PSS))
+  #   print(shapiro.test(data$BSRI))
+  # })
+  
+  output$plotgraph1 <- renderPlot({
+    cat(sprintf("\n shapiro normality test. if p <.05: not-normal distribution\n"))
+    ggdensity(data$PSS, xlab="PSS" )
+  })
+  output$plotgraph2 <- renderPlot({
+    ggdensity(data$BSRI, xlab="BSRI")
   })
 }
 
@@ -341,19 +350,49 @@ server <- function (input, output){ #we have to add this to the server
 
 shinyApp(ui=ui, server=server)
 
+
+ggdensity(data$PSS) #visualiseren van een verdeling: lijkt normaal verdeeld!
+
 ```
-
-=> conclusions
-what we observe:
-
-
 we do (G)LMM: generalized linear mixed models
-stress as dependable variable
+stress(PSS) or gender(BSRI) as dependable variable
 PMS(2 levels) x TestMoment (2 levels)
 
-AIC: Akaike Information Criterion: says which model best (lowest AIC)
+AIC: Akaike Information Criterion: says which model best (lowest AIC) om beste fit model te vinden.
 
-## data 
+conclusies
+
+=> PSS is higher in testmoment 2: luteal phase
+sign effect of PMS on PSS
+no sign difference between testmoment 1 and 2 with the PMS group!
+
+
+=>gender difference of PMS vs no PMS: PMS group more 'androgynous'
+BSRI is higher in PMS than in noPMS group
+-no effect of testmoment on BSRI
+
+
+
+
+```{r echo=FALSE}
+ui<- fluidPage( # makes the User Interface
+  sliderInput(inputId= "num", label="choose a number", value=25, min=1, max=100),
+  plotOutput(outputId="hist")
+)
+
+server <- function (input, output){ #we have to add this to the server
+  output$hist<- renderPlot({ # here we say what we want to do with output$hist and make it with render
+    title <- "100 random normal values" #you can add as many code as you want between these braces
+    hist(rnorm(input$num))
+    })
+}
+
+shinyApp(ui=ui, server=server)
+```
+
+
+
+## information dataset
 
 ### data processing
 
@@ -383,33 +422,31 @@ https://www.psytoolkit.org/survey-library/sex-role-bem.html
 
 * #### DASS-21_R
 Depression Anxiety Stress Scale
+DASS: 3 subschalen, depressie, anxiety stress (trait dus geen interactie testmoment, mr 1x)
 
 
 
 TO DO:
--vraag Mitchel doorlopen variabelen
--Tilia Rstudio
--Dass subschalen: in beeld, statistiek etc
--op apart tabblad
+-nieuwe tabpagina voor DASS
+-Dass subschalen: in beeld, statistiek etc. Dass voor alle subschalen. 
+niet x testmoment (mr 1 afname), wel: interactie met PSS state vragenlijst? trait vs state
+
+
+-variabelen steekproef in beeld (puur omdat interessant: PMS vs no PMS: leeftijd, duur cyclus (gemm))
+
 -stimuli plotten, outliers eruit 
-
-PMS no PMS: leeftijd, duur cyclus
-ondvr 1: stress hoger luteale fase dan follicululaire fase? 
-ondvr 2/ rumination higher in luteale phase than folliculair with PMS vs no PMS? 
-
-
 
 
 # Hyptothesen en onderzoeksvragen:
 #### PMS vs noPMS op het gebied van:
 - PSS
 - BSRI
-
 + Interactie testmoment
 
 #### PMS vs noPMS voor:
 - DASS_alle subschalen
--- Hoeft niet x testmoment
++interactie PSS
+
 
 
 ## Voor de stimuli 
