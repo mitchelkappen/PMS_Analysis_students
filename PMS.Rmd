@@ -333,8 +333,11 @@ server <- function (input, output){ #we have to add this to the server
   
   output$normality <-renderPrint({
     cat(sprintf("\n shapiro normality test. if p <.05: not-normal distribution\n"))
-    print(shapiro.test(data$PSS))
-    print(shapiro.test(data$BSRI))
+    if((grepl("PSS", input$formula_choice))){
+      print(shapiro.test(data$PSS))
+    } else {
+      print(shapiro.test(data$BSRI))
+    }
   })
   
   output$plotgraph1 <- renderPlot({
