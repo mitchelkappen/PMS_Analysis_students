@@ -42,6 +42,7 @@ library(pander)
 
 library(cowplot)
 library(readr)
+library(jpeg)
 
 # library(viridis)
 library (yarrr)
@@ -324,12 +325,24 @@ server <- function (input, output){ #we have to add this to the server
 
 
 
-
 shinyApp(ui=ui, server=server)
 
 ```
 
+## data 
 
+### data processing
+
+*PMS: three groups originally: low and high PMS and what counts as ... on the questionnaire. 
+These two last groups were taken together to form the 'no PMS' and 'PMS' groups
+
+*TestMoment: there are two testmoments, 1 and 2. 1 stands for follicular phase, 2 for mid-luteal phase. 
+these testmoments were counterbalanced across participants
+
+!["Menstrual Cycle"](\Users\ASUSTeK\OneDrive\Documenten\GitHub\internship_sofie)
+
+
+*BSRI
 
 
 TO DO:
