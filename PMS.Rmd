@@ -331,14 +331,13 @@ server <- function (input, output){ #we have to add this to the server
   })
   
   
-  # output$normality <-renderPrint({
-  #   cat(sprintf("\n shapiro normality test. if p <.05: not-normal distribution\n"))
-  #   print(shapiro.test(data$PSS))
-  #   print(shapiro.test(data$BSRI))
-  # })
+  output$normality <-renderPrint({
+    cat(sprintf("\n shapiro normality test. if p <.05: not-normal distribution\n"))
+    print(shapiro.test(data$PSS))
+    print(shapiro.test(data$BSRI))
+  })
   
   output$plotgraph1 <- renderPlot({
-    cat(sprintf("\n shapiro normality test. if p <.05: not-normal distribution\n"))
     ggdensity(data$PSS, xlab="PSS" )
   })
   output$plotgraph2 <- renderPlot({
@@ -351,7 +350,6 @@ server <- function (input, output){ #we have to add this to the server
 shinyApp(ui=ui, server=server)
 
 
-ggdensity(data$PSS) #visualiseren van een verdeling: lijkt normaal verdeeld!
 
 ```
 we do (G)LMM: generalized linear mixed models
