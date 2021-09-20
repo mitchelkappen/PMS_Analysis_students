@@ -285,14 +285,110 @@ server <- function (input, output){ #we have to add this to the server
   
   # https://www.rpubs.com/jenrichmond/W6LL  here some info on the following plot
     output$raincloud2 <- renderPlot({
-      if ((grepl("PSS", input$formula_choice))){
+      if ((grepl("PSS ~ PMSScoreNew*TestMoment", input$formula_choice))){
+
+        dataf<- data
+        # we create a dataframe with only PMSScoreNew, TestMoment and BSRI
+        require(reshape2)
+        dataf$id <- rownames(data)
+        dataf<- melt(dataf, id=c("TestMoment", "PSS", "PMSScoreNew"))
+        head(dataf)
+
+        # now we need to make it so that array1= Testmoment 1, no PMS
+        #array2= Testmoment1, PMS,
+        #array3= Testmoment2, no PMS
+        #array4= Testmometn2, PMS
+
+        Mom1_noPMS<-subset(dataf, PMSScoreNew!="PMS"& TestMoment!='2')
+        Mom1_PMS <- subset(dataf, PMSScoreNew!="noPMS"& TestMoment!='2')
+        Mom2_noPMS <-subset(dataf, PMSScoreNew!="PMS"& TestMoment!='1')
+        Mom2_PMS <- subset(dataf, PMSScoreNew!="noPMS"& TestMoment!='1')
+
+
+        df <-data_2x2(
+          array_1= Mom1_noPMS,
+          array_2=Mom1_PMS,
+          array_3= Mom2_noPMS,
+          array_2=Mom2_PMS,
+          labels=(c('noPMS', 'PMS')),
+          jit_distance=0.09,
+          jit_seed=321,
+          spread_x_ticks= TRUE)
+
+        raincloud_2<-raincloud_2x2_repmes(
+          data= df,
+          colors= (c('dodgerblue', 'darkorange', 'dodgerblue','darkorange')),
+          fills= (c('dodgerblue', 'darkorange','dodgerblue','darkorange')),
+          line_color="gray",
+          line_alpha=.3,
+          size=1,
+          alpha= .6,
+          spread_x_ticks=FALSE
+          #ort='h'
+          )+
+          scale_x_continuous (breaks=c(1,2), labels=c("1", "2"), limits=c(0,3))+
+          xlab("TestMoment")+
+          ylab("PSS")+
+          theme_classic()
+
+        raincloud_2
+      }
+      if ((grepl("BSRI ~ PMSScoreNew*TestMoment", input$formula_choice))){
+
+        dataf<- data
+        # we create a dataframe with only PMSScoreNew, TestMoment and BSRI
+        require(reshape2)
+        dataf$id <- rownames(data)
+        dataf<- melt(dataf, id=c("TestMoment", "BSRI", "PMSScoreNew"))
+        head(dataf)
+
+        # now we need to make it so that array1= Testmoment 1, no PMS
+        #array2= Testmoment1, PMS,
+        #array3= Testmoment2, no PMS
+        #array4= Testmometn2, PMS
+
+        Mom1_noPMS<-subset(dataf, PMSScoreNew!="PMS"& TestMoment!='2')
+        Mom1_PMS <- subset(dataf, PMSScoreNew!="noPMS"& TestMoment!='2')
+        Mom2_noPMS <-subset(dataf, PMSScoreNew!="PMS"& TestMoment!='1')
+        Mom2_PMS <- subset(dataf, PMSScoreNew!="noPMS"& TestMoment!='1')
+
+
+        df <-data_2x2(
+          array_1= Mom1_noPMS,
+          array_2=Mom1_PMS,
+          array_3= Mom2_noPMS,
+          array_2=Mom2_PMS,
+          labels=(c('noPMS', 'PMS')),
+          jit_distance=0.09,
+          jit_seed=321,
+          spread_x_ticks= TRUE)
+
+        raincloud_2<-raincloud_2x2_repmes(
+          data= df,
+          colors= (c('dodgerblue', 'darkorange', 'dodgerblue','darkorange')),
+          fills= (c('dodgerblue', 'darkorange','dodgerblue','darkorange')),
+          line_color="gray",
+          line_alpha=.3,
+          size=1,
+          alpha= .6,
+          spread_x_ticks=FALSE
+          #ort='h'
+          )+
+          scale_x_continuous (breaks=c(1,2), labels=c("1", "2"), limits=c(0,3))+
+          xlab("TestMoment")+
+          ylab("BSRI")+
+          theme_classic()
+
+        raincloud_2
+      }
+      else if ((grepl("PSS", input$formula_choice))){
       
         #dataframe for connected rainclouds
         dataf<- data
         # we create a dataframe with only PMSScoreNew and PSS
         require(reshape2)
         dataf$id <- rownames(data)
-        dataf<- melt(dataf, id=c("PMSScoreNew", "PSS"))
+        dataf<- melt(dataf, id=c("TestMoment", "PSS"))
         head(dataf)
         
         df <-data_1x1(
@@ -312,19 +408,20 @@ server <- function (input, output){ #we have to add this to the server
           align_clouds=FALSE
           #ort='h'
           )+
-          scale_x_continuous (breaks=c(1,2), labels=c("noPMS", "PMS"), limits=c(0,3))+
-          xlab("PMSScoreNew")+
+          scale_x_continuous (breaks=c(1,2), labels=c("1", "2"), limits=c(0,3))+
+          xlab("TestMoment")+
           ylab("PSS")+
           theme_classic()
   
         raincloud_2
-      } else {
+      } 
+      else if ((grepl("BSRI", input$formula_choice))){
                 #dataframe for connected rainclouds
         dataf<- data
         # we create a dataframe with only PMSScoreNew and BSRI
         require(reshape2)
         dataf$id <- rownames(data)
-        dataf<- melt(dataf, id=c("PMSScoreNew", "BSRI"))
+        dataf<- melt(dataf, id=c("TestMoment", "BSRI"))
         head(dataf)
         
         df <-data_1x1(
@@ -344,13 +441,14 @@ server <- function (input, output){ #we have to add this to the server
           align_clouds=FALSE
           #ort='h'
           )+
-          scale_x_continuous (breaks=c(1,2), labels=c("noPMS", "PMS"), limits=c(0,3))+
-          xlab("PMSScoreNew")+
+          scale_x_continuous (breaks=c(1,2), labels=c("1", "2"), limits=c(0,3))+
+          xlab("TestMoment")+
           ylab("BSRI")+
           theme_classic()
   
         raincloud_2
       }
+      
     })
       
 
@@ -760,12 +858,10 @@ https://bmcpsychiatry.biomedcentral.com/articles/10.1186/s12888-016-0875-9/table
 
 TO DO:
 
-  #voeg toe: mediaan en B.I.
-  #PMS vs noPMS over 2 fases Testmoment, https://github.com/jorvlan/raincloudplots
--Dass subschalen: in beeld, statistiek etc. Dass voor alle subschalen. 
-niet x testmoment (mr 1 afname), wel: interactie met PSS state vragenlijst? trait vs state
+-raincloud plot visueel aantrekkelijker
+-plots, anova etc DASS toevoegen
 
 
--variabelen steekproef in beeld (puur omdata interessant: PMS vs no PMS: leeftijd, duur cyclus (gemm))
+-variabelen steekproef in beeld (puur omdat  interessant: PMS vs no PMS: leeftijd, duur cyclus (gemm))
 
 -stimuli plotten, outliers eruit 
