@@ -285,115 +285,34 @@ server <- function (input, output){ #we have to add this to the server
   
   # https://www.rpubs.com/jenrichmond/W6LL  here some info on the following plot
     output$raincloud2 <- renderPlot({
-      if ((grepl("PSS ~ PMSScoreNew*TestMoment", input$formula_choice))){
-
-        dataf<- data
-        # we create a dataframe with only PMSScoreNew, TestMoment and BSRI
-        require(reshape2)
-        dataf$id <- rownames(data)
-        dataf<- melt(dataf, id=c("TestMoment", "PSS", "PMSScoreNew"))
-        head(dataf)
-
-        # now we need to make it so that array1= Testmoment 1, no PMS
-        #array2= Testmoment1, PMS,
-        #array3= Testmoment2, no PMS
-        #array4= Testmometn2, PMS
-
-        Mom1_noPMS<-subset(dataf, PMSScoreNew!="PMS"& TestMoment!='2')
-        Mom1_PMS <- subset(dataf, PMSScoreNew!="noPMS"& TestMoment!='2')
-        Mom2_noPMS <-subset(dataf, PMSScoreNew!="PMS"& TestMoment!='1')
-        Mom2_PMS <- subset(dataf, PMSScoreNew!="noPMS"& TestMoment!='1')
-
-
-        df <-data_2x2(
-          array_1= Mom1_noPMS,
-          array_2=Mom1_PMS,
-          array_3= Mom2_noPMS,
-          array_2=Mom2_PMS,
-          labels=(c('noPMS', 'PMS')),
-          jit_distance=0.09,
-          jit_seed=321,
-          spread_x_ticks= TRUE)
-
-        raincloud_2<-raincloud_2x2_repmes(
-          data= df,
-          colors= (c('dodgerblue', 'darkorange', 'dodgerblue','darkorange')),
-          fills= (c('dodgerblue', 'darkorange','dodgerblue','darkorange')),
-          line_color="gray",
-          line_alpha=.3,
-          size=1,
-          alpha= .6,
-          spread_x_ticks=FALSE
-          #ort='h'
-          )+
-          scale_x_continuous (breaks=c(1,2), labels=c("1", "2"), limits=c(0,3))+
-          xlab("TestMoment")+
-          ylab("PSS")+
-          theme_classic()
-
-        raincloud_2
+      
+      #function for weighted average
+      x1 <- c(2, 4, 7)
+      weighted_mean <- 0
+      for (i in 1:length(x1)){
+       weighted_mean <- (x1[i]+ x1[i+1] + x1[i+2])/3
+       print (weighted_mean)
       }
-      if ((grepl("BSRI ~ PMSScoreNew*TestMoment", input$formula_choice))){
 
-        dataf<- data
-        # we create a dataframe with only PMSScoreNew, TestMoment and BSRI
-        require(reshape2)
-        dataf$id <- rownames(data)
-        dataf<- melt(dataf, id=c("TestMoment", "BSRI", "PMSScoreNew"))
-        head(dataf)
-
-        # now we need to make it so that array1= Testmoment 1, no PMS
-        #array2= Testmoment1, PMS,
-        #array3= Testmoment2, no PMS
-        #array4= Testmometn2, PMS
-
-        Mom1_noPMS<-subset(dataf, PMSScoreNew!="PMS"& TestMoment!='2')
-        Mom1_PMS <- subset(dataf, PMSScoreNew!="noPMS"& TestMoment!='2')
-        Mom2_noPMS <-subset(dataf, PMSScoreNew!="PMS"& TestMoment!='1')
-        Mom2_PMS <- subset(dataf, PMSScoreNew!="noPMS"& TestMoment!='1')
-
-
-        df <-data_2x2(
-          array_1= Mom1_noPMS,
-          array_2=Mom1_PMS,
-          array_3= Mom2_noPMS,
-          array_2=Mom2_PMS,
-          labels=(c('noPMS', 'PMS')),
-          jit_distance=0.09,
-          jit_seed=321,
-          spread_x_ticks= TRUE)
-
-        raincloud_2<-raincloud_2x2_repmes(
-          data= df,
-          colors= (c('dodgerblue', 'darkorange', 'dodgerblue','darkorange')),
-          fills= (c('dodgerblue', 'darkorange','dodgerblue','darkorange')),
-          line_color="gray",
-          line_alpha=.3,
-          size=1,
-          alpha= .6,
-          spread_x_ticks=FALSE
-          #ort='h'
-          )+
-          scale_x_continuous (breaks=c(1,2), labels=c("1", "2"), limits=c(0,3))+
-          xlab("TestMoment")+
-          ylab("BSRI")+
-          theme_classic()
-
-        raincloud_2
-      }
-      else if ((grepl("PSS", input$formula_choice))){
+      if ((grepl("PSS", input$formula_choice))){
       
         #dataframe for connected rainclouds
-        dataf<- data
+        dataf<- data[sample(nrow(data),100),]
+        head(dataf)
         # we create a dataframe with only PMSScoreNew and PSS
         require(reshape2)
-        dataf$id <- rownames(data)
-        dataf<- melt(dataf, id=c("TestMoment", "PSS"))
+        dataf<- melt(dataf, id=c("TestMoment", "PSS")) #takes out these 2 variables
         head(dataf)
+
+        #sort by TestMoment ascending (so moment 2 is last)
+        dataf <- dataf[order(dataf$TestMoment),]
+        head(dataf)
+        tail(dataf)
+        
         
         df <-data_1x1(
-          array_1= dataf$PSS[1:2135],
-          array_2=dataf$PSS[2135:4270],
+          array_1= dataf$PSS[1:length(dataf$PSS)/2],
+          array_2=dataf$PSS[(length(dataf$PSS)/2)+1:length(dataf$PSS)],
           jit_distance=0.09,
           jit_seed=321)
         
@@ -416,17 +335,23 @@ server <- function (input, output){ #we have to add this to the server
         raincloud_2
       } 
       else if ((grepl("BSRI", input$formula_choice))){
-                #dataframe for connected rainclouds
-        dataf<- data
-        # we create a dataframe with only PMSScoreNew and BSRI
-        require(reshape2)
-        dataf$id <- rownames(data)
-        dataf<- melt(dataf, id=c("TestMoment", "BSRI"))
+         #dataframe for connected rainclouds
+        dataf<- data[sample(nrow(data),100),]
         head(dataf)
+        # we create a dataframe with only PMSScoreNew and PSS
+        require(reshape2)
+        dataf<- melt(dataf, id=c("TestMoment", "BSRI")) #takes out these 2 variables
+        head(dataf)
+
+        #sort by TestMoment ascending (so moment 2 is last)
+        dataf <- dataf[order(dataf$TestMoment),]
+        head(dataf)
+        tail(dataf)
+        
         
         df <-data_1x1(
-          array_1= dataf$BSRI[1:2135],
-          array_2=dataf$BSRI[2135:4270],
+          array_1= dataf$BSRI[1:length(dataf$BSRI)/2],
+          array_2=dataf$BSRI[(length(dataf$BSRI)/2)+1:length(dataf$BSRI)],
           jit_distance=0.09,
           jit_seed=321)
         
@@ -715,52 +640,60 @@ server <- function (input, output){ #we have to add this to the server
         p2
       }
     })
-#   # 
-#   # output$table <- renderTable ({
-#   #   Formula <- paste0(input$formula_choice, ' + (1|Subject)')
-#   #   d0.1 <- lmer(Formula,data=data)
-#   #   d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   #   d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   # 
-#   #   d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   #   d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   #   d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   # 
-#   #   d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   #   d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   #   d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   # 
-#   #   modelNames= c('d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9')
-#   #   tabel <-round(cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9)), digits=2)
-#   #   chosenModel = modelNames[which(tabel == min(tabel))]
-#   #   tabel <- data.frame(Models=c('chosen  Model:','d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9'), AIC= c(cbind(chosenModel, tabel)))
-#   #   tabel
-#   # 
-#   # })
-#   # 
-#   # 
-#   # output$Anova <- renderPrint({
-#   #       Formula <- paste0(input$formula_choice, ' + (1|Subject)')
-#   #   d0.1 <- lmer(Formula,data=data)
-#   #   d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   #   d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   # 
-#   #   d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   #   d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   #   d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   # 
-#   #   d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   #   d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   #   d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-#   # 
-#   #   modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
-#   #   tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
-#   #    chosenModel = modelNames[which(tabel == min(tabel))]
-#   #    Anova_1 <- Anova(chosenModel[[1]])
-#   #    cat(sprintf("\nAnova\n"))
-#   #    Anova_1
-#   # 
-#   # })
+
+  output$table <- renderTable ({
+    Formula <- paste0('DASS_Stress ~ PMSScoreNew', ' + (1|Subject)')
+    Formula <- 'DASS_Stress ~ PMSScoreNew + (1|Subject)'
+    #Formula <- paste0(input$formula_choice, ' + (1|Subject)')
+    d0.1 <- lmer(Formula,data=data)
+    d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+
+    d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+
+    d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+    
+    ##kick out automatically
+    #try functions gebruiken: probeert iets, als zonders errors lukt doet die het, ander sniet
+    #dingen leeg maken van tevoren. als d0.1 niet werkt, clearen. 
+    #tablebind 
+    #try functie: try and catch. probeer als werkt catch en dan volgde: soort if else met foutmelding. dan toevoegen aan list modelnames, dan uitgangspositie rest
+
+    modelNames= c('d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9')
+    tabel <-round(cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9)), digits=2)
+    chosenModel = modelNames[which(tabel == min(tabel))]
+    tabel <- data.frame(Models=c('chosen  Model:','d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9'), AIC= c(cbind(chosenModel, tabel)))
+    tabel
+
+  })
+  # 
+  # 
+  # output$Anova <- renderPrint({
+  #       Formula <- paste0(input$formula_choice, ' + (1|Subject)')
+  #   d0.1 <- lmer(Formula,data=data)
+  #   d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  #   d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  # 
+  #   d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  #   d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  #   d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  # 
+  #   d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  #   d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  #   d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
+  # 
+  #   modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
+  #   tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+  #    chosenModel = modelNames[which(tabel == min(tabel))]
+  #    Anova_1 <- Anova(chosenModel[[1]])
+  #    cat(sprintf("\nAnova\n"))
+  #    Anova_1
+  # 
+  # })
 #   # 
 #   # output$emmeans <- renderPrint({
 #   #           Formula <- paste0(input$formula_choice, ' + (1|Subject)')
