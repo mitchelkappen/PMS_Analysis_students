@@ -806,24 +806,45 @@ shinyApp(ui=ui, server=server)
 ```
 
 ### Conclusions
--sign more stress PMS than no PMS
--sign more anxiety PMS than no 
--sign more depression PMS than no PMS
+* sign more stress PMS than no PMS
+* sign more anxiety PMS than no 
+* sign more depression PMS than no PMS
 
 
 # Hyptothesen en onderzoeksvragen:
 
 
+logic indexen per participant 
+
+gematched tussen testmomenten, A-B of B-A je wilt weten moment 1 of 2, kolom is er al 
+
+1 datapunt per participant per testmoment per variabele (valence/arousal)
+
+index valence, participantnr=.., testmoment=..
+
+mean(dataBig$Valence)
+
+als ik gemm wil v participant nr zoveel, gemm valence op alle stimuli voor testmoment 1
+en dan loopen door alle participanten nr [i]
+subloop voor alle testmomenten : loop in loop 2 regels code 
 
 ## Voor de stimuli 
 ### Eerste stap:
 - Bekijken Valence en arousal tussen de groepen en testmomenten, over alle stimuli als een geheel
+
+dikke outliers bekijken
+we willen normaalverdeling bv blije stimulus
+Mr: gezien hypothese dat verdeling diksmaldiksmal: 2 groepen. en paar rare outliers? droevig van kitten (sanity check)
 
 ### Next:
 - Per stimulus gemiddelden plotten
 -- Om erachter te komen of er coherent geantwoord wordt
 -- Om te zien of ze niet te veel van elkaar afwijken
 --- waarchuwing; ze gaan veel van elkaar afwijken. 
+
+gemm reactie per participant bekijken: over alle stimuli gemm valence, gemm arousal en standaarddev
+plotten gemm tussen groupen op stimuli
+pas erna onderverdelen in stimuligroepen
 
 
 Stimuli onderverdelen in negatief, positief en neutral, om daar een subdivisie analyse op te maken
@@ -837,9 +858,6 @@ https://bmcpsychiatry.biomedcentral.com/articles/10.1186/s12888-016-0875-9/table
 
 
 TO DO:
-
--raincloud plot visueel aantrekkelijker
--plots, anova etc DASS toevoegen
 
 
 -variabelen steekproef in beeld (puur omdat  interessant: PMS vs no PMS: leeftijd, duur cyclus (gemm))
