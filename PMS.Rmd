@@ -76,13 +76,12 @@ data <- read.csv("Data/allPMSdata.csv", header=TRUE)
 # data <- read.table("Data/allPMSdata.csv", header=TRUE)
 
 
-# from wide to long
-#check if subject column is a facctor
-#str(data)
-#head(data)
-# data <-as.numeric(data)
+
 data$Subject <- factor(data$ID)
-#typeof(data$Subject)
+
+levs<-union(data$ID, data$ID)
+data$newid <- factor(data$ID, levels=levs, labels=seq_along(levs)) #this code replaces the '627, 534 IDs with 1, 2, 3, )
+
 
 
 #we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
@@ -811,22 +810,111 @@ shinyApp(ui=ui, server=server)
 * sign more depression PMS than no PMS
 
 
+```{r echo=FALSE}
+
+# we maken een density plotvoor zowel valence als arousal voor elke stimulus (2x22)
+# doen zodat  kiezen tussen lijst van stimuli
+
+ui<- fluidPage( 
+  sidebarPanel(
+    selectInput("Stimulus", label="Choose a Stimulus:",
+            choices= c('1710', '6313', '2057', '5600','9592','2165','9220','9300','1463','4658','7480','5030','4490','9320','2340','4531','9600
+','7182','9921','1610','7211','4180'),
+            selected='1710'), ),
+  
+  mainPanel(
+     tabsetPanel(type = "tab",
+                  tabPanel("densityplot", plotOutput("densityplot"))
+         )))
+
+
+server <- function (input, output){ 
+  
+  output$densityplot<- renderPlot({
+    
+    #we maken density plot van valence/arousal per stimulus. 
+    #p
+    
+    for (i in 1:length(dataBig$newid)){
+      dataBig$val[i]<-mean(dataBig$Valence[dataBig$Stimulus[i]==input$Stimulus])}
+    
+    p1 <- ggplot(dataBig, aes(x=val ))+
+      geom_density()
+    p1
+
+
+    
+})
+  
+}
+
+
+shinyApp(ui=ui, server=server)
+
+
+
+# for (i in 1:length(dataBig$newid)){
+#   dataBig$Valence[databig$newid==i & dataBig$Stimulus==input$stimulus]
+#  #mean of valence for testMoment 2
+#   dataBig$val_2[i]<-mean(dataBig$Valence[dataBig$newid==i & dataBig$TestMoment==2])
+# }
+# #plot 
+# 
+# 
+# 
+# #voor analyse later: per participant gemm voor alle stimuli voor arousal en zelfde voor valence
+# 
+# # we index over the dataset to get the mean valence and arousal per participant per testmoment
+# 
+# for (i in 1:length(dataBig$newid)){
+#   id_nr=i
+#   for (j in 1:2) {
+#     mean(dataBig$Valence[dataBig$newid==j &dataBig$TestMoment==j])}
+# }
+# 
+# for (i in 1:length(dataBig$newid)){
+#  #mean of valence for testMoment 2
+#   dataBig$val_2[i]<-mean(dataBig$Valence[dataBig$newid==i & dataBig$TestMoment==2])
+# }
+# 
+
+
+
+#plot with testmoment 1, testmoment 2: valence 
+Formula <- Valence ~ TestMoment
+   dpi=600    #pixels per square inch
+    # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
+    par(mfcol = c(1, 1))
+      pirateplot(
+      formula= Formula,
+      data=dataBig,
+      theme= 1,
+      pal= "info",
+      main= Formula,
+      bean.f.o = .6, # Bean fill
+      point.o = .3,  # Points
+      inf.f.o = .7,  # Inference fill
+      inf.b.o = .8,  # Inference border
+      avg.line.o = 1,  # Average line
+      bar.f.o = .5, # Bar
+      inf.f.col = "white",  # Inf fill col
+      inf.b.col = "black",  # Inf border col
+      avg.line.col = "black",  # avg line col
+      bar.f.col = gray(.8),  # bar filling color
+      point.pch = 21,
+      point.bg = "white",
+      point.col = "black",
+      point.cex = .7,
+      xlab="",
+    )
+
+
+```
+
+
 # Hyptothesen en onderzoeksvragen:
 
 
-logic indexen per participant 
-
-gematched tussen testmomenten, A-B of B-A je wilt weten moment 1 of 2, kolom is er al 
-
-1 datapunt per participant per testmoment per variabele (valence/arousal)
-
-index valence, participantnr=.., testmoment=..
-
-mean(dataBig$Valence)
-
-als ik gemm wil v participant nr zoveel, gemm valence op alle stimuli voor testmoment 1
-en dan loopen door alle participanten nr [i]
-subloop voor alle testmomenten : loop in loop 2 regels code 
 
 ## Voor de stimuli 
 ### Eerste stap:
