@@ -547,7 +547,7 @@ effect of PMS vs no PMSS
 ui<- fluidPage( # makes the User Interface
   sidebarPanel(
     selectInput("formula_choice", label="Choose a Formula:",
-            choices= c('DASS_Stress ~ PMSScoreNew', 'DASS_Anxiety ~ PMSScoreNew', 'DASS_Depression ~ PMSScoreNew', 'DASS_Stress ~ PMSScoreNew * PSS', 'DASS_Anxiety ~ PMSScoreNew * PSS', 'DASS_Depression ~ PMSScoreNew * PSS'),
+            choices= c('DASS_Stress ~ PMSScoreNew', 'DASS_Anxiety ~ PMSScoreNew', 'DASS_Depression ~ PMSScoreNew'),
             selected='DASS_Stress ~ PMSScoreNew'), # puts the choices in the first element which is accessed via input$formula_choice
   ),
   
@@ -805,7 +805,10 @@ shinyApp(ui=ui, server=server)
 
 ```
 
-
+### Conclusions
+-sign more stress PMS than no PMS
+-sign more anxiety PMS than no 
+-sign more depression PMS than no PMS
 
 
 # Hyptothesen en onderzoeksvragen:
