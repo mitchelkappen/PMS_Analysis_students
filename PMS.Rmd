@@ -33,11 +33,11 @@ library(ggstatsplot)
 library(ggsignif)
 library(ggformula)
 library(ggdist)
-library(raincloudplots)
 library(gridExtra)
 library(tidyverse)
 library(ggeffects)
 library(pander)
+library(stringr)
 
 
 library(cowplot)
@@ -46,7 +46,6 @@ library(readr)
 library(jpeg)
 library(ggpubr)
 library(shiny)
-library(raincloudplots)
 library(reshape2)
 
 # library(viridis)
@@ -822,8 +821,13 @@ ui<- fluidPage(
     radioButtons("stimulus", label="Choose a Stimulus:",
             choices= c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '9320', '9584', '9592', '9594', '9600', '9911', '9920', '9921'), inline=TRUE,
             selected='1440'), ),
-  mainPanel(plotOutput('densityplot'))
+  mainPanel(
+    tabsetPanel(type = "tab",
+      tabPanel("densityplot", plotOutput("densityplot")),
+      tabPanel("IAPs_Image", plotOutput("IAPs_Image"))
+    )
   )
+)
 
 server <- function (input, output){ 
   #we make a density plot of valence/arousal per stimulus.
@@ -836,7 +840,18 @@ server <- function (input, output){
       main= input$stimulus
     )
   })
+  
+  output$IAPs_Image <- renderImage({
+    list(src=str_glue("Z:/shares/ghep_lab/ImageDatabases/IAPS/{input$stimulus}.jpg"),
+         filetype="image/jpeg",
+         width=400,
+         height=300
+         )
+  })
 }
+
+# use shiny display mode to show R code by the side
+
 
 
 shinyApp(ui=ui, server=server)
@@ -871,6 +886,15 @@ same for valence: more of a gaussian curve when middle, more of a cup when towar
 we sometimes see some interesting outliers e.g. 1463,2057,4658, 7481, 9600: most score this high valence, high arousal but some don't! opposite response
 => interesting: see if the same persons who respond 'atypical' to these images? Perhaps misunderstanding the scales or big horror fans/ puppy haters? 
 
+=> index de top eruit
+
+
+## reaction times
+
+```{r echo=FALSE}
+
+#we plot all reaction times
+```
 
 
 ## Hyptothesen en onderzoeksvragen:
