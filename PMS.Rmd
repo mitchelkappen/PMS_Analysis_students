@@ -792,10 +792,7 @@ server <- function (input, output){
 
 
 
-
-#look at outliers
-
-
+#look at outliers, remove them, plot again! 
 
 
 shinyApp(ui=ui, server=server)
@@ -878,11 +875,6 @@ p4
 print('some summary info')
 summary(dataBig$rt)
 
-#outlier removal method 1
-out<-boxplot.stats(dataBig$rt)$out#outliers
-boxplot(dataBig$rt, ylab='rt') #boxplot
-mtext(paste('Boxplot:'))# text that names the outliers
-
 #outlier removal method 2
 lower_bound <- quantile (dataBig$rt, 0.025)
 print('0.025 lower bound')
@@ -900,19 +892,20 @@ p5 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_boxplot(width= .10, outlier.shape = NA)+
   theme(legend.position="none")+
   guides(fill=FALSE)+
-  ggtitle("reaction times < 12 939")
+  ggtitle("reaction times < 12 939 (0.975 upper bound)")
 p5
 
 out<-boxplot.stats(dataBig$rt)$out#outliers
 out_ind<-which(dataBig$rt %in% c(out))#row numbers that contain outliers
 boxplot(dataBig$rt, ylab='rt') #boxplot
-mtext(paste('Outliers:',paste(round(out),collapse=','))) #boxplot with outliers
+mtext(paste('boxplot with outliers')) #boxplot with outliers
 
 
 dataBig <- dataBig%>%slice(out_ind)
+d<-melt(data.frame(rt=c(dataBig$rt)))
 p5 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
-  geom_point(position=position_jitter(width=.15), size=0.25)+
+  geom_point(position=position_jitter(width=.15), size=0.7)+
   ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
   geom_boxplot(width= .10, outlier.shape = NA)+
   theme(legend.position="none")+
@@ -922,7 +915,7 @@ p5
 
 out<-boxplot.stats(dataBig$rt)$out#outliers
 boxplot(dataBig$rt, ylab='rt') #boxplot
-mtext(paste('Outliers:',paste(round(out),collapse=','))) #boxplot with outliers
+mtext(paste('boxplot without outliers',paste(round(out),collapse=','))) #boxplot with outliers
 
 ```
 
