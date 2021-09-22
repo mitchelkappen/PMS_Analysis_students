@@ -864,6 +864,12 @@ shinyApp(ui=ui, server=server)
 | **medium valence, medium arousal:** |  7211, 7238, 4550, 7211, 7238 |
 
 
+when Medium, arousal tends to be normally distributed
+However: we often find 2 gauss curves on top of each other
+same for valence: more of a gaussian curve when middle, more of a cup when towards the extreme.
+
+we sometimes see some interesting outliers e.g. 1463,2057,4658, 7481, 9600: most score this high valence, high arousal but some don't! opposite response
+=> interesting: see if the same persons who respond 'atypical' to these images? Perhaps misunderstanding the scales or big horror fans/ puppy haters? 
 
 
 
