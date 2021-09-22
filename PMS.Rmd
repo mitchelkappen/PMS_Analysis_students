@@ -47,6 +47,7 @@ library(jpeg)
 library(ggpubr)
 library(shiny)
 library(raincloudplots)
+library(reshape2)
 
 # library(viridis)
 library (yarrr)
@@ -126,8 +127,6 @@ data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
 # Define the formula for the model & check which model fits the data best
 
 data_temp <- data #to get back to
-
-
 
   # violin function
 
@@ -812,48 +811,27 @@ shinyApp(ui=ui, server=server)
 
 ```{r echo=FALSE}
 
-unique<-sort(unique(dataBig$Stimulus), decreasing=FALSE) #find all the stimuli
-
+# unique<-sort(unique(dataBig$Stimulus), decreasing=FALSE) #find all the stimuli
 # we maken een density plotvoor zowel valence als arousal voor elke stimulus (2x22)
-# doen zodat  kiezen tussen lijst van stimuli
-
-ui<- fixedPage( 
-  title= "plotting Stimuli",
-  fluidRow(
-    radioButtons("Stimulus", label="Choose a Stimulus:",
+ui<- fluidPage( 
+  sidebarPanel(
+    radioButtons("stimulus", label="Choose a Stimulus:",
             choices= c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300'), inline=TRUE,
             selected='1440'), ),
-  #we need to make this 2 plots under each other, for later
-  plotOutput("densityplot")
+  mainPanel(plotOutput('densityplot'))
   )
 
-
 server <- function (input, output){ 
-  
+  #we make a density plot of valence/arousal per stimulus.
   output$densityplot<- renderPlot({
+    d<-melt(data.frame(valence=c(dataBig$Valence[dataBig$Stimulus==input$stimulus]),arousal=c(dataBig$Arousal[dataBig$Stimulus==input$stimulus])))
     
-    #we maken density plot van valence/arousal per stimulus. 
-    #for i in unique(kolom)
-    
-    d <- c()
-    
-    for (i in 1:length(dataBig$newid)){
-      if (dataBig$Stimulus[i]==input$Stimulus){
-        d<-c(d, dataBig$Valence[i])
-      }
-    }
-    # for (i in 1:15796){if (dataBig$Stimulus[i]==1710){d<-c(d, dataBig$Valence[i])}}
-    d<-data.frame(valence=c(d))
-    
-    p1 <- ggplot(d, aes(x=valence ))+
-      geom_density()
-    #also add description valence/arousal
-    p1
-
-
-    
-})
-  
+    pirateplot(
+      formula=value~variable,
+      data=d,
+      main= input$stimulus
+    )
+  })
 }
 
 
@@ -861,60 +839,7 @@ shinyApp(ui=ui, server=server)
 
 
 
-# for (i in 1:length(dataBig$newid)){
-#   dataBig$Valence[databig$newid==i & dataBig$Stimulus==input$stimulus]
-#  #mean of valence for testMoment 2
-#   dataBig$val_2[i]<-mean(dataBig$Valence[dataBig$newid==i & dataBig$TestMoment==2])
-# }
-# #plot 
-# 
-# 
-# 
-# #voor analyse later: per participant gemm voor alle stimuli voor arousal en zelfde voor valence
-# 
-# # we index over the dataset to get the mean valence and arousal per participant per testmoment
-# 
-# for (i in 1:length(dataBig$newid)){
-#   id_nr=i
-#   for (j in 1:2) {
-#     mean(dataBig$Valence[dataBig$newid==j &dataBig$TestMoment==j])}
-# }
-# 
-# for (i in 1:length(dataBig$newid)){
-#  #mean of valence for testMoment 2
-#   dataBig$val_2[i]<-mean(dataBig$Valence[dataBig$newid==i & dataBig$TestMoment==2])
-# }
-# 
 
-
-
-#plot with testmoment 1, testmoment 2: valence 
-Formula <- Valence ~ TestMoment
-   dpi=600    #pixels per square inch
-    # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
-    par(mfcol = c(1, 1))
-      pirateplot(
-      formula= Formula,
-      data=dataBig,
-      theme= 1,
-      pal= "info",
-      main= Formula,
-      bean.f.o = .6, # Bean fill
-      point.o = .3,  # Points
-      inf.f.o = .7,  # Inference fill
-      inf.b.o = .8,  # Inference border
-      avg.line.o = 1,  # Average line
-      bar.f.o = .5, # Bar
-      inf.f.col = "white",  # Inf fill col
-      inf.b.col = "black",  # Inf border col
-      avg.line.col = "black",  # avg line col
-      bar.f.col = gray(.8),  # bar filling color
-      point.pch = 21,
-      point.bg = "white",
-      point.col = "black",
-      point.cex = .7,
-      xlab="",
-    )
 
 
 ```
