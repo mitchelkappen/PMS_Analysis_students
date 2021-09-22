@@ -840,10 +840,11 @@ server <- function (input, output){
 shinyApp(ui=ui, server=server)
 
 # some code to find the subject ID's of the outliers
+#doesn't work yet!!
 
-stim=c(9600)# here you fill in the number of the stimulus
+stim=c(4658)# here you fill in the number of the stimulus
 #min
-dataBig2$newid[dataBig2$Valence[dataBig2$Stimulus==stim]==min(dataBig2$Valence[dataBig2$Stimulus==stim])]
+test=dataBig2$newid[dataBig2$Valence[dataBig2$Stimulus==stim]==min(dataBig2$Valence[dataBig2$Stimulus==stim])]
 #max
 dataBig2$newid[dataBig2$Valence[dataBig2$Stimulus==stim]==max(dataBig2$Valence[dataBig2$Stimulus==stim])]
 ```
