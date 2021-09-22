@@ -8,7 +8,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# PMS Study
+# PMS Study {.tabset}
 
 This is an interactive, Shiny Rmd file for the PMS study
 
@@ -159,9 +159,6 @@ data_temp <- data #to get back to
 ```
 
 
-```{r echo=FALSE}
-
-```
 
 
 ## PMS, TestMoment, PSS and BSRI
@@ -809,6 +806,13 @@ shinyApp(ui=ui, server=server)
 * sign more depression PMS than no PMS
 
 
+## Stimuli
+
+These were images that were either negative, positive or neutral. 
+22 matched images (e.g. in TestMoment 1 image of needle in arm, in TestMoment 2 needle in leg. or image puppy and image of another puppy)
+
+participants could indicate how the images scored for them on valence and arousal
+
 ```{r echo=FALSE}
 
 # unique<-sort(unique(dataBig$Stimulus), decreasing=FALSE) #find all the stimuli
@@ -816,7 +820,7 @@ shinyApp(ui=ui, server=server)
 ui<- fluidPage( 
   sidebarPanel(
     radioButtons("stimulus", label="Choose a Stimulus:",
-            choices= c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300'), inline=TRUE,
+            choices= c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '9320', '9584', '9592', '9594', '9600', '9911', '9920', '9921'), inline=TRUE,
             selected='1440'), ),
   mainPanel(plotOutput('densityplot'))
   )
@@ -840,24 +844,42 @@ shinyApp(ui=ui, server=server)
 
 
 
-
-
 ```
 
 
-# Hyptothesen en onderzoeksvragen:
+ positive stimuli
+
+'medium'= 40-60
+
+|  |  |
+|:----|:----------------------|
+|  **high valence, high arousal:** | 4658, 4561, 4658  |
+| **high valence, low arousal:** |  2360, 5030, 5600, 5800, 5982, 5030, 5800, 5982 |
+| **high valence, medium arousal:** | 1440, 1463, 1610, 1710, 1722, 1750, 2057, 2070, 2160, 2165, 2340 7480, 7481, 5600, 7480, 7481 |
+| **low valence, high arousal:** | 2800, 3261, 6312, 6313, 7182, 7380, 6312, 6313, 7380, 9600, 9911, 9920, 9921 |
+| **low valence, low arousal:** |  9220 |
+| **low valence, medium arousal:** | 9300, 9320, 9584, 9592, 9594 |
+| **medium valence, high arousal:** | 7182 |
+| **medium valence, low arousal:** |  7224, 7224 |
+| **medium valence, medium arousal:** |  7211, 7238, 4550, 7211, 7238 |
 
 
 
-## Voor de stimuli 
-### Eerste stap:
+
+
+## Hyptothesen en onderzoeksvragen:
+
+
+
+### Voor de stimuli 
+#### Eerste stap:
 - Bekijken Valence en arousal tussen de groepen en testmomenten, over alle stimuli als een geheel
 
 dikke outliers bekijken
 we willen normaalverdeling bv blije stimulus
 Mr: gezien hypothese dat verdeling diksmaldiksmal: 2 groepen. en paar rare outliers? droevig van kitten (sanity check)
 
-### Next:
+#### Next:
 - Per stimulus gemiddelden plotten
 -- Om erachter te komen of er coherent geantwoord wordt
 -- Om te zien of ze niet te veel van elkaar afwijken
@@ -868,8 +890,7 @@ plotten gemm tussen groupen op stimuli
 pas erna onderverdelen in stimuligroepen
 
 
-Stimuli onderverdelen in negatief, positief en neutral, om daar een subdivisie analyse op te maken
-*noot: iaos images, ze zijn getagged (zoek op om ze te kunnen onderverdelen). 22, gematched (dus bv naald in arm vs naald in been)
+
 
 ### Overig:
 Normgroepen opzoeken voor PSS bij (jonge) vrouwen
@@ -878,7 +899,7 @@ https://www.cambridge.org/core/journals/spanish-journal-of-psychology/article/ab
 https://bmcpsychiatry.biomedcentral.com/articles/10.1186/s12888-016-0875-9/tables/6
 
 
-TO DO:
+###TO DO:
 
 
 -variabelen steekproef in beeld (puur omdat  interessant: PMS vs no PMS: leeftijd, duur cyclus (gemm))
