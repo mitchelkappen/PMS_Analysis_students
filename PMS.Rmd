@@ -812,20 +812,20 @@ shinyApp(ui=ui, server=server)
 
 ```{r echo=FALSE}
 
+unique<-sort(unique(dataBig$Stimulus), decreasing=FALSE) #find all the stimuli
+
 # we maken een density plotvoor zowel valence als arousal voor elke stimulus (2x22)
 # doen zodat  kiezen tussen lijst van stimuli
 
-ui<- fluidPage( 
-  sidebarPanel(
-    selectInput("Stimulus", label="Choose a Stimulus:",
-            choices= c('1710', '6313', '2057', '5600','9592','2165','9220','9300','1463','4658','7480','5030','4490','9320','2340','4531','9600
-','7182','9921','1610','7211','4180'),
-            selected='1710'), ),
-  
-  mainPanel(
-     tabsetPanel(type = "tab",
-                  tabPanel("densityplot", plotOutput("densityplot"))
-         )))
+ui<- fixedPage( 
+  title= "plotting Stimuli",
+  fluidRow(
+    radioButtons("Stimulus", label="Choose a Stimulus:",
+            choices= c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300'), inline=TRUE,
+            selected='1440'), ),
+  #we need to make this 2 plots under each other, for later
+  plotOutput("densityplot")
+  )
 
 
 server <- function (input, output){ 
@@ -833,13 +833,21 @@ server <- function (input, output){
   output$densityplot<- renderPlot({
     
     #we maken density plot van valence/arousal per stimulus. 
-    #p
+    #for i in unique(kolom)
+    
+    d <- c()
     
     for (i in 1:length(dataBig$newid)){
-      dataBig$val[i]<-mean(dataBig$Valence[dataBig$Stimulus[i]==input$Stimulus])}
+      if (dataBig$Stimulus[i]==input$Stimulus){
+        d<-c(d, dataBig$Valence[i])
+      }
+    }
+    # for (i in 1:15796){if (dataBig$Stimulus[i]==1710){d<-c(d, dataBig$Valence[i])}}
+    d<-data.frame(valence=c(d))
     
-    p1 <- ggplot(dataBig, aes(x=val ))+
+    p1 <- ggplot(d, aes(x=valence ))+
       geom_density()
+    #also add description valence/arousal
     p1
 
 
