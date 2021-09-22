@@ -791,10 +791,18 @@ These were images that were either negative, positive or neutral.
 
 participants could indicate how the images scored for them on valence and arousal
 
+these already have the rt data filtered under 12 939 ms (outliers removed)
+
 ```{r echo=FALSE}
 
 # unique<-sort(unique(dataBig$Stimulus), decreasing=FALSE) #find all the stimuli
 # we maken een density plotvoor zowel valence als arousal voor elke stimulus (2x22)
+
+
+#Dit zijn de data waar de rt outliers uitgehaald zijn! 
+dataBig2 <- subset(dataBig, rt < 12939)
+
+
 ui<- fluidPage( 
   sidebarPanel(
     radioButtons("stimulus", label="Choose a Stimulus:",
@@ -811,13 +819,14 @@ ui<- fluidPage(
 server <- function (input, output){ 
   #we make a density plot of valence/arousal per stimulus.
   output$densityplot<- renderPlot({
-    d<-melt(data.frame(valence=c(dataBig$Valence[dataBig$Stimulus==input$stimulus]),arousal=c(dataBig$Arousal[dataBig$Stimulus==input$stimulus])))
+    d<-melt(data.frame(valence=c(dataBig2$Valence[dataBig2$Stimulus==input$stimulus]),arousal=c(dataBig2$Arousal[dataBig2$Stimulus==input$stimulus])))
     
     pirateplot(
       formula=value~variable,
       data=d,
       main= input$stimulus
     )
+    
   })
   
   output$IAPs_Image <- renderImage({
@@ -828,17 +837,15 @@ server <- function (input, output){
          )
   })
 }
-
-
-
-#look at outliers, remove them, plot again! 
-
-
 shinyApp(ui=ui, server=server)
 
+# some code to find the subject ID's of the outliers
 
-
-
+stim=c(9600)# here you fill in the number of the stimulus
+#min
+dataBig2$newid[dataBig2$Valence[dataBig2$Stimulus==stim]==min(dataBig2$Valence[dataBig2$Stimulus==stim])]
+#max
+dataBig2$newid[dataBig2$Valence[dataBig2$Stimulus==stim]==max(dataBig2$Valence[dataBig2$Stimulus==stim])]
 ```
 
 
@@ -869,14 +876,20 @@ we sometimes see some interesting outliers e.g. 1463,2057,4658, 7481, 9600: most
 => index de top eruit
 
 
+
+
+
+
+
+
 ## reaction times
 
 ```{r echo=FALSE}
 #plot reaction times with raincloudplot
 
 dataBig_out<-dataBig #the dataBig with the rt outliers
-d_out<-melt(data.frame(rt=c(dataBig_out$rt))) # we melt to wide format
-p1 <- ggplot(d_out, aes(x = variable, y = value, fill=variable))+
+d<-melt(data.frame(rt=c(dataBig_out$rt))) # we melt to wide format
+p1 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
   ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
   geom_point(position=position_jitter(width=.15), size=2)+
@@ -887,8 +900,8 @@ p1
 
 summary(dataBig_out$rt)
 
-dataBig <- subset(dataBig, rt < 25000)
-d<-melt(data.frame(rt=c(dataBig$rt)))
+dataBig_out <- subset(dataBig_out, rt < 25000)
+d<-melt(data.frame(rt=c(dataBig_out$rt)))
 p3 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
   geom_point(position=position_jitter(width=.15), size=0.25)+
@@ -899,8 +912,8 @@ p3 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   ggtitle("reaction times < 25 000")
 p3
 
-dataBig <- subset(dataBig, rt < 15000)
-d<-melt(data.frame(rt=c(dataBig$rt)))
+dataBig_out <- subset(dataBig_out, rt < 15000)
+d<-melt(data.frame(rt=c(dataBig_out$rt)))
 p4 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
   geom_point(position=position_jitter(width=.15), size=0.25)+
@@ -912,18 +925,19 @@ p4 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
 p4
 
 print('some summary info')
-summary(dataBig$rt)
+summary(dataBig_out$rt)
 
 #outlier removal method 2
-lower_bound <- quantile (dataBig$rt, 0.025)
+lower_bound <- quantile (dataBig_out$rt, 0.025)
 print('0.025 lower bound')
 lower_bound
-upper_bound <- quantile (dataBig$rt, 0.975)
+upper_bound <- quantile (dataBig_out$rt, 0.975)
 print('0.975 upper bound')
 upper_bound
 
-dataBig <- subset(dataBig, rt < 12939)
-d<-melt(data.frame(rt=c(dataBig$rt)))
+#pay attention! this is what we now make dataBig, and this will ALSO affect the Stimulus plotting
+dataBig2 <- subset(dataBig_out, rt < 12939)
+d<-melt(data.frame(rt=c(dataBig2$rt)))
 p5 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
   geom_point(position=position_jitter(width=.15), size=0.25)+
@@ -934,14 +948,14 @@ p5 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   ggtitle("reaction times < 12 939 (0.975 upper bound)")
 p5
 
-out<-boxplot.stats(dataBig$rt)$out#outliers
-out_ind<-which(dataBig$rt %in% c(out))#row numbers that contain outliers
-boxplot(dataBig$rt, ylab='rt') #boxplot
+out<-boxplot.stats(dataBig_out$rt)$out#outliers
+out_ind<-which(dataBig_out$rt %in% c(out))#row numbers that contain outliers
+boxplot(dataBig_out$rt, ylab='rt') #boxplot
 mtext(paste('boxplot with outliers')) #boxplot with outliers
 
 
-dataBig <- dataBig%>%slice(out_ind)
-d<-melt(data.frame(rt=c(dataBig$rt)))
+dataBig_out <- dataBig_out%>%slice(out_ind)
+d<-melt(data.frame(rt=c(dataBig_out$rt)))
 p5 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
   geom_point(position=position_jitter(width=.15), size=0.7)+
@@ -953,7 +967,7 @@ p5 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
 p5
 
 out<-boxplot.stats(dataBig$rt)$out#outliers
-boxplot(dataBig$rt, ylab='rt') #boxplot
+boxplot(dataBig_out$rt, ylab='rt') #boxplot
 mtext(paste('boxplot without outliers',paste(round(out),collapse=','))) #boxplot with outliers
 
 ```
@@ -993,10 +1007,9 @@ https://bmcpsychiatry.biomedcentral.com/articles/10.1186/s12888-016-0875-9/table
 
 ###TO DO:
 
+-look at the weird answers in the valence: same participants? note their IDs
+-variabelen steekproef in tabel (puur omdat  interessant: 
+PMS vs no PMS: 
+-leeftijd 
+-duur cyclus (gemm))
 
--variabelen steekproef in beeld (puur omdat  interessant: PMS vs no PMS: leeftijd, duur cyclus (gemm))
-
--stimuli plotten, outliers eruit 
-
-maak shiny appp
-https://shiny.rstudio.com/articles/display-modes.html
