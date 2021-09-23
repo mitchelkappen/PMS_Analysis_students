@@ -399,7 +399,7 @@ server <- function (input, output){ #we have to add this to the server
     d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
     d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
   
-    modelNames= c('d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9')
+    modelNames<- c('d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9')
     tabel <-round(cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9)), digits=2)
     chosenModel = modelNames[which(tabel == min(tabel))]
     tabel <- data.frame(Models=c('chosen  Model:','d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9'), AIC= c(cbind(chosenModel, tabel)))
@@ -812,7 +812,7 @@ ui<- fluidPage(
     tabsetPanel(type = "tab",
       tabPanel("densityplot", plotOutput("densityplot")),
       tabPanel("IAPs_Image", plotOutput("IAPs_Image"))
-    )
+    ),
   )
 )
 
@@ -820,11 +820,20 @@ server <- function (input, output){
   #we make a density plot of valence/arousal per stimulus.
   output$densityplot<- renderPlot({
     d<-melt(data.frame(valence=c(dataBig2$Valence[dataBig2$Stimulus==input$stimulus]),arousal=c(dataBig2$Arousal[dataBig2$Stimulus==input$stimulus])))
+    d2<-data.frame(valence=c(dataBig2$Valence[dataBig2$Stimulus==input$stimulus]), ID=c(dataBig2$newid[dataBig2$Stimulus==input$stimulus])) 
+    min<-d2$ID[which(d2$valence==min(d2$valence))]#ids of min valence
+    max<-d2$ID[which(d2$valence==max(d2$valence))]#ids of max valence
+    if (length(min)<length(max)){
+      text=min
+    } else {
+      text=max
+    }
     
     pirateplot(
       formula=value~variable,
       data=d,
-      main= input$stimulus
+      main= input$stimulus,
+      xlab= str_glue('outliers: {text}')
     )
     
   })
@@ -842,11 +851,23 @@ shinyApp(ui=ui, server=server)
 # some code to find the subject ID's of the outliers
 #doesn't work yet!!
 
-stim=c(4658)# here you fill in the number of the stimulus
-#min
-test=dataBig2$newid[dataBig2$Valence[dataBig2$Stimulus==stim]==min(dataBig2$Valence[dataBig2$Stimulus==stim])]
-#max
-dataBig2$newid[dataBig2$Valence[dataBig2$Stimulus==stim]==max(dataBig2$Valence[dataBig2$Stimulus==stim])]
+# length(unique(dataBig$newid)) #how many participants
+# 
+# stim=c(4658)# here you fill in the number of the stimulus
+# d2<-data.frame(valence=c(dataBig2$Valence[dataBig2$Stimulus==stim]),arousal=c(dataBig2$Arousal[dataBig2$Stimulus==stim]), ID=c(dataBig2$newid[dataBig2$Stimulus==stim])) #just make this d in code
+
+
+# #min
+# min<-d2$ID[which(d2$valence==min(d2$valence))]
+# #max
+# max<-d2$ID[which(d2$valence==max(d2$valence))]
+# 
+# if (length(min)<length(max)){
+#   print(min)
+# } else {
+#   print (max)
+# }
+
 ```
 
 
