@@ -19,11 +19,11 @@ This is an interactive, Shiny Rmd file for the PMS study
 rm(list = ls())
 
 #install packages
-list.of.packages <- c("lme4",'lmerTest','effects','dplyr', 'car', 'emmeans','fitdistrplus','ggplot2', 'ggstatsplot','ggsignif', 'ggformula','ggdist','ggpubr','ggeffects', 'gplots', 'gridExtra','tidyverse','pander','stringr','cowplot','lavaan','readr','jpeg','shiny','reshape2', 'yarrr','knitr' )
+list.of.packages <- c("lme4",'lmerTest','effects','dplyr', 'car', 'Rmisc', 'emmeans','fitdistrplus','ggplot2', 'ggstatsplot','ggsignif', 'ggformula','ggdist','ggpubr','ggeffects', 'gplots', 'gridExtra','tidyverse','pander','stringr','cowplot','lavaan','readr','jpeg','shiny','reshape2', 'yarrr','knitr' )
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
-
+library(Rmisc)
 library(lme4)
 library(lmerTest)
 library(effects)
@@ -31,6 +31,7 @@ library(dplyr)
 library(car)
 library(emmeans)
 library(fitdistrplus)
+library(gplots)
 library(ggplot2)
 library(ggstatsplot)
 library(ggsignif)
@@ -976,19 +977,20 @@ pirateplot(
 ui<- fluidPage( 
   sidebarPanel(
     radioButtons("formula_choice", label="Choose a Formula:",
-            choices= c('Valence ~ PMSScoreNew', 'Arousal ~ PMSScoreNew', 'Valence ~ PMSScoreNew * TestMoment', 'Arousal ~ PMSScoreNew * TestMoment'), inline=TRUE,
-            selected='Valence ~ PMSScoreNew'), ),
+            choices= c('Valence~PMSScoreNew', 'Arousal~PMSScoreNew', 'Valence~PMSScoreNew * TestMoment', 'Arousal ~ PMSScoreNew * TestMoment'), inline=TRUE,
+            selected='Valence~PMSScoreNew'), ),
   mainPanel(
     tabsetPanel(type = "tab",
-      tabPanel("plot", plotOutput("plot")),
-      tabPanel('plot2', plotOutput('plot2'))
+      tabPanel("pirateplot", plotOutput("pirateplot")),
+      tabPanel('plotmeans', plotOutput('plotmeans')),
+      tabPanel('int_means', plotOutput('int_means'))
     ),
   )
 )
 
 server <- function (input, output){ 
   #we make a density plot of valence/arousal per stimulus.
-  output$plot<- renderPlot({
+  output$pirateplot<- renderPlot({
     pirateplot(
           formula= input$formula_choice,
           data=dataBig2,
@@ -1011,13 +1013,34 @@ server <- function (input, output){
           point.cex = .7,
           xlab="",
         )
-    output$plot2 <- renderPlot({
-      plotmeans(input$formula_choice, data=dataBig2)
-    })
+  })
+  output$plotmeans <-renderPlot({
+    if ((grepl('Valence', input$formula_choice))){
+      p<-plotmeans(Valence~PMSScoreNew, data=dataBig2)
+      p
+    } else{ p<-plotmeans(Arousal~PMSScoreNew, data=dataBig2)
+    p}
+  })
+  
+  output$int_means <- renderPlot({
+    if ((grepl('Valence', input$formula_choice))){
+      dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('TestMoment', 'PMSScoreNew'))# this function gives sd, se mean and default 95% C.I.
+      p<-ggplot(dmean, aes(x=TestMoment, y=Valence, colour=PMSScoreNew, group=PMSScoreNew)) +
+          geom_errorbar(aes(ymin=Valence-standard_error(Valence), ymax=Valence+standard_error(Valence), width=.1))+
+        geom_line() +
+        geom_point(size=3)
+      p} else {
+      dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('TestMoment', 'PMSScoreNew'))# this function gives sd, se mean and default 95% C.I.
+      p<-ggplot(dmean, aes(x=TestMoment, y=Arousal, colour=PMSScoreNew, group=PMSScoreNew)) +
+          geom_errorbar(aes(ymin=Arousal-standard_error(Arousal), ymax=Arousal+standard_error(Arousal), width=.1))+
+        geom_line() +
+        geom_point(size=3)
+      p}
   })
   
 }
 shinyApp(ui=ui, server=server)
+
 
 
 ```
