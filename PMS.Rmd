@@ -19,7 +19,7 @@ This is an interactive, Shiny Rmd file for the PMS study
 rm(list = ls())
 
 #install packages
-list.of.packages <- c("lme4",'lmerTest','effects','dplyr', 'car', 'emmeans','fitdistrplus','ggplot2', 'ggstatsplot','ggsignif', 'ggformula','ggdist','ggpubr','ggeffects', 'gridExtra','tidyverse','pander','stringr','cowplot','lavaan','readr','jpeg','shiny','reshape2', 'yarrr','knitr' )
+list.of.packages <- c("lme4",'lmerTest','effects','dplyr', 'car', 'emmeans','fitdistrplus','ggplot2', 'ggstatsplot','ggsignif', 'ggformula','ggdist','ggpubr','ggeffects', 'gplots', 'gridExtra','tidyverse','pander','stringr','cowplot','lavaan','readr','jpeg','shiny','reshape2', 'yarrr','knitr' )
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
@@ -953,6 +953,14 @@ plot mean reaction per participant over all stimuli:
 -standard deviation
 
 ```{r echo=FALSE}
+d<-melt(data.frame(
+  valence=c(dataBig2$Valence[unique(dataBig2$ID)]),
+  arousal=c(dataBig2$Arousal[unique(dataBig2$ID)])
+  ))
+
+pirateplot(
+  formula=value~variable,
+  data=d)
 
 ```
 
@@ -965,6 +973,52 @@ plot mean reaction per participant over all stimuli:
 -use formula stuff
 
 ```{r echo=FALSE}
+ui<- fluidPage( 
+  sidebarPanel(
+    radioButtons("formula_choice", label="Choose a Formula:",
+            choices= c('Valence ~ PMSScoreNew', 'Arousal ~ PMSScoreNew', 'Valence ~ PMSScoreNew * TestMoment', 'Arousal ~ PMSScoreNew * TestMoment'), inline=TRUE,
+            selected='Valence ~ PMSScoreNew'), ),
+  mainPanel(
+    tabsetPanel(type = "tab",
+      tabPanel("plot", plotOutput("plot")),
+      tabPanel('plot2', plotOutput('plot2'))
+    ),
+  )
+)
+
+server <- function (input, output){ 
+  #we make a density plot of valence/arousal per stimulus.
+  output$plot<- renderPlot({
+    pirateplot(
+          formula= input$formula_choice,
+          data=dataBig2,
+          theme= 1,
+          pal= "info",
+          main= input$formula_choice,
+          bean.f.o = .6, # Bean fill
+          point.o = .05,  # Points
+          inf.f.o = .7,  # Inference fill
+          inf.b.o = .8,  # Inference border
+          avg.line.o = 1,  # Average line
+          bar.f.o = .5, # Bar
+          inf.f.col = "white",  # Inf fill col
+          inf.b.col = "black",  # Inf border col
+          avg.line.col = "black",  # avg line col
+          bar.f.col = gray(.8),  # bar filling color
+          point.pch = 21,
+          point.bg = "white",
+          point.col = "black",
+          point.cex = .7,
+          xlab="",
+        )
+    output$plot2 <- renderPlot({
+      plotmeans(input$formula_choice, data=dataBig2)
+    })
+  })
+  
+}
+shinyApp(ui=ui, server=server)
+
 
 ```
 
