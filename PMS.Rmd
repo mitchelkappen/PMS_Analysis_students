@@ -100,6 +100,9 @@ data$PMSScoreNew[data$PMSScore==1] = 'PMS'
 data$PMSScoreNew[data$PMSScore==2] = 'PMS' #PMDD, mr niet officiële diagnose dus gewoon PMS
 #sum(is.na(data$PMSScoreNew))
 
+#put rt in sec instead of ms
+
+data$rt= data$rt/1000
 
 # Check whether R recognizes the variable types correctly
 #we make factors of the independable variables
@@ -110,12 +113,15 @@ data$PMSScoreNew <- factor(data$PMSScoreNew)
 data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 now
 
 # Exclude data?
+
+data_allcontraception <-data
+# exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
+data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor. Coil" & Contraception!='Hor.Coil')
+
 dataBig = data # Saved all the data here
 data = data[, -which(names(data) == "X" | names(data) == "Stimulus" | names(data) == "Valence" | names(data) == "Arousal" | names(data) == "rt")] #removes these columns
 data= distinct(data)
 
-# exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
-data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor.Coil")
 
 data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
 
@@ -791,7 +797,9 @@ These were images that were either negative, positive or neutral.
 
 participants could indicate how the images scored for them on valence and arousal
 
-these already have the rt data filtered under 12 939 ms (outliers removed)
+these already have the rt data filtered under 16 sec (outliers removed)
+
+we look at how people answer on the stimuli: can we categorize the stimuli in valence and arousal? Are there weird answers? 
 
 ```{r echo=FALSE}
 
@@ -800,8 +808,7 @@ these already have the rt data filtered under 12 939 ms (outliers removed)
 
 
 #Dit zijn de data waar de rt outliers uitgehaald zijn! 
-dataBig2 <- subset(dataBig, rt < 12939)
-
+dataBig2 <- subset(dataBig, rt < 16)
 
 ui<- fluidPage( 
   sidebarPanel(
@@ -823,55 +830,44 @@ server <- function (input, output){
     d2<-data.frame(valence=c(dataBig2$Valence[dataBig2$Stimulus==input$stimulus]), ID=c(dataBig2$newid[dataBig2$Stimulus==input$stimulus])) 
     min<-d2$ID[which(d2$valence==min(d2$valence))]#ids of min valence
     max<-d2$ID[which(d2$valence==max(d2$valence))]#ids of max valence
-    if (length(min)<length(max)){
-      text=min
-    } else {
-      text=max
-    }
+    if (length(min)<length(max)){text=min } else {text=max}
     
     pirateplot(
       formula=value~variable,
       data=d,
       main= input$stimulus,
-      xlab= str_glue('outliers: {text}')
-    )
-    
+      xlab= str_glue('outlier: {text}'))
   })
   
   output$IAPs_Image <- renderImage({
     list(src=str_glue("Z:/shares/ghep_lab/ImageDatabases/IAPS/{input$stimulus}.jpg"),
          filetype="image/jpeg",
          width=400,
-         height=300
-         )
+         height=300)
   })
 }
 shinyApp(ui=ui, server=server)
 
-# some code to find the subject ID's of the outliers
-#doesn't work yet!!
-
-# length(unique(dataBig$newid)) #how many participants
-# 
-# stim=c(4658)# here you fill in the number of the stimulus
-# d2<-data.frame(valence=c(dataBig2$Valence[dataBig2$Stimulus==stim]),arousal=c(dataBig2$Arousal[dataBig2$Stimulus==stim]), ID=c(dataBig2$newid[dataBig2$Stimulus==stim])) #just make this d in code
-
-
-# #min
-# min<-d2$ID[which(d2$valence==min(d2$valence))]
-# #max
-# max<-d2$ID[which(d2$valence==max(d2$valence))]
-# 
-# if (length(min)<length(max)){
-#   print(min)
-# } else {
-#   print (max)
-# }
-
 ```
 
 
- positive stimuli
+
+#### outliers newid's:
+25: VI: times a negative reaction to nakedness/sex: 4180, 4290, 4490, 4550, 4561,4658
+75: IV: neg reactie nakedness and sex (4531, 4490, 4180, 4658)
+145: II, neg reaction nakedness (4290, 4561)
+284: III: neg reactie baby (2057, 2070, 2165)
+
+47: II: neg reaction to clouds (5982) and positive to a needle in an arm (9594)
+89: II: pos reactie op trippy schilderijen (7182, 7238)
+169: II: pos reactie op vrouw gered dr brandweer (9921)
+194: II: neg reactie ijsbergen (5600) en pasta (194)
+1: II: antwoord altijd 0 of 100, ook op saaie kast (7224), schilderij (7238)
+
+one-time outliers:    
+10  27  30  31  40  74  97 100 119 121 128 134 136 167 168 206 221
+233 240 244 251 252 257 259 262 293 315 334 351 365 374 376
+
 
 'medium'= 40-60
 
@@ -892,25 +888,18 @@ when Medium, arousal tends to be normally distributed
 However: we often find 2 gauss curves on top of each other
 same for valence: more of a gaussian curve when middle, more of a cup when towards the extreme.
 
-we sometimes see some interesting outliers e.g. 1463,2057,4658, 7481, 9600: most score this high valence, high arousal but some don't! opposite response
-=> interesting: see if the same persons who respond 'atypical' to these images? Perhaps misunderstanding the scales or big horror fans/ puppy haters? 
-
-=> index de top eruit
-
-
-
-
-
 
 
 
 ## reaction times
 
+we plot the reaction times to see how fast people answer
+
 ```{r echo=FALSE}
 #plot reaction times with raincloudplot
 
 dataBig_out<-dataBig #the dataBig with the rt outliers
-d<-melt(data.frame(rt=c(dataBig_out$rt))) # we melt to wide format
+d<-melt(data.frame(rt=c(dataBig_out$rt))) # we melt to wide format 
 p1 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
   ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
@@ -920,9 +909,19 @@ p1 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   ggtitle("reaction times with outliers")
 p1
 
+print('some summary info')
 summary(dataBig_out$rt)
+#outlier removal method 2
+lower_bound <- quantile (dataBig_out$rt, 0.025)
+print('lower bound')
+lower_bound
+upper_bound <- quantile (dataBig_out$rt, 0.975)
+print('upper bound')
+upper_bound
 
-dataBig_out <- subset(dataBig_out, rt < 25000)
+defaultW<-getOption("warn")
+options(warn=-1)# this disables warning messages
+dataBig_out <- subset(dataBig_out, rt < 16)
 d<-melt(data.frame(rt=c(dataBig_out$rt)))
 p3 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
@@ -931,92 +930,84 @@ p3 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_boxplot(width= .10, outlier.shape = NA)+
   theme(legend.position="none")+
   guides(fill=FALSE)+
-  ggtitle("reaction times < 25 000")
+  ggtitle("reaction times < 16 sec")
 p3
 
-dataBig_out <- subset(dataBig_out, rt < 15000)
-d<-melt(data.frame(rt=c(dataBig_out$rt)))
-p4 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
-  geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
-  geom_point(position=position_jitter(width=.15), size=0.25)+
-  ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
-  geom_boxplot(width= .10, outlier.shape = NA)+
-  theme(legend.position="none")+
-  guides(fill=FALSE)+
-  ggtitle("reaction times < 15 000")
-p4
-
+options(warn=defaultW)#put warnings back on
 print('some summary info')
 summary(dataBig_out$rt)
-
 #outlier removal method 2
-lower_bound <- quantile (dataBig_out$rt, 0.025)
-print('0.025 lower bound')
-lower_bound
-upper_bound <- quantile (dataBig_out$rt, 0.975)
-print('0.975 upper bound')
-upper_bound
 
-#pay attention! this is what we now make dataBig, and this will ALSO affect the Stimulus plotting
-dataBig2 <- subset(dataBig_out, rt < 12939)
-d<-melt(data.frame(rt=c(dataBig2$rt)))
-p5 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
-  geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
-  geom_point(position=position_jitter(width=.15), size=0.25)+
-  ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
-  geom_boxplot(width= .10, outlier.shape = NA)+
-  theme(legend.position="none")+
-  guides(fill=FALSE)+
-  ggtitle("reaction times < 12 939 (0.975 upper bound)")
-p5
 
 out<-boxplot.stats(dataBig_out$rt)$out#outliers
 out_ind<-which(dataBig_out$rt %in% c(out))#row numbers that contain outliers
 boxplot(dataBig_out$rt, ylab='rt') #boxplot
 mtext(paste('boxplot with outliers')) #boxplot with outliers
 
+```
 
-dataBig_out <- dataBig_out%>%slice(out_ind)
-d<-melt(data.frame(rt=c(dataBig_out$rt)))
-p5 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
-  geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
-  geom_point(position=position_jitter(width=.15), size=0.7)+
-  ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
-  geom_boxplot(width= .10, outlier.shape = NA)+
-  theme(legend.position="none")+
-  guides(fill=FALSE)+
-  ggtitle("reaction times without outliers")
-p5
+## Descriptives
 
-out<-boxplot.stats(dataBig$rt)$out#outliers
-boxplot(dataBig_out$rt, ylab='rt') #boxplot
-mtext(paste('boxplot without outliers',paste(round(out),collapse=','))) #boxplot with outliers
+
+```{r echo=FALSE}
+
+#dataframe with the means of descriptives
+knitr::kable(data.frame(
+  PMS=c('cyclus duration:', round(mean(data$MenstrualDuration[data$PMSScoreNew=='PMS']), digits=1),
+        'Age:', round(mean(data$Age[data$PMSScoreNew=='PMS']), digits=1),
+        'first menstrual:', round(mean(data$FirstMenstrual[data$PMSScoreNew=='PMS']), digits=1)
+        ), 
+  noPMS= c('cyclus duration:', round(mean(data$MenstrualDuration[data$PMSScoreNew=='noPMS']), digits=1),
+           'Age:', round(mean(data$Age[data$PMSScoreNew=='noPMS']), digits=1),
+           'first menstrual:', round(mean(data$FirstMenstrual[data$PMSScoreNew=='noPMS']), digits=1)
+           )
+  ))
+
+A_B <- length(data$Order=='A-B')
+B_A <- length(data$Order=='B-A')
+
+nat<- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Natural']))
+hor <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Hor.Coil'|data_allcontraception$Contraception=='Hor. Coil']))
+cop <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Cop.Coil']))
+pill <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Pill']))
+oth <-length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='other']))
 
 ```
 
+the **A-B** order contains `r A_B` trials and **B-A** `r B_A` trials: they are counterbalanced
 
-## Hyptothesen en onderzoeksvragen:
 
+we took out all non-natural contraception methods. these are the descriptives:
+
+|  |
+|:---|
+|  **Natural:** `r nat`  |
+| **Hor.Coil:** `r hor` |
+| **Cop.Coil:** `r cop` |
+| **Pill:**  `r pill` |
+| **other:** `r oth` |
+
+
+
+## TO DO
+
+-probeer uit in kleiner docu: output variable maken binnen de shiny app. 
+ook nr buiten shiny app? hoe werkt dat? => code opkuisen
+maak functies met return voor herhaalde code 
+global variables, output$, return functies
+
+
+
+
+bestand participants excel, in PMS 24/8/2021, op de share, date directories. daar deze datum participant excel. daarin participanten, sommige regels rood, deze exclusie. kolom AG staat vaak reden gemist. soms dr luteaal gemist, vaak meeste geval, of niet meer deelnemen. of foutje onze kant. 
+met inlezen file csv obv datum 
 
 
 ### Voor de stimuli 
-#### Eerste stap:
-- Bekijken Valence en arousal tussen de groepen en testmomenten, over alle stimuli als een geheel
-
-dikke outliers bekijken
-we willen normaalverdeling bv blije stimulus
-Mr: gezien hypothese dat verdeling diksmaldiksmal: 2 groepen. en paar rare outliers? droevig van kitten (sanity check)
-
-#### Next:
-- Per stimulus gemiddelden plotten
--- Om erachter te komen of er coherent geantwoord wordt
--- Om te zien of ze niet te veel van elkaar afwijken
---- waarchuwing; ze gaan veel van elkaar afwijken. 
-
 gemm reactie per participant bekijken: over alle stimuli gemm valence, gemm arousal en standaarddev
 plotten gemm tussen groupen op stimuli
 pas erna onderverdelen in stimuligroepen
-
+-statistiek!
 
 
 
@@ -1027,11 +1018,4 @@ https://www.cambridge.org/core/journals/spanish-journal-of-psychology/article/ab
 https://bmcpsychiatry.biomedcentral.com/articles/10.1186/s12888-016-0875-9/tables/6
 
 
-###TO DO:
-
--look at the weird answers in the valence: same participants? note their IDs
--variabelen steekproef in tabel (puur omdat  interessant: 
-PMS vs no PMS: 
--leeftijd 
--duur cyclus (gemm))
 
