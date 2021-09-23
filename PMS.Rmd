@@ -790,6 +790,63 @@ shinyApp(ui=ui, server=server)
 * sign more depression PMS than no PMS
 
 
+## reaction times
+
+we plot the reaction times to find the outliers and filter the data
+
+```{r echo=FALSE}
+#plot reaction times with raincloudplot
+
+dataBig_out<-dataBig #the dataBig with the rt outliers
+d<-melt(data.frame(rt=c(dataBig_out$rt))) # we melt to wide format 
+p1 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
+  geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
+  ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
+  geom_point(position=position_jitter(width=.15), size=2)+
+  geom_boxplot(width= .10, outlier.shape = NA)+
+  theme(legend.position="none")+
+  ggtitle("reaction times with outliers")
+p1
+
+print('some summary info')
+summary(dataBig_out$rt)
+#outlier removal method 2
+lower_bound <- quantile (dataBig_out$rt, 0.025)
+print('lower bound')
+lower_bound
+upper_bound <- quantile (dataBig_out$rt, 0.975)
+print('upper bound')
+upper_bound
+
+defaultW<-getOption("warn")
+options(warn=-1)# this disables warning messages
+dataBig_out <- subset(dataBig_out, rt < 16)
+d<-melt(data.frame(rt=c(dataBig_out$rt)))
+p3 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
+  geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
+  geom_point(position=position_jitter(width=.15), size=0.25)+
+  ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
+  geom_boxplot(width= .10, outlier.shape = NA)+
+  theme(legend.position="none")+
+  guides(fill=FALSE)+
+  ggtitle("reaction times < 16 sec")
+p3
+
+options(warn=defaultW)#put warnings back on
+print('some summary info')
+summary(dataBig_out$rt)
+#outlier removal method 2
+
+
+out<-boxplot.stats(dataBig_out$rt)$out#outliers
+out_ind<-which(dataBig_out$rt %in% c(out))#row numbers that contain outliers
+boxplot(dataBig_out$rt, ylab='rt') #boxplot
+mtext(paste('boxplot with outliers')) #boxplot with outliers
+
+```
+
+
+
 ## Stimuli
 
 These were images that were either negative, positive or neutral. 
@@ -853,6 +910,7 @@ shinyApp(ui=ui, server=server)
 
 
 #### outliers newid's:
+
 25: VI: times a negative reaction to nakedness/sex: 4180, 4290, 4490, 4550, 4561,4658
 75: IV: neg reactie nakedness and sex (4531, 4490, 4180, 4658)
 145: II, neg reaction nakedness (4290, 4561)
@@ -883,68 +941,45 @@ one-time outliers:
 | **medium valence, low arousal:** |  7224, 7224 |
 | **medium valence, medium arousal:** |  7211, 7238, 4550, 7211, 7238 |
 
-
 when Medium, arousal tends to be normally distributed
 However: we often find 2 gauss curves on top of each other
 same for valence: more of a gaussian curve when middle, more of a cup when towards the extreme.
 
 
-
-
-## reaction times
-
-we plot the reaction times to see how fast people answer
+### mean reactions over all stimuli
+plot mean reaction per participant over all stimuli: 
+-mean valence
+-mean arousal
+-standard deviation
 
 ```{r echo=FALSE}
-#plot reaction times with raincloudplot
-
-dataBig_out<-dataBig #the dataBig with the rt outliers
-d<-melt(data.frame(rt=c(dataBig_out$rt))) # we melt to wide format 
-p1 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
-  geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
-  ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
-  geom_point(position=position_jitter(width=.15), size=2)+
-  geom_boxplot(width= .10, outlier.shape = NA)+
-  theme(legend.position="none")+
-  ggtitle("reaction times with outliers")
-p1
-
-print('some summary info')
-summary(dataBig_out$rt)
-#outlier removal method 2
-lower_bound <- quantile (dataBig_out$rt, 0.025)
-print('lower bound')
-lower_bound
-upper_bound <- quantile (dataBig_out$rt, 0.975)
-print('upper bound')
-upper_bound
-
-defaultW<-getOption("warn")
-options(warn=-1)# this disables warning messages
-dataBig_out <- subset(dataBig_out, rt < 16)
-d<-melt(data.frame(rt=c(dataBig_out$rt)))
-p3 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
-  geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
-  geom_point(position=position_jitter(width=.15), size=0.25)+
-  ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
-  geom_boxplot(width= .10, outlier.shape = NA)+
-  theme(legend.position="none")+
-  guides(fill=FALSE)+
-  ggtitle("reaction times < 16 sec")
-p3
-
-options(warn=defaultW)#put warnings back on
-print('some summary info')
-summary(dataBig_out$rt)
-#outlier removal method 2
-
-
-out<-boxplot.stats(dataBig_out$rt)$out#outliers
-out_ind<-which(dataBig_out$rt %in% c(out))#row numbers that contain outliers
-boxplot(dataBig_out$rt, ylab='rt') #boxplot
-mtext(paste('boxplot with outliers')) #boxplot with outliers
 
 ```
+
+### Statistics
+
+-plot means valence & arousal between groups (PMS, noPMS) on stimuli
+
+-plot means testmoment x PMS
+
+-use formula stuff
+
+```{r echo=FALSE}
+
+```
+
+
+
+##further data processing
+
+-devide stimuli groups on valence (read about IAP images)
+
+- compare to norm groups for IAP images, compare if sign differences
+
+
+
+
+
 
 ## Descriptives
 
@@ -997,17 +1032,9 @@ maak functies met return voor herhaalde code
 global variables, output$, return functies
 
 
-
-
 bestand participants excel, in PMS 24/8/2021, op de share, date directories. daar deze datum participant excel. daarin participanten, sommige regels rood, deze exclusie. kolom AG staat vaak reden gemist. soms dr luteaal gemist, vaak meeste geval, of niet meer deelnemen. of foutje onze kant. 
 met inlezen file csv obv datum 
 
-
-### Voor de stimuli 
-gemm reactie per participant bekijken: over alle stimuli gemm valence, gemm arousal en standaarddev
-plotten gemm tussen groupen op stimuli
-pas erna onderverdelen in stimuligroepen
--statistiek!
 
 
 
