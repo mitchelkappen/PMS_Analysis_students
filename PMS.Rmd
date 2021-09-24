@@ -926,6 +926,7 @@ ui<- fluidPage(
             selected='Valence~PMSScoreNew'), ),
   mainPanel(
     tabsetPanel(type = "tab",
+      tabPanel("test", verbatimTextOutput("test")),         
       tabPanel("pirateplot", plotOutput("pirateplot")),
       tabPanel('plotmeans', plotOutput('plotmeans')),
       tabPanel('splitviolin', plotOutput('splitviolin')),
@@ -937,7 +938,18 @@ ui<- fluidPage(
   )
 )
 
+
 server <- function (input, output){ 
+  output$test <-renderPrint({
+    p<-round(p()[[3]][1], digits=3) # this gets the p-value
+    star=c()
+    if (p<0.05) {star='*'}
+    else if (p<0.005){star='**'}
+    else if (p<0.0005){star='***'}
+    p<-paste0(p,star)
+    cat(sprintf("\ %s\n", p))
+  })
+  
   #we make a density plot of valence/arousal per stimulus.
   output$pirateplot<- renderPlot({
     pirateplot(
@@ -965,10 +977,6 @@ server <- function (input, output){
   })
   
   output$plotmeans <-renderPlot({
-    
-    #now add significance
-    compare_means(input$formula_choice, method= "anova")
-
     if (grepl('Arousal', input$formula_choice) &grepl('TestMoment', input$formula_choice)){
       dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('PMSScoreNew', 'Moment'))
         p3 <- ggplot(dataBig2, aes(x=Moment, y=Arousal, fill=PMSScoreNew))+
@@ -1104,9 +1112,9 @@ server <- function (input, output){
       tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
       tabel
   })
-
-  output$Anova <- renderPrint({
-    tabel<-c()
+  
+  p<-reactive({
+        tabel<-c()
     for (i in 1:length(models())){
         AIC<- AIC(models()[[i]])
         tabel <- c(tabel,round(AIC))}
@@ -1114,6 +1122,10 @@ server <- function (input, output){
        Anova_1 <- Anova(chosenModel[[1]])
        cat(sprintf("\nAnova\n"))
        Anova_1
+  })
+
+  output$Anova <- renderPrint({
+    p()
     })
   
     output$emmeans <- renderPrint({
@@ -1198,7 +1210,10 @@ we took out all non-natural contraception methods. these are the descriptives:
 
 ## TO DO
 
-
+-vul p-waarde in op de plotmeans voor enkelvoudige formule
+-doe dit zo dat als p-w kleiner dan... zoveel sterretjes enz. 
+-dan: doe hetzelfde mr voor de PMS*Moment. hacky manier: als.. bevat *, dan ...
+-index juist en zet op figuur
 
 -probeer uit in kleiner docu: output variable maken binnen de shiny app. 
 ook nr buiten shiny app? hoe werkt dat? => code opkuisen
