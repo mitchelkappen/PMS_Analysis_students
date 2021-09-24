@@ -113,6 +113,8 @@ data$PMSScoreNew <- factor(data$PMSScoreNew)
 
 data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 now
 
+
+
 # Exclude data?
 
 data_allcontraception <-data
@@ -194,6 +196,38 @@ GeomFlatViolin <-
     standard_error <- function(x) sd(x)/sqrt(length(x))
     
     
+    
+#function for split violin
+    GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
+                           draw_group = function(self, data, ..., draw_quantiles = NULL) {
+  data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
+  grp <- data[1, "group"]
+  newdata <- plyr::arrange(transform(data, x = if (grp %% 2 == 1) xminv else xmaxv), if (grp %% 2 == 1) y else -y)
+  newdata <- rbind(newdata[1, ], newdata, newdata[nrow(newdata), ], newdata[1, ])
+  newdata[c(1, nrow(newdata) - 1, nrow(newdata)), "x"] <- round(newdata[1, "x"])
+
+  if (length(draw_quantiles) > 0 & !scales::zero_range(range(data$y))) {
+    stopifnot(all(draw_quantiles >= 0), all(draw_quantiles <=
+      1))
+    quantiles <- ggplot2:::create_quantile_segment_frame(data, draw_quantiles)
+    aesthetics <- data[rep(1, nrow(quantiles)), setdiff(names(data), c("x", "y")), drop = FALSE]
+    aesthetics$alpha <- rep(1, nrow(quantiles))
+    both <- cbind(quantiles, aesthetics)
+    quantile_grob <- GeomPath$draw_panel(both, ...)
+    ggplot2:::ggname("geom_split_violin", grid::grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))
+  }
+  else {
+    ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
+  }
+})
+
+geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., 
+                              draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, 
+                              show.legend = NA, inherit.aes = TRUE) {
+  layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, 
+        position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
+        params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
+}
     
 
 
@@ -392,73 +426,87 @@ server <- function (input, output){ #we have to add this to the server
       
     })
       
-
-  output$table <- renderTable ({
-    Formula <- paste0(input$formula_choice, ' + (1|Subject)')
-    d0.1 <- lmer(Formula,data=data)
-    d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  
-    modelNames<- c('d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9')
-    tabel <-round(cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9)), digits=2)
+     models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
+        m <- c()
+        # Formula <- 'DASS_Stress ~ PMSScoreNew + (1|Subject)'
+        Formula <- paste0(input$formula_choice, '+ (1|Subject)')
+        tryCatch(
+          { d0.1 <- lmer(Formula,data=data); # if this formula works
+          m <- c(m, d1=d0.1)}, #we add this
+          error=function(e){})
+        tryCatch(
+          { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d1=d0.2)}, 
+          error=function(e){})
+        tryCatch(
+          { d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d3=d0.3)}, 
+          error=function(e){})
+        tryCatch(
+          { d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d4=d0.4)}, 
+          error=function(e){})
+        tryCatch(
+          { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d5=d0.5) }, 
+          error=function(e){})
+        tryCatch(
+          { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d6=d0.6) }, 
+          error=function(e){})
+        tryCatch(
+          { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          models <- c(models, d7=d0.7) }, 
+          error=function(e){})
+        tryCatch(
+          { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d8=d0.8) }, 
+          error=function(e){})
+        tryCatch(
+          { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d9=d0.9) }, 
+          error=function(e){})
+        m
+     })
+     
+ output$table <-renderTable({
+  modelNames<-c()
+  tabel<-c()
+  for (i in 1:length(models())){
+    modelNames<-c(modelNames, names(models()[i]))
+    AIC<-AIC(models()[[i]])
+    tabel <- c (tabel, round(AIC))}
     chosenModel = modelNames[which(tabel == min(tabel))]
-    tabel <- data.frame(Models=c('chosen  Model:','d0.1','d0.2','d0.3','d0.4','d0.5','d0.6','d0.7','d0.8','d0.9'), AIC= c(cbind(chosenModel, tabel)))
+    tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
     tabel
-  })
+})
   
-  
-  output$Anova <- renderPrint({
-        Formula <- paste0(input$formula_choice, ' + (1|Subject)')
-    d0.1 <- lmer(Formula,data=data)
-    d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  
-    modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
-    tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
-     chosenModel = modelNames[which(tabel == min(tabel))]
+output$Anova <- renderPrint({
+  tabel<-c()
+  for (i in 1:length(models())){
+      AIC<- AIC(models()[[i]])
+      tabel <- c(tabel,round(AIC))}
+  chosenModel<-models()[which(tabel == min(tabel))]
      Anova_1 <- Anova(chosenModel[[1]])
      cat(sprintf("\nAnova\n"))
      Anova_1
   })
   
-  output$emmeans <- renderPrint({
-            Formula <- paste0(input$formula_choice, ' + (1|Subject)')
-    d0.1 <- lmer(Formula,data=data)
-    d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-    d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-
-    modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
-    tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
-    chosenModel = modelNames[which(tabel == min(tabel))]
+output$emmeans <- renderPrint({
+  tabel<-c()
+  for (i in 1:length(models())){
+      AIC<- AIC(models()[[i]])
+      tabel <- c(tabel,round(AIC))}
+  chosenModel<-models()[which(tabel == min(tabel))]
     cat(sprintf("\n formula: %s\n", input$formula_choice))
     if ((grepl("PMS", input$formula_choice)==FALSE)){
       cat(sprintf("\n~ TestMoment\n"))
       Emm <- emmeans(chosenModel[[1]], pairwise ~ TestMoment, adjust ="fdr", type="response")
-      print(Emm)
-    }
+      print(Emm)}
     if (grepl("PMS", input$formula_choice)){
       cat(sprintf("\n~ PMS*TestMoment\n"))
       Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment, adjust ="fdr", type="response")
-      print(Emm)
-    }
+      print(Emm)}
   })
   
   
@@ -609,172 +657,80 @@ server <- function (input, output){ #we have to add this to the server
         p2
       }
     })
-
-  output$table <- renderTable ({
-    modelNames <- c()
-    models <- c()
-    #Formula <- 'DASS_Stress ~ PMSScoreNew + (1|Subject)'
-    Formula <- paste0(input$formula_choice, '+ (1|Subject)')
-    tryCatch(
-      { d0.1 <- lmer(Formula,data=data); # if this formula works
-      models <- c(models, d0.1) #we add this
-      modelNames <- c(modelNames, 'd0.1')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.2) 
-      modelNames <- c(modelNames, 'd0.2')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.3)
-      modelNames <- c(modelNames, 'd0.3')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.4)
-      modelNames <- c(modelNames, 'd0.4')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.5) 
-      modelNames <- c(modelNames, 'd0.5')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.6) 
-      modelNames <- c(modelNames, 'd0.6')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-      models <- c(models, d0.7) 
-      modelNames <- c(modelNames, 'd0.7')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.8) 
-      modelNames <- c(modelNames, 'd0.8')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.9) 
-      modelNames <- c(modelNames, 'd0.9')}, 
-      error=function(e){})
-    tabel <- c()
-    for (i in 1:length(models)){
-      AIC<- AIC(models[[i]])
-      print(AIC)
-      tabel <- c(tabel,round(AIC))}
-    chosenModel = modelNames[which(tabel == min(tabel))]
-    tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
-    tabel
+     models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
+        m <- c()
+        # Formula <- 'DASS_Stress ~ PMSScoreNew + (1|Subject)'
+        Formula <- paste0(input$formula_choice, '+ (1|Subject)')
+        tryCatch(
+          { d0.1 <- lmer(Formula,data=data); # if this formula works
+          m <- c(m, d1=d0.1)}, #we add this
+          error=function(e){})
+        tryCatch(
+          { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d1=d0.2)}, 
+          error=function(e){})
+        tryCatch(
+          { d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d3=d0.3)}, 
+          error=function(e){})
+        tryCatch(
+          { d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d4=d0.4)}, 
+          error=function(e){})
+        tryCatch(
+          { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d5=d0.5) }, 
+          error=function(e){})
+        tryCatch(
+          { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d6=d0.6) }, 
+          error=function(e){})
+        tryCatch(
+          { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          models <- c(models, d7=d0.7) }, 
+          error=function(e){})
+        tryCatch(
+          { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d8=d0.8) }, 
+          error=function(e){})
+        tryCatch(
+          { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d9=d0.9) }, 
+          error=function(e){})
+        m
+     })
+  output$table <-renderTable({
+    modelNames<-c()
+    tabel<-c()
+    for (i in 1:length(models())){
+      modelNames<-c(modelNames, names(models()[i]))
+      AIC<-AIC(models()[[i]])
+      tabel <- c (tabel, round(AIC))}
+      chosenModel = modelNames[which(tabel == min(tabel))]
+      tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
+      tabel
   })
 
   output$Anova <- renderPrint({
-    models <-c()
-        Formula <- paste0(input$formula_choice, ' + (1|Subject)')
-         tryCatch(
-      { d0.1 <- lmer(Formula,data=data);
-      models <- c(models, d0.1)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.2)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.3)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.4)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.5)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.6)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-      models <- c(models, d0.7)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.8)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.9)}, 
-      error=function(e){})
-    tabel <- c()
-    for (i in 1:length(models)){
-      AIC<- AIC(models[[i]])
-      tabel <- c(tabel,round(AIC))}
-    chosenModel = models[which(tabel == min(tabel))]
-   Anova_1 <- Anova(chosenModel[[1]])
-   cat(sprintf("\nAnova of %s\n", input$formula_choice))
-   Anova_1
-
-})
-
+    tabel<-c()
+    for (i in 1:length(models())){
+        AIC<- AIC(models()[[i]])
+        tabel <- c(tabel,round(AIC))}
+    chosenModel<-models()[which(tabel == min(tabel))]
+       Anova_1 <- Anova(chosenModel[[1]])
+       cat(sprintf("\nAnova\n"))
+       Anova_1
+    })
+  
   output$emmeans <- renderPrint({
-    models <-c()
-        Formula <- paste0(input$formula_choice, ' + (1|Subject)')
-         tryCatch(
-      { d0.1 <- lmer(Formula,data=data);
-      models <- c(models, d0.1)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.2)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.3)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.4)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.5)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.6)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-      models <- c(models, d0.7)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.8)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.9)}, 
-      error=function(e){})
-    tabel <- c()
-    for (i in 1:length(models)){
-      AIC<- AIC(models[[i]])
+  tabel<-c()
+  for (i in 1:length(models())){
+      AIC<- AIC(models()[[i]])
       tabel <- c(tabel,round(AIC))}
-    chosenModel = models[which(tabel == min(tabel))]
-
-    if ((grepl("PSS", input$formula_choice)==FALSE)){
-      cat(sprintf("\nemmeans of formula: %s\n", input$formula_choice))
+  chosenModel<-models()[which(tabel == min(tabel))]
+    cat(sprintf("\n emmeans of formula: %s\n", input$formula_choice))
       Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew, adjust ="fdr", type="response")
       print(Emm)
-    }
-    else{
-      cat(sprintf("\nemmeans of formula: %s\n", input$formula_choice))
-      Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*PSS, adjust ="fdr", type="response")
-      print(Emm)
-    }
   })
 
 }
@@ -972,6 +928,7 @@ ui<- fluidPage(
     tabsetPanel(type = "tab",
       tabPanel("pirateplot", plotOutput("pirateplot")),
       tabPanel('plotmeans', plotOutput('plotmeans')),
+      tabPanel('splitviolin', plotOutput('splitviolin')),
       tabPanel('int_means', plotOutput('int_means')),
       tabPanel("AIC table", tableOutput("table")),
       tabPanel("Anova", verbatimTextOutput("Anova")),
@@ -1008,17 +965,72 @@ server <- function (input, output){
   })
   
   output$plotmeans <-renderPlot({
-      dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('PMSScoreNew', 'TestMoment'))
-        p1 <- ggplot(dataBig2, aes(x = PMSScoreNew, y = Arousal)) +
-          geom_flat_violin(aes(fill=PMSScoreNew),position = position_nudge(x =.2, y = -1), adjust = 1.5, trim = FALSE, alpha = .5, colour = NA)+
-          geom_point(aes(colour='red'),position=position_jitter(width=.15), size=.25)+
-          geom_boxplot(aes(x = PMSScoreNew, y = Arousal, fill = PMSScoreNew),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
-          geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew)+.2, y = Arousal, group = PMSScoreNew, colour = PMSScoreNew), shape = 18, size=4)+
-          geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Arousal), size=1)+
-          geom_errorbar(data = dmean, aes(x = as.numeric(PMSScoreNew)+.2, y = Arousal, group = PMSScoreNew, colour = PMSScoreNew, ymin = Arousal-se, ymax= Arousal+se), width = .05) +
-          ggtitle("Figure 11: Repeated Measures - Factorial (Extended)")
-          # coord_flip()
-      p1
+    
+    #now add significance
+    compare_means(input$formula_choice, method= "anova")
+
+    if (grepl('Arousal', input$formula_choice) &grepl('TestMoment', input$formula_choice)){
+      dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('PMSScoreNew', 'Moment'))
+        p3 <- ggplot(dataBig2, aes(x=Moment, y=Arousal, fill=PMSScoreNew))+
+          geom_flat_violin (aes(fill=PMSScoreNew), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
+          geom_boxplot(aes(x=Moment, y=Arousal, fill=PMSScoreNew), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
+          geom_line(data=dmean, aes(x= as.numeric(Moment)+.1, y=Arousal, group=PMSScoreNew, colour=PMSScoreNew), size=1.5)+
+          geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Arousal, group = PMSScoreNew, fill= PMSScoreNew), shape = 21, size=6)+
+          scale_x_discrete(labels=c('1'='luteal', '2'='follicular'))+
+          ggtitle('Arousal ~ PMSScoreNew * TestMoment')
+        p3
+    }else if (grepl('Valence', input$formula_choice) & grepl('TestMoment', input$formula_choice)){
+      dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMSScoreNew', 'Moment'))
+        p3 <- ggplot(dataBig2, aes(x=Moment, y=Valence, fill=PMSScoreNew))+
+          geom_flat_violin (aes(fill=PMSScoreNew), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
+          geom_boxplot(aes(x=Moment, y=Valence, fill=PMSScoreNew), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
+          geom_line(data=dmean, aes(x= as.numeric(Moment)+.1, y=Valence, group=PMSScoreNew, colour=PMSScoreNew), size=1.5)+
+          geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Valence, group = PMSScoreNew, fill=PMSScoreNew), shape = 21, size=6)+
+          scale_x_discrete(labels=c('1'='luteal', '2'='follicular'))+
+          ggtitle('Valence~PMSScoreNew * TestMoment')
+        p3
+    }
+    else if (grepl('Arousal', input$formula_choice) & !grepl('TestMoment', input$formula_choice)){
+      dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('PMSScoreNew'))
+          p1 <- ggplot(dataBig2, aes(x = PMSScoreNew, y = Arousal)) +
+            geom_flat_violin(aes(fill=PMSScoreNew),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_point(aes(colour=PMSScoreNew),position=position_jitter(width=.15), size=.25)+
+            geom_boxplot(aes(x = PMSScoreNew, y = Arousal, fill = PMSScoreNew),outlier.shape= NA, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew)+.2, y = Arousal, fill=PMSScoreNew), shape = 21, size=6)+
+            geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Arousal), size=1, colour='black')+
+            ggtitle('Valence~PMSScoreNew')
+            # coord_flip()
+        p1
+    }else {
+      dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMSScoreNew'))
+          p1 <- ggplot(dataBig2, aes(x = PMSScoreNew, y = Valence)) +
+            geom_flat_violin(aes(fill=PMSScoreNew),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_point(aes(colour=PMSScoreNew),position=position_jitter(width=.15), size=.25)+
+            geom_boxplot(aes(x = PMSScoreNew, y = Valence, fill = PMSScoreNew),outlier.shape= NA, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew)+.2, y = Valence, fill=PMSScoreNew), shape = 21, size=6)+
+            geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Valence), size=1, colour='black')+
+            ggtitle('Valence~PMSScoreNew')
+            # coord_flip()
+        p1
+    }
+
+  })
+  output$splitviolin <-renderPlot({
+    if (grepl('Arousal', input$formula_choice)){
+      dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('PMSScoreNew', 'Moment'))
+        p<- ggplot(dataBig2, aes(x=Moment, y=Arousal, fill=PMSScoreNew))+
+            geom_split_violin(alpha=.5)+
+          geom_boxplot(aes(x = Moment, y = Arousal, fill = PMSScoreNew),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+          geom_point(data = dmean, aes(x = as.numeric(Moment), y = Arousal, group = PMSScoreNew, fill = PMSScoreNew), shape = 21, size=4)
+        p
+    } else if (grepl('Valence', input$formula_choice)){
+      dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMSScoreNew', 'Moment'))
+        p<- ggplot(dataBig2, aes(x=Moment, y=Valence, fill=PMSScoreNew))+
+            geom_split_violin(alpha=.5)+
+          geom_boxplot(aes(x = Moment, y = Valence, fill = PMSScoreNew),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+          geom_point(data = dmean, aes(x = as.numeric(Moment), y = Valence, group = PMSScoreNew, fill = PMSScoreNew), shape = 21, size=4)
+        p
+    }
   })
 
   
@@ -1038,169 +1050,88 @@ server <- function (input, output){
       p}
   })
   
-  output$table <- renderTable ({
-    modelNames <- c()
-    models <- c()
-    # Formula <- 'Valence ~ PMSScoreNew + (1|Subject)'
-    Formula <- paste0(input$formula_choice, '+ (1|Subject)')
-    tryCatch(
-      { d0.1 <- lmer(Formula,data=dataBig2); # if this formula works
-      models <- c(models, d0.1) #we add this
-      modelNames <- c(modelNames, 'd0.1')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.2 <- glmer(Formula,data=dataBig2, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.2) 
-      modelNames <- c(modelNames, 'd0.2')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.3 <- glmer(Formula,data=dataBig2, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.3)
-      modelNames <- c(modelNames, 'd0.3')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.4 <- glmer(Formula,data=dataBig2, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.4)
-      modelNames <- c(modelNames, 'd0.4')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.5 <- glmer(Formula,data=dataBig2, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.5) 
-      modelNames <- c(modelNames, 'd0.5')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.6 <- glmer(Formula,data=dataBig2, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.6) 
-      modelNames <- c(modelNames, 'd0.6')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.7 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-      models <- c(models, d0.7) 
-      modelNames <- c(modelNames, 'd0.7')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.8 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.8) 
-      modelNames <- c(modelNames, 'd0.8')}, 
-      error=function(e){})
-    tryCatch(
-      { d0.9 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.9) 
-      modelNames <- c(modelNames, 'd0.9')}, 
-      error=function(e){})
-    tabel <- c()
-    for (i in 1:length(models)){
-      AIC<- AIC(models[[i]])
-      print(AIC)
-      tabel <- c(tabel,round(AIC))}
-    chosenModel = modelNames[which(tabel == min(tabel))]
-    tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
-    tabel
+     models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
+        m <- c()
+        # Formula <- 'DASS_Stress ~ PMSScoreNew + (1|Subject)'
+        Formula <- paste0(input$formula_choice, '+ (1|Subject)')
+        tryCatch(
+          { d0.1 <- lmer(Formula,data=dataBig2); # if this formula works
+          m <- c(m, d1=d0.1)}, #we add this
+          error=function(e){})
+        tryCatch(
+          { d0.2 <- glmer(Formula,data=dataBig2, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d1=d0.2)}, 
+          error=function(e){})
+        tryCatch(
+          { d0.3 <- glmer(Formula,data=dataBig2, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d3=d0.3)}, 
+          error=function(e){})
+        tryCatch(
+          { d0.4 <- glmer(Formula,data=dataBig2, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d4=d0.4)}, 
+          error=function(e){})
+        tryCatch(
+          { d0.5 <- glmer(Formula,data=dataBig2, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d5=d0.5) }, 
+          error=function(e){})
+        tryCatch(
+          { d0.6 <- glmer(Formula,data=dataBig2, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d6=d0.6) }, 
+          error=function(e){})
+        tryCatch(
+          { d0.7 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          models <- c(models, d7=d0.7) }, 
+          error=function(e){})
+        tryCatch(
+          { d0.8 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d8=d0.8) }, 
+          error=function(e){})
+        tryCatch(
+          { d0.9 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d9=d0.9) }, 
+          error=function(e){})
+        m
+     })
+  
+  output$table <-renderTable({
+    modelNames<-c()
+    tabel<-c()
+    for (i in 1:length(models())){
+      modelNames<-c(modelNames, names(models()[i]))
+      AIC<-AIC(models()[[i]])
+      tabel <- c (tabel, round(AIC))}
+      chosenModel = modelNames[which(tabel == min(tabel))]
+      tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
+      tabel
   })
-  output$Anova <- renderPrint({
-    models <-c()
-        Formula <- paste0(input$formula_choice, ' + (1|Subject)')
-         tryCatch(
-      { d0.1 <- lmer(Formula,data=dataBig2);
-      models <- c(models, d0.1)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.2 <- glmer(Formula,data=dataBig2, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.2)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.3 <- glmer(Formula,data=dataBig2, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.3)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.4 <- glmer(Formula,data=dataBig2, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.4)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.5 <- glmer(Formula,data=dataBig2, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.5)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.6 <- glmer(Formula,data=dataBig2, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.6)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.7 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-      models <- c(models, d0.7)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.8 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.8)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.9 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.9)}, 
-      error=function(e){})
-    tabel <- c()
-    for (i in 1:length(models)){
-      AIC<- AIC(models[[i]])
-      tabel <- c(tabel,round(AIC))}
-    chosenModel = models[which(tabel == min(tabel))]
-   Anova_1 <- Anova(chosenModel[[1]])
-   cat(sprintf("\nAnova of %s\n", input$formula_choice))
-   Anova_1
-})
-    output$emmeans <- renderPrint({
-    models <-c()
-        Formula <- paste0(input$formula_choice, ' + (1|Subject)')
-         tryCatch(
-      { d0.1 <- lmer(Formula,data=dataBig2);
-      models <- c(models, d0.1)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.2 <- glmer(Formula,data=dataBig2, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.2)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.3 <- glmer(Formula,data=dataBig2, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.3)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.4 <- glmer(Formula,data=dataBig2, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.4)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.5 <- glmer(Formula,data=dataBig2, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.5)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.6 <- glmer(Formula,data=dataBig2, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.6)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.7 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-      models <- c(models, d0.7)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.8 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.8)}, 
-      error=function(e){})
-    tryCatch(
-      { d0.9 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-      models <- c(models, d0.9)}, 
-      error=function(e){})
-    tabel <- c()
-    for (i in 1:length(models)){
-      AIC<- AIC(models[[i]])
-      tabel <- c(tabel,round(AIC))}
-    chosenModel = models[which(tabel == min(tabel))]
 
-    if ((grepl("TestMoment", input$formula_choice)==FALSE)){
-      cat(sprintf("\nemmeans of formula: %s\n", input$formula_choice))
-      Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew, adjust ="fdr", type="response")
-      print(Emm)
-    }
-    else{
-      cat(sprintf("\nemmeans of formula: %s\n", input$formula_choice))
-      Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment, adjust ="fdr", type="response")
-      print(Emm)
-    }
+  output$Anova <- renderPrint({
+    tabel<-c()
+    for (i in 1:length(models())){
+        AIC<- AIC(models()[[i]])
+        tabel <- c(tabel,round(AIC))}
+    chosenModel<-models()[which(tabel == min(tabel))]
+       Anova_1 <- Anova(chosenModel[[1]])
+       cat(sprintf("\nAnova\n"))
+       Anova_1
+    })
+  
+    output$emmeans <- renderPrint({
+        tabel<-c()
+      for (i in 1:length(models())){
+          AIC<- AIC(models()[[i]])
+          tabel <- c(tabel,round(AIC))}
+      chosenModel<-models()[which(tabel == min(tabel))]
+        cat(sprintf("\nemmeans of formula: %s\n", input$formula_choice))
+      if ((grepl("TestMoment", input$formula_choice)==FALSE)){
+        Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew, adjust ="fdr", type="response")
+        print(Emm)
+      }else{
+        Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment, adjust ="fdr", type="response")
+        print(Emm)
+      }
   })
+
 }
 shinyApp(ui=ui, server=server)
 ```
@@ -1267,9 +1198,7 @@ we took out all non-natural contraception methods. these are the descriptives:
 
 ## TO DO
 
--connected raincloudplot maken
--split violin plots voor distributie
--connected plots repeated measures-factorial (eextended) pg 17/48²
+
 
 -probeer uit in kleiner docu: output variable maken binnen de shiny app. 
 ook nr buiten shiny app? hoe werkt dat? => code opkuisen
