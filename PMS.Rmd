@@ -940,8 +940,24 @@ ui<- fluidPage(
 
 
 server <- function (input, output){ 
-  p_value <-reactive({
-    p<-round(p()[[3]][1], digits=3) # this gets the p-value
+  p_pms <-reactive({
+    p<-round(p()[[3]][1], digits=3) # this gets the p-value of the first row, for PMS
+    star=c()
+    if (p<0.05) {star='*'}
+    else if (p<0.005){star='**'}
+    else if (p<0.0005){star='***'}
+    paste0(p,star)
+  })
+  p_moment <-reactive({
+    p<-round(p()[[3]][2], digits=3) # this gets the p-value of the first row, for PMS
+    star=c()
+    if (p<0.05) {star='*'}
+    else if (p<0.005){star='**'}
+    else if (p<0.0005){star='***'}
+    paste0(p,star)
+  })
+  p_pms*mom <-reactive({
+    p<-round(p()[[3]][3], digits=3) # this gets the p-value of the first row, for PMS
     star=c()
     if (p<0.05) {star='*'}
     else if (p<0.005){star='**'}
@@ -1006,7 +1022,7 @@ server <- function (input, output){
             geom_boxplot(aes(x = PMSScoreNew, y = Arousal, fill = PMSScoreNew),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew)+.2, y = Arousal, fill=PMSScoreNew), shape = 21, size=6)+
             geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Arousal), size=1, colour='black')+
-          annotate('text', x=1.73, y=80, label=sprintf("\n%s\n", p_value()), size=7)+
+          annotate('text', x=1.73, y=80, label=sprintf("\n%s\n", p_pms()), size=5)+
             ggtitle('Valence~PMSScoreNew')
             # coord_flip()
         p1
@@ -1019,7 +1035,7 @@ server <- function (input, output){
             geom_boxplot(aes(x = PMSScoreNew, y = Valence, fill = PMSScoreNew),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew)+.2, y = Valence, fill=PMSScoreNew), shape = 21, size=6)+
             geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Valence), size=1, colour='black')+
-          annotate('text', x=1.73, y=80, label=sprintf("\n%s\n", p_value()), size=7)+
+          annotate('text', x=1.73, y=80, label=sprintf("\n%s\n", p_pms()), size=5)+
             ggtitle('Valence~PMSScoreNew')
             # coord_flip()
         p1
