@@ -940,14 +940,13 @@ ui<- fluidPage(
 
 
 server <- function (input, output){ 
-  output$test <-renderPrint({
+  p_value <-reactive({
     p<-round(p()[[3]][1], digits=3) # this gets the p-value
     star=c()
     if (p<0.05) {star='*'}
     else if (p<0.005){star='**'}
     else if (p<0.0005){star='***'}
-    p<-paste0(p,star)
-    cat(sprintf("\ %s\n", p))
+    paste0(p,star)
   })
   
   #we make a density plot of valence/arousal per stimulus.
@@ -987,7 +986,8 @@ server <- function (input, output){
           scale_x_discrete(labels=c('1'='luteal', '2'='follicular'))+
           ggtitle('Arousal ~ PMSScoreNew * TestMoment')
         p3
-    }else if (grepl('Valence', input$formula_choice) & grepl('TestMoment', input$formula_choice)){
+    
+        }else if (grepl('Valence', input$formula_choice) & grepl('TestMoment', input$formula_choice)){
       dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMSScoreNew', 'Moment'))
         p3 <- ggplot(dataBig2, aes(x=Moment, y=Valence, fill=PMSScoreNew))+
           geom_flat_violin (aes(fill=PMSScoreNew), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
@@ -1006,17 +1006,20 @@ server <- function (input, output){
             geom_boxplot(aes(x = PMSScoreNew, y = Arousal, fill = PMSScoreNew),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew)+.2, y = Arousal, fill=PMSScoreNew), shape = 21, size=6)+
             geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Arousal), size=1, colour='black')+
+          annotate('text', x=1.73, y=80, label=sprintf("\n%s\n", p_value()), size=7)+
             ggtitle('Valence~PMSScoreNew')
             # coord_flip()
         p1
     }else {
       dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMSScoreNew'))
+      p_value='0.05*'
           p1 <- ggplot(dataBig2, aes(x = PMSScoreNew, y = Valence)) +
             geom_flat_violin(aes(fill=PMSScoreNew),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
             geom_point(aes(colour=PMSScoreNew),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMSScoreNew, y = Valence, fill = PMSScoreNew),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew)+.2, y = Valence, fill=PMSScoreNew), shape = 21, size=6)+
             geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Valence), size=1, colour='black')+
+          annotate('text', x=1.73, y=80, label=sprintf("\n%s\n", p_value()), size=7)+
             ggtitle('Valence~PMSScoreNew')
             # coord_flip()
         p1
