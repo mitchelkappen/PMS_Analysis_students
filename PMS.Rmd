@@ -64,11 +64,19 @@ nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
 ```{r load-data, echo=FALSE, results='asis'}
 #### IMPORT data & INSPECTION #### -------------------------------------------------------------
 knitr::opts_knit$set(root.dir = dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
-#data <-read.csv("C::/Downloads/allPMSdata.csv",header=TRUE)
-#setwd("C::/Users/ASUSTeK/OneDrive/Documenten/GitHub/internship_sofie")
-data <- read.csv("Data/allPMSdata.csv", header=TRUE)
-#IMPORTANT! when not online it will go to Onedrive/documenten, so put Data/allPMS there as well
-# data <- read.table("Data/allPMSdata.csv", header=TRUE)
+work_dir<-"C:/Users/ASUSTeK/OneDrive/Documenten/GitHub/internship_sofie"
+setwd(work_dir)
+
+data <- read.csv("Data/allPMSdata.csv", header=TRUE, sep=)
+
+norms <-read.table('Data/FemaleSubjects_1-20.txt', header=TRUE, fill=TRUE)
+# norms <-read.table('Data/IAPnormings.txt', header=TRUE, fill=TRUE)
+norms$IAPS <-round(norms$IAPS)
+un<-c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '9320', '9584', '9592', '9594', '9600', '9911', '9920', '9921') # all the unique(data$Stimulus) in a list
+as.data.frame(norms) # make a dataframe
+norms$row_num <- seq.int(nrow(norms)) # give row numbers
+
+norms<-subset(norms, IAPS%in% un ) #we now have table with the norms for ONLY the stimuli used in this PMS experiment
 
 data$Subject <- factor(data$ID)
 
@@ -1178,9 +1186,15 @@ shinyApp(ui=ui, server=server)
 - for Arousal: noPMS1-PMS1, PMS1-noPMS2 and noPMS2-PMS2 sign contrasts
 
 
+
 ### further data processing
 
 - divide stimuli groups on valence (read about IAP images)
+
+IAPS norms for Female Subjects
+-maak dataframe met daarin SD en mean voor Valence, Arousal voor normgroepen én die van deze studie
+-vergelijk: sign verschillen? 
+
 
 - compare to norm groups for IAP images, compare if sign differences
 
