@@ -56,8 +56,6 @@ count <- dplyr::count
 
 # create folder to save figures
 if (!dir.exists("figures")) dir.create("figures")
-
-
 # General settings
 nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
 ```
@@ -72,14 +70,10 @@ data <- read.csv("Data/allPMSdata.csv", header=TRUE)
 #IMPORTANT! when not online it will go to Onedrive/documenten, so put Data/allPMS there as well
 # data <- read.table("Data/allPMSdata.csv", header=TRUE)
 
-
-
 data$Subject <- factor(data$ID)
 
 levs<-union(data$ID, data$ID)
 data$newid <- factor(data$ID, levels=levs, labels=seq_along(levs)) #this code replaces the '627, 534 IDs with 1, 2, 3, )
-
-
 
 #we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
 #These moments were counterbalanced
@@ -102,7 +96,6 @@ data$PMSScoreNew[data$PMSScore==2] = 'PMS' #PMDD, mr niet officiële diagnose du
 #sum(is.na(data$PMSScoreNew))
 
 #put rt in sec instead of ms
-
 data$rt= data$rt/1000
 
 # Check whether R recognizes the variable types correctly
@@ -110,10 +103,7 @@ data$rt= data$rt/1000
 
 data$PMSScore <- factor(data$PMSScore)
 data$PMSScoreNew <- factor(data$PMSScoreNew)
-
 data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 now
-
-
 
 # Exclude data?
 
@@ -131,6 +121,9 @@ data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
 # Define the formula for the model & check which model fits the data best
 
 data_temp <- data #to get back to
+dataBig_out<-dataBig #the dataBig with the rt outliers
+#Dit zijn de data waar de rt outliers uitgehaald zijn! 
+dataBig2 <- subset(dataBig, rt < 16)
 
   # violin function
 
@@ -752,8 +745,6 @@ we plot the reaction times to find the outliers and filter the data
 
 ```{r echo=FALSE}
 #plot reaction times with raincloudplot
-
-dataBig_out<-dataBig #the dataBig with the rt outliers
 d<-melt(data.frame(rt=c(dataBig_out$rt))) # we melt to wide format 
 p1 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
@@ -818,10 +809,6 @@ we look at how people answer on the stimuli: can we categorize the stimuli in va
 
 # unique<-sort(unique(dataBig$Stimulus), decreasing=FALSE) #find all the stimuli
 # we maken een density plotvoor zowel valence als arousal voor elke stimulus (2x22)
-
-
-#Dit zijn de data waar de rt outliers uitgehaald zijn! 
-dataBig2 <- subset(dataBig, rt < 16)
 
 ui<- fluidPage( 
   sidebarPanel(
@@ -925,8 +912,7 @@ ui<- fluidPage(
             choices= c('Valence~PMSScoreNew', 'Arousal~PMSScoreNew', 'Valence~PMSScoreNew * TestMoment', 'Arousal ~ PMSScoreNew * TestMoment'), inline=TRUE,
             selected='Valence~PMSScoreNew'), ),
   mainPanel(
-    tabsetPanel(type = "tab",
-      tabPanel("test", verbatimTextOutput("test")),         
+    tabsetPanel(type = "tab",        
       tabPanel("pirateplot", plotOutput("pirateplot")),
       tabPanel('plotmeans', plotOutput('plotmeans')),
       tabPanel('splitviolin', plotOutput('splitviolin')),
@@ -941,29 +927,16 @@ ui<- fluidPage(
 
 server <- function (input, output){ 
   p_pms <-reactive({
-    p<-round(p()[[3]][1], digits=3) # this gets the p-value of the first row, for PMS
+    p<-(p()[[3]][1]) # this gets the p-value of the first row, for PMS
     star=c()
-    if (p<0.05) {star='*'}
-    else if (p<0.005){star='**'}
-    else if (p<0.0005){star='***'}
-    paste0(p,star)
+    if (p> 0.05) {star=''
+    }else if (p<0.0005){star='***'
+    }else if (p<0.005){star='**'
+    }else if (p<0.05) {star='*'}
+    star
   })
-  p_moment <-reactive({
-    p<-round(p()[[3]][2], digits=3) # this gets the p-value of the first row, for PMS
-    star=c()
-    if (p<0.05) {star='*'}
-    else if (p<0.005){star='**'}
-    else if (p<0.0005){star='***'}
-    paste0(p,star)
-  })
-  p_pms*mom <-reactive({
-    p<-round(p()[[3]][3], digits=3) # this gets the p-value of the first row, for PMS
-    star=c()
-    if (p<0.05) {star='*'}
-    else if (p<0.005){star='**'}
-    else if (p<0.0005){star='***'}
-    paste0(p,star)
-  })
+  
+  #for emmeans: em[[2]][1] is the p-value for first row
   
   #we make a density plot of valence/arousal per stimulus.
   output$pirateplot<- renderPlot({
@@ -1000,6 +973,10 @@ server <- function (input, output){
           geom_line(data=dmean, aes(x= as.numeric(Moment)+.1, y=Arousal, group=PMSScoreNew, colour=PMSScoreNew), size=1.5)+
           geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Arousal, group = PMSScoreNew, fill= PMSScoreNew), shape = 21, size=6)+
           scale_x_discrete(labels=c('1'='luteal', '2'='follicular'))+
+          annotate('text', x=.73, y=60, label=sprintf("* {", size=5), colour='red')+
+          annotate('text', x=1.73, y=60, label=sprintf("* {", size=5), colour='red')+
+          annotate('text', x=1.5, y=85, label=sprintf("*", size=5), colour='red')+
+          geom_segment(aes(x = 1.025, y = 80, xend = 1.98, yend = 80), colour='red')+
           ggtitle('Arousal ~ PMSScoreNew * TestMoment')
         p3
     
@@ -1022,26 +999,25 @@ server <- function (input, output){
             geom_boxplot(aes(x = PMSScoreNew, y = Arousal, fill = PMSScoreNew),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew)+.2, y = Arousal, fill=PMSScoreNew), shape = 21, size=6)+
             geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Arousal), size=1, colour='black')+
-          annotate('text', x=1.73, y=80, label=sprintf("\n%s\n", p_pms()), size=5)+
-            ggtitle('Valence~PMSScoreNew')
+          annotate('text', x=1.73, y=80, label=sprintf("\n%s\n", p_pms()), size=5, colour='red')+
+            ggtitle('Arousal~PMSScoreNew')
             # coord_flip()
         p1
     }else {
       dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMSScoreNew'))
-      p_value='0.05*'
           p1 <- ggplot(dataBig2, aes(x = PMSScoreNew, y = Valence)) +
             geom_flat_violin(aes(fill=PMSScoreNew),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
             geom_point(aes(colour=PMSScoreNew),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMSScoreNew, y = Valence, fill = PMSScoreNew),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew)+.2, y = Valence, fill=PMSScoreNew), shape = 21, size=6)+
             geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Valence), size=1, colour='black')+
-          annotate('text', x=1.73, y=80, label=sprintf("\n%s\n", p_pms()), size=5)+
+          annotate('text', x=1.73, y=80, label=sprintf("\n%s\n", p_pms()), size=5, colour='red')+
             ggtitle('Valence~PMSScoreNew')
             # coord_flip()
         p1
     }
-
   })
+          
   output$splitviolin <-renderPlot({
     if (grepl('Arousal', input$formula_choice)){
       dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('PMSScoreNew', 'Moment'))
@@ -1079,7 +1055,7 @@ server <- function (input, output){
   
      models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
         m <- c()
-        # Formula <- 'DASS_Stress ~ PMSScoreNew + (1|Subject)'
+        # Formula <- 'DASS_Stress ~ PMSScoreNew * TestMoment + (1|Subject)'
         Formula <- paste0(input$formula_choice, '+ (1|Subject)')
         tryCatch(
           { d0.1 <- lmer(Formula,data=dataBig2); # if this formula works
@@ -1141,36 +1117,65 @@ server <- function (input, output){
        Anova_1 <- Anova(chosenModel[[1]])
        cat(sprintf("\nAnova\n"))
        Anova_1
+
+    #            tabel<-c()
+    # for (i in 1:length(m)){
+    #     AIC<- AIC(m[[i]])
+    #     tabel <- c(tabel,round(AIC))}
+    # chosenModel<-m[which(tabel == min(tabel))]
+    #    Anova_1 <- Anova(chosenModel[[1]])
+    #    cat(sprintf("\nAnova\n"))
+    #    an<-Anova_1
+       
   })
 
   output$Anova <- renderPrint({
     p()
     })
   
+  em <- reactive({
+    tabel<-c()
+    for (i in 1:length(models())){
+      AIC<- AIC(models()[[i]])
+      tabel <- c(tabel,round(AIC))}
+    chosenModel<-models()[which(tabel == min(tabel))]
+    cat(sprintf("\nemmeans of formula: %s\n", input$formula_choice))
+    if ((grepl("TestMoment", input$formula_choice)==FALSE)){
+      emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew, adjust ="fdr", type="response")
+    }else{
+        emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment, adjust ="fdr", type="response")
+    }
+    # tabel <- c()
+    #     for (i in 1:length(m)){
+    #   AIC<- AIC(m[[i]])
+    #   tabel <- c(tabel,round(AIC))}
+    # chosenModel<-m[which(tabel == min(tabel))]
+    # cat(sprintf("\nemmeans of formula: %s\n", Formula))
+    # if ((grepl("TestMoment", Formula)==FALSE)){
+    #  em<- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew, adjust ="fdr", type="response")
+    # }else{
+    #   em<-  emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment, adjust ="fdr", type="response")
+    # }
+    # 
+  })
+  
     output$emmeans <- renderPrint({
-        tabel<-c()
-      for (i in 1:length(models())){
-          AIC<- AIC(models()[[i]])
-          tabel <- c(tabel,round(AIC))}
-      chosenModel<-models()[which(tabel == min(tabel))]
-        cat(sprintf("\nemmeans of formula: %s\n", input$formula_choice))
-      if ((grepl("TestMoment", input$formula_choice)==FALSE)){
-        Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew, adjust ="fdr", type="response")
-        print(Emm)
-      }else{
-        Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment, adjust ="fdr", type="response")
-        print(Emm)
-      }
+      em()
   })
 
 }
 shinyApp(ui=ui, server=server)
 ```
+
 #### Conclusions
--no sign diff in Valence PMS vs no PMS
--sign diff in Arousal PMS vs no PMS
--no sign diff Valence PMS no PMS in interaction TestMoment
--no sign Arousal PMS x TestMoment
+
+- sign diff for both Arousal in PMS vs no PMS
+
+- no sign diff for Valence in PMS vs no PMS
+
+- no sign diff Valence/Arousal PMS no PMS in interaction TestMoment
+
+- for Arousal: noPMS1-PMS1, PMS1-noPMS2 and noPMS2-PMS2 sign contrasts
 
 
 ### further data processing
@@ -1178,7 +1183,6 @@ shinyApp(ui=ui, server=server)
 - divide stimuli groups on valence (read about IAP images)
 
 - compare to norm groups for IAP images, compare if sign differences
-
 
 
 
@@ -1229,22 +1233,12 @@ we took out all non-natural contraception methods. these are the descriptives:
 
 ## TO DO
 
--vul p-waarde in op de plotmeans voor enkelvoudige formule
--doe dit zo dat als p-w kleiner dan... zoveel sterretjes enz. 
--dan: doe hetzelfde mr voor de PMS*Moment. hacky manier: als.. bevat *, dan ...
--index juist en zet op figuur
+-conclusions opschrijven
 
--probeer uit in kleiner docu: output variable maken binnen de shiny app. 
-ook nr buiten shiny app? hoe werkt dat? => code opkuisen
-maak functies met return voor herhaalde code 
-global variables, output$, return functies
+-devide based on valence, arousal
+-zelfde analyses
 
-
-bestand participants excel, in PMS 24/8/2021, op de share, date directories. daar deze datum participant excel. daarin participanten, sommige regels rood, deze exclusie. kolom AG staat vaak reden gemist. soms dr luteaal gemist, vaak meeste geval, of niet meer deelnemen. of foutje onze kant. 
-met inlezen file csv obv datum 
-
-
-
+-normgroepen IAPs en normgroepen PSS
 
 ### Overig:
 Normgroepen opzoeken voor PSS bij (jonge) vrouwen
