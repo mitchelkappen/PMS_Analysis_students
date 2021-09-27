@@ -63,9 +63,11 @@ nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
 
 ```{r load-data, echo=FALSE, results='asis'}
 #### IMPORT data & INSPECTION #### -------------------------------------------------------------
-knitr::opts_knit$set(root.dir = dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
-work_dir<-"C:/Users/ASUSTeK/OneDrive/Documenten/GitHub/internship_sofie"
-setwd(work_dir)
+# knitr::opts_knit$set(root.dir = dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
+
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+# work_dir<-"C:/Users/ASUSTeK/OneDrive/Documenten/GitHub/internship_sofie"
+# setwd(work_dir)
 
 data <- read.csv("Data/allPMSdata.csv", header=TRUE, sep=)
 
@@ -75,8 +77,15 @@ norms$IAPS <-round(norms$IAPS)
 un<-c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '9320', '9584', '9592', '9594', '9600', '9911', '9920', '9921') # all the unique(data$Stimulus) in a list
 as.data.frame(norms) # make a dataframe
 norms$row_num <- seq.int(nrow(norms)) # give row numbers
+#move column with names 
+norms <- norms %>%
+  relocate(desc, .after=row_num)
 
 norms<-subset(norms, IAPS%in% un ) #we now have table with the norms for ONLY the stimuli used in this PMS experiment
+
+#we remove the second 1610 because it is double for some reason
+norms<-norms[-c(4),]
+
 
 data$Subject <- factor(data$ID)
 
@@ -132,6 +141,25 @@ data_temp <- data #to get back to
 dataBig_out<-dataBig #the dataBig with the rt outliers
 #Dit zijn de data waar de rt outliers uitgehaald zijn! 
 dataBig2 <- subset(dataBig, rt < 16)
+
+#now we add the sd and means from these data to this dataframe
+# https://stackoverflow.com/questions/21982987/mean-per-group-in-a-data-frame
+# norms$valmn_pms<- mean(dataBig2$Valence)
+
+norms<-cbind(norms, round(ddply(dataBig2, .(Stimulus), summarize,  valmn_pms=mean(Valence))[2])/10)
+
+norms<-cbind(norms, round(ddply(dataBig2, .(Stimulus), summarize,  aromn_pms=mean(Arousal))[2])/10)
+
+norms<-cbind(norms, round(ddply(dataBig2, .(Stimulus), summarize,  valsd_pms=sd(Valence))[2])/10)
+
+norms<-cbind(norms, round(ddply(dataBig2, .(Stimulus), summarize,  arosd_pms=mean(Arousal))[2])/10)
+
+#make all columns unique!
+colnames(norms)<-make.unique(names(norms))
+
+```
+
+```{r functions, echo=FALSE, results='asis'}
 
   # violin function
 
@@ -766,16 +794,14 @@ p1
 print('some summary info')
 summary(dataBig_out$rt)
 #outlier removal method 2
-lower_bound <- quantile (dataBig_out$rt, 0.025)
-print('lower bound')
-lower_bound
-upper_bound <- quantile (dataBig_out$rt, 0.975)
-print('upper bound')
+
+upper_bound <- quantile (dataBig_out$rt, 0.9985)
+print('upper 99.85% bound')
 upper_bound
 
 defaultW<-getOption("warn")
 options(warn=-1)# this disables warning messages
-dataBig_out <- subset(dataBig_out, rt < 16)
+dataBig_out <- subset(dataBig_out, rt < 30)
 d<-melt(data.frame(rt=c(dataBig_out$rt)))
 p3 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
@@ -1189,14 +1215,74 @@ shinyApp(ui=ui, server=server)
 
 ### further data processing
 
-- divide stimuli groups on valence (read about IAP images)
+- divide stimuli groups on valence (read about IAP images): plot stimuli on axis of valence and arousal
+
 
 IAPS norms for Female Subjects
--maak dataframe met daarin SD en mean voor Valence, Arousal voor normgroepen én die van deze studie
--vergelijk: sign verschillen? 
+-norms: dataframe met daarin SD en mean voor Valence, Arousal voor normgroepen én die van deze studie
+- pirateplots to compare norms and PMS means and valence
 
 
-- compare to norm groups for IAP images, compare if sign differences
+
+```{r echo=FALSE}
+ui<- fluidPage( 
+  sidebarPanel(
+    radioButtons("choice", label="data from normgroups or from this study?",
+            choices= c('norms', 'PMS'), inline=TRUE,
+            selected='norms'), ),
+  mainPanel(
+    tabsetPanel(type = "tab",        
+      tabPanel("plot", plotOutput("plot"))
+    ),
+  )
+)
+
+
+server <- function (input, output){ 
+  plot <-renderPlot({
+    if ((grepl("norms", input$choice))){
+        p1 <- ggplot(norms, aes(x = valmn, y = aromn))+
+          geom_point()+
+          ggtitle("mean Arousal and Valence norm females")
+        p1
+    } else {
+        p1 <- ggplot(norms, aes(x = valmn_pms, y = aromn_pms))+
+          geom_point(position=position_jitter(width=.15), size=2, colour='red')+
+          # geom_text(aes(label=IAPS),hjust=0, vjust=0, size=3)+
+          geom_point(data= norms, aes(x=valmn, y=aromn), size=2, colour='black')+
+          ggtitle("mean Arousal and Valence norm females")
+        p1      
+    }
+    
+# calculate correlations
+    cor(norms$valmn, norms$valmn_pms, method=c('pearson'))
+    
+    ggscatter(norms, x='valmn', y='valmn_pms', add='reg.line', conf.int=TRUE,
+              cor.coef=TRUE, cor.method='pearson', 
+              xlab='norm means Valence', ylab='PMS means Valence')
+        ggscatter(norms, x='valsd', y='valsd_pms', add='reg.line', conf.int=TRUE,
+              cor.coef=TRUE, cor.method='pearson', 
+              xlab='norm SD Valence', ylab='PMS SD Valence')
+    
+        ggscatter(norms, x='aromn', y='aromn_pms', add='reg.line', conf.int=TRUE,
+              cor.coef=TRUE, cor.method='pearson', 
+              xlab='norm means Arousal', ylab='PMS means Arousal')
+        ggscatter(norms, x='arosd', y='arosd_pms', add='reg.line', conf.int=TRUE,
+              cor.coef=TRUE, cor.method='pearson', 
+              xlab='norm SD Arousal', ylab='PMS SD Arousal')
+        
+        #perhaps: pirateplot van de Arousal norms en Arousal pms
+  
+  })
+  
+}
+
+```
+    
+### Conclusions
+
+The data are similar to those of the norms, except for Arousal. 
+
 
 
 
