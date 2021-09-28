@@ -262,7 +262,51 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
 
 ```
 
+## Intro
 
+
+A lot of women feel unwell during the premenstrual phase of their cyclus. 
+This study looked into stress, rumination and emotion expression during the premenstrual phase with both healthy women and women who have PMS, or Pre Menstrual Syndrome.
+
+#### PMS
+
+PMS is a clinical disorder that is characterized by behavioral and physical symptoms that occur during the luteal phase, which we will call the 'premenstrual phase' during this presentation
+
+
+!["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](figures/MC.png){width=80%}
+
+The symptoms disappear 2-3 days into menstruation.
+
+##### Symptoms
+
+- decreased serotonin levels
+
+- etiology and symptoms of PMS and depression are linked
+
+### pMDD
+
+PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this is a more severe version of PMS.
+
+##### Prevalence
+
+- 75% of women experience some symptoms
+
+- 20-30%: moderate to severe symptoms
+
+- 5-8% PMDD levels of symptoms
+
+
+### STUDY
+
+##### Screening
+
+
+
+
+```{r echo=FALSE}
+
+
+```
 
 
 ## PMS, TestMoment, PSS and BSRI
@@ -275,7 +319,7 @@ These two last groups were taken together to form the 'no PMS' and 'PMS' groups
 there are two testmoments, 1 and 2. 1 stands for follicular phase, 2 for mid-luteal phase. 
 these testmoments were counterbalanced across participants
 
-!["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](figures/MC.png){width=80%}
+
 
 * #### PSS
 Perceived Stress Scale
@@ -587,6 +631,40 @@ no sign difference between testmoment 1 and 2 with the PMS group!
 BSRI is higher in PMS than in noPMS group
 -no effect of testmoment on BSRI
 
+### Norm Groups PSS (young) women
+
+```{r echo=FALSE}
+
+mean(data$PSS)
+max(data$PSS)
+min(data$PSS)
+
+```
+
+Women have on average higher stress scales
+
+Perceived Stress Scale Sheldon Cohen
+women: mean=13.7, SD:6.6
+men: mean:12.1, SD: 5.9
+age 18-29: 14.2, SD: 6.2
+30-44: 13, 6.2
+45-54: 12.6, 6.1
+
+KIJK of we zelfde PSS items gebruiken
+
+
+https://bmcpsychiatry.biomedcentral.com/articles/10.1186/s12888-016-0875-9/tables/6
+women age 20-29: Mn=8.2, SD= 4.6
+women age 40-40: Mn=7.6, SD= 4.2
+
+https://www.frontiersin.org/files/Articles/558691/fpsyt-11-558691-HTML/image_m/fpsyt-11-558691-t003.jpg
+
+mean score of the population; 18.10 (moderate stress level)
+
+https://www.dovepress.com/cr_data/article_fulltext/s317000/317059/img/PRBM_A_317059_t0002.jpg
+
+PSS during pandemic:D
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7680058/
 
 ## DASS
 
@@ -601,6 +679,7 @@ effect of PMS vs no PMSS
 #### onderzoeksvraag: PMS vs noPMS voor:
 - DASS_alle subschalen
 +interactie PSS
+
 
 
 
@@ -765,6 +844,8 @@ server <- function (input, output){ #we have to add this to the server
 }
 
 
+
+
 shinyApp(ui=ui, server=server)
 
 ```
@@ -773,6 +854,10 @@ shinyApp(ui=ui, server=server)
 * sign more stress PMS than no PMS
 * sign more anxiety PMS than no 
 * sign more depression PMS than no PMS
+
+### Interpretation of DASS => put markers:
+
+!["Image Source: https://www.psytoolkit.org/survey-library/depression-anxiety-stress-dass.html"](figures/MC.png){width=80%}
 
 
 ## reaction times
@@ -1331,25 +1416,35 @@ we took out all non-natural contraception methods. these are the descriptives:
 
 ## TO DO
 
--conclusions opschrijven
+KAPSTOK
+-intro: opzet studie, uitleg verloop en metingen
+-PSS
+-BSRI
+-DASS
+-RT outliers
+-Stimuli
+-descriptives
 
--devide based on valence, arousal
--zelfde analyses
+bij STIMULI
+-significantie: van boven, met rechte haakjes, dikker en zwart. 
+-mr niet meer voor de kriskross: deze weglaten
+-ipv testmoment1/2: control (1) en premenstrual
+-dan: toon deze aan Mitchel
 
--normgroepen IAPs en normgroepen PSS
-
-### Overig:
-Perceived Stress Scale Sheldon Cohen
-Normgroepen opzoeken voor PSS bij (jonge) vrouwen
-women: mean=13.7, SD:6.6
-men: mean:12.1, SD: 5.9
-age 18-29: 14.2, SD: 6.2
-30-44: 13, 6.2
-45-54: 12.6, 6.1
-
-https://www.cambridge.org/core/journals/spanish-journal-of-psychology/article/abs/perceived-stress-scale-pss-normative-data-and-factor-structure-for-a-largescale-sample-in-mexico/752B62D15A932A2D148D04376E949F67
-
-https://bmcpsychiatry.biomedcentral.com/articles/10.1186/s12888-016-0875-9/tables/6
+Rest:
+-pas de violin plots toe
+-check de raincloud plots: er staat foutief PMS vs noPMS terwijl er testmoment moet staan!
+-check of alle plots nog werken
+-shiny: dubbelklik zodat fullscreen/hele shiny app groter: zichtbaarheid!
 
 
+STIMULI CORR:
+-zet alles op dezelfde schaal: autoscale uit, altijd 0-10
+-bij SD: ook /10 gedaan? staan norm PMS op dezelfde schaal??
+-voeg een 'perfecte' correlatie lijn toe op de plot
+-geef de stimuli kleurtjes: rood voor alle stimuli die A zijn. om te zien: ga nr data, hier kan je zien als A en moment=1
 
+bij PSS:
+-check of de vragen PSS zelfde zijn bij de norms voor corona zelfde vragen hebben gebruikt: zelfde soort PSS gebruikt? 
+NORMERINGEN
+-voeg tabellen/afbn toe met de normeringen zodat plots meer betekenis
