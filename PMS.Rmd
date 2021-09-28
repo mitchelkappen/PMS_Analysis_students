@@ -61,7 +61,7 @@ nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
 ```
 
 
-```{r load-data, echo=FALSE, results='asis'}
+```{r load-data, echo=FALSE}
 #### IMPORT data & INSPECTION #### -------------------------------------------------------------
 # knitr::opts_knit$set(root.dir = dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
 
@@ -75,7 +75,7 @@ norms <-read.table('Data/FemaleSubjects_1-20.txt', header=TRUE, fill=TRUE)
 # norms <-read.table('Data/IAPnormings.txt', header=TRUE, fill=TRUE)
 norms$IAPS <-round(norms$IAPS)
 un<-c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '9320', '9584', '9592', '9594', '9600', '9911', '9920', '9921') # all the unique(data$Stimulus) in a list
-as.data.frame(norms) # make a dataframe
+norms<-as.data.frame(norms) # make a dataframe
 norms$row_num <- seq.int(nrow(norms)) # give row numbers
 #move column with names 
 norms <- norms %>%
@@ -1227,55 +1227,53 @@ IAPS norms for Female Subjects
 ```{r echo=FALSE}
 ui<- fluidPage( 
   sidebarPanel(
-    radioButtons("choice", label="data from normgroups or from this study?",
-            choices= c('norms', 'PMS'), inline=TRUE,
-            selected='norms'), ),
+    radioButtons("choice", label="choose",
+            choices= c('Valence mean', 'Valence SD', 'Arousal mean', 'Arousal SD'), inline=TRUE,
+            selected='Valence mean'), ),
   mainPanel(
     tabsetPanel(type = "tab",        
-      tabPanel("plot", plotOutput("plot"))
+      tabPanel("plot", plotOutput("plot")),
+      tabPanel('correlations', plotOutput('correlations'))
     ),
   )
 )
 
 
 server <- function (input, output){ 
-  plot <-renderPlot({
-    if ((grepl("norms", input$choice))){
-        p1 <- ggplot(norms, aes(x = valmn, y = aromn))+
-          geom_point()+
-          ggtitle("mean Arousal and Valence norm females")
-        p1
-    } else {
+  output$plot <-renderPlot({
         p1 <- ggplot(norms, aes(x = valmn_pms, y = aromn_pms))+
           geom_point(position=position_jitter(width=.15), size=2, colour='red')+
           # geom_text(aes(label=IAPS),hjust=0, vjust=0, size=3)+
           geom_point(data= norms, aes(x=valmn, y=aromn), size=2, colour='black')+
           ggtitle("mean Arousal and Valence norm females")
         p1      
-    }
+    })
+    
+    
     
 # calculate correlations
-    cor(norms$valmn, norms$valmn_pms, method=c('pearson'))
-    
-    ggscatter(norms, x='valmn', y='valmn_pms', add='reg.line', conf.int=TRUE,
-              cor.coef=TRUE, cor.method='pearson', 
-              xlab='norm means Valence', ylab='PMS means Valence')
-        ggscatter(norms, x='valsd', y='valsd_pms', add='reg.line', conf.int=TRUE,
-              cor.coef=TRUE, cor.method='pearson', 
-              xlab='norm SD Valence', ylab='PMS SD Valence')
-    
-        ggscatter(norms, x='aromn', y='aromn_pms', add='reg.line', conf.int=TRUE,
-              cor.coef=TRUE, cor.method='pearson', 
-              xlab='norm means Arousal', ylab='PMS means Arousal')
-        ggscatter(norms, x='arosd', y='arosd_pms', add='reg.line', conf.int=TRUE,
-              cor.coef=TRUE, cor.method='pearson', 
-              xlab='norm SD Arousal', ylab='PMS SD Arousal')
-        
-        #perhaps: pirateplot van de Arousal norms en Arousal pms
+    output$correlations<- renderPlot({
+      # p1<- ggplot(norms$valmn, norms$valmn_pms, method=c('pearson'))
+      if ((grepl("Valence", input$choice)==TRUE)&(grepl("mean", input$choice)==TRUE)){
+        ggscatter(norms, x='valmn', y='valmn_pms', add='reg.line', conf.int=TRUE,
+                  cor.coef=TRUE, cor.method='pearson', 
+                  xlab='norm means Valence', ylab='PMS means Valence')}
+        else if ((grepl("Valence", input$choice)==TRUE)&(grepl("SD", input$choice)==TRUE)){
+            ggscatter(norms, x='valsd', y='valsd_pms', add='reg.line', conf.int=TRUE,
+                  cor.coef=TRUE, cor.method='pearson', 
+                  xlab='norm SD Valence', ylab='PMS SD Valence')}
+        else if ((grepl("Arousal", input$choice)==TRUE)&(grepl("mean", input$choice)==TRUE)){
+            ggscatter(norms, x='aromn', y='aromn_pms', add='reg.line', conf.int=TRUE,
+                  cor.coef=TRUE, cor.method='pearson', 
+                  xlab='norm means Arousal', ylab='PMS means Arousal')}
+        else {ggscatter(norms, x='arosd', y='arosd_pms', add='reg.line', conf.int=TRUE,
+                  cor.coef=TRUE, cor.method='pearson', 
+                  xlab='norm SD Arousal', ylab='PMS SD Arousal')}
   
   })
   
 }
+shinyApp(ui=ui, server=server)
 
 ```
     
@@ -1341,7 +1339,14 @@ we took out all non-natural contraception methods. these are the descriptives:
 -normgroepen IAPs en normgroepen PSS
 
 ### Overig:
+Perceived Stress Scale Sheldon Cohen
 Normgroepen opzoeken voor PSS bij (jonge) vrouwen
+women: mean=13.7, SD:6.6
+men: mean:12.1, SD: 5.9
+age 18-29: 14.2, SD: 6.2
+30-44: 13, 6.2
+45-54: 12.6, 6.1
+
 https://www.cambridge.org/core/journals/spanish-journal-of-psychology/article/abs/perceived-stress-scale-pss-normative-data-and-factor-structure-for-a-largescale-sample-in-mexico/752B62D15A932A2D148D04376E949F67
 
 https://bmcpsychiatry.biomedcentral.com/articles/10.1186/s12888-016-0875-9/tables/6
