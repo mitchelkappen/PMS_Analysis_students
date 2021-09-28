@@ -300,6 +300,54 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 
 ##### Screening
 
+!(figures/screening.png){width=80%}
+
++ screening tool for premenstrual symptoms: 
+
+- no/mild
+
+- medium-severe
+
+
+#### TestMoment
+
+* determined per participant, based on cycle
+
+* invitation via e-mail + 24 h reminder
+
+* execution via LimeSurvey
+
+* counterbalanced across participants
+
+#### Measures
+
+- PSS: Perceived Stress Scale
+
+- Rating of 22 IAPS images while webcam records
+  +  counterbalanced across TestMoment: e.g. during moment 1 a puppy, during moment 2 a different puppy. this order (serie A of images and serie B of images)
+
+- Report experienced Valence, Arousal
+
+![](figures/screening.png){width=80%}
+
+- BSRI: Brief State Rumination Index
+
+- question on webcam usability and comfort
+
+### Hypotheses
+
+#### control vs premenstrual phase:
+
+- higher stress?
+
+- more rumination? 
+
+- more negative responses? explicit: ratings, implicit: video emotion expressions
+
+### TODAY:
+
+** implicit measures **
+
 
 
 
@@ -315,28 +363,27 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 three groups originally: low and high PMS and what counts as ... on the questionnaire. 
 These two last groups were taken together to form the 'no PMS' and 'PMS' groups
 
-* #### TestMoment: 
-there are two testmoments, 1 and 2. 1 stands for follicular phase, 2 for mid-luteal phase. 
-these testmoments were counterbalanced across participants
+
 
 
 
 * #### PSS
 Perceived Stress Scale
 
+add image norms
+
 
 * #### BSRI:
-Bem Sex Role Inventory
-questionnaire with 2 subscales: 
-1. masculinity
-2. femininity
-scores on 1_7 scale (4=middle)
-above median score on both scales= 'androgynous'
+Brief State RUmination Index
 
-https://www.psytoolkit.org/survey-library/sex-role-bem.html
+image norms
+
+Marchetti et al. The Brief State Rumination Inventory (BSRI): Validation and Psychometric Evaluation
+
+add image norms
 
 
-### onderzoeksvraag: PMS vs noPMS op het gebied van:
+### Research Question: PMS vs no PMS: 
 - PSS
 - BSRI
 + Interactie testmoment
@@ -1424,6 +1471,8 @@ KAPSTOK
 -RT outliers
 -Stimuli
 -descriptives
+
+
 
 bij STIMULI
 -significantie: van boven, met rechte haakjes, dikker en zwart. 
