@@ -300,7 +300,7 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 
 ##### Screening
 
-!(figures/screening.png){width=80%}
+![](figures/screening.png){width=80%}
 
 + screening tool for premenstrual symptoms: 
 
@@ -331,6 +331,8 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 ![](figures/screening.png){width=80%}
 
 - BSRI: Brief State Rumination Index
+
+![](figures/BSRI.png){width=80%}
 
 - question on webcam usability and comfort
 
@@ -375,6 +377,8 @@ add image norms
 
 * #### BSRI:
 Brief State RUmination Index
+
+![](figures/BSRI_norms.png){width=80%}
 
 image norms
 
