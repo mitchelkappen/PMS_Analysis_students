@@ -1452,17 +1452,18 @@ server <- function (input, output){
                     xlab='norm means Valence', ylab='PMS means Valence', 
                     xlim=c(0,10))+
           geom_segment(aes(x = 0, y = 0, xend = 10, yend = 10), size= 1, colour='red')
-        p}
+        p
+        }
 
         else if ((grepl("Valence", input$choice)==TRUE)&(grepl("SD", input$choice)==TRUE)){
         p<- ggscatter(norms, x='valsd', y='valsd_pms', 
                         add='reg.line', fullrange=TRUE,
                     conf.int=TRUE,
                     cor.coef=TRUE, cor.method='pearson', 
-                    xlab='norm SD Valence', ylab='PMS SD Valence', 
-                    xlim=c(0,10))+
-          geom_segment(aes(x = 0, y = 0, xend = 10, yend = 10), size= 1, colour='red')
-        p}
+                    xlab='norm SD Valence', ylab='PMS SD Valence')+
+          geom_segment(aes(x = 0, y = 0, xend = 3, yend = 3), size= 1, colour='red')
+        p
+        }
         else if ((grepl("Arousal", input$choice)==TRUE)&(grepl("mean", input$choice)==TRUE)){
         p<- ggscatter(norms, x='aromn', y='aromn_pms', 
                         add='reg.line', fullrange=TRUE,
@@ -1476,9 +1477,8 @@ server <- function (input, output){
                         add='reg.line', fullrange=TRUE,
                     conf.int=TRUE,
                     cor.coef=TRUE, cor.method='pearson', 
-                    xlab='norm SD Arousal', ylab='PMS SD Arousal', 
-                    xlim=c(0,10))+
-          geom_segment(aes(x = 0, y = 0, xend = 10, yend = 10), size= 1, colour='red')
+                    xlab='norm SD Arousal', ylab='PMS SD Arousal')+
+          geom_segment(aes(x = 0, y = 0, xend = 4, yend = 10), size= 1, colour='red')
         p}
   
   }, height=600)
@@ -1488,7 +1488,7 @@ server <- function (input, output){
       if ((grepl("Valence", input$choice)==TRUE)&(grepl("mean", input$choice)==TRUE)){
                 p<- ggscatter(norms, x='valmn', y='valmn_pms', 
                       color= 'group',
-                      palette='jco',
+                      palette=get_palette('npg', 2),
                       ellipse=TRUE, ellipse.type='convex',
                     xlab='norm means Valence', ylab='PMS means Valence', 
                     xlim=c(0,10))
@@ -1499,15 +1499,14 @@ server <- function (input, output){
       else if ((grepl("Valence", input$choice)==TRUE)&(grepl("SD", input$choice)==TRUE)){
                        p<- ggscatter(norms, x='valsd', y='valsd_pms', 
                       color= 'group',
-                      palette='jco',
+                      palette=get_palette('npg', 2),
                       ellipse=TRUE, ellipse.type='convex',
-                    xlab='norm SD Valence', ylab='PMS SD Valence', 
-                    xlim=c(0,10))
+                    xlab='norm SD Valence', ylab='PMS SD Valence')
         p } 
               else if ((grepl("Arousal", input$choice)==TRUE)&(grepl("mean", input$choice)==TRUE)){
                        p<- ggscatter(norms, x='aromn', y='aromn_pms', 
                       color= 'group',
-                      palette='jco',
+                      palette=get_palette('npg', 2),
                       ellipse=TRUE, ellipse.type='convex',
                     xlab='norm means Arousal', ylab='PMS means Arousal', 
                     xlim=c(0,10))
@@ -1515,10 +1514,9 @@ server <- function (input, output){
       else {
                        p<- ggscatter(norms, x='arosd', y='arosd_pms', 
                       color= 'group',
-                      palette='jco',
+                      palette=get_palette('npg', 2),
                       ellipse=TRUE, ellipse.type='convex',
-                    xlab='norm SD Arousal', ylab='PMS SD Arousal', 
-                    xlim=c(0,10))
+                    xlab='norm SD Arousal', ylab='PMS SD Arousal')
         p } 
                 
     }, height=600)
