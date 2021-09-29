@@ -14,7 +14,7 @@ This is an interactive, Shiny Rmd file for the PMS study
 
 ```{r libraries, include = FALSE}
 
-    
+
 #### Settings & Packages #### -----------------------------------------------------
 rm(list = ls())
 
@@ -53,12 +53,13 @@ library (yarrr)
 # library(htmltools)
 library(knitr)
 recode <- dplyr::recode
-count <- dplyr::count 
+count <- dplyr::count
 
 # create folder to save figures
 if (!dir.exists("figures")) dir.create("figures")
 # General settings
 nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
+vpn = 1 # Set to 1 if using VPN
 ```
 
 
@@ -66,19 +67,24 @@ nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
 #### IMPORT data & INSPECTION #### -------------------------------------------------------------
 # knitr::opts_knit$set(root.dir = dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
 
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
- work_dir<-"C:/Users/ASUSTeK/OneDrive/Documenten/GitHub/internship_sofie"
-setwd(work_dir)
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+# work_dir<-"C:/Users/ASUSTeK/OneDrive/Documenten/GitHub/internship_sofie"
+# setwd(work_dir)
+if (vpn == 1){
+  dataDir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\RMarkdown\\Data\\"
+} else {
+  dataDir = "Data\\"
+}
 
-data <- read.csv("Data/allPMSdata.csv", header=TRUE, sep=)
+data <- read.csv(paste0(dataDir,"allPMSdata.csv"), header=TRUE, sep=)
 
-norms <-read.table('Data/FemaleSubjects_1-20.txt', header=TRUE, fill=TRUE)
+norms <-read.table(paste0(dataDir,"FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE)
 # norms <-read.table('Data/IAPnormings.txt', header=TRUE, fill=TRUE)
 norms$IAPS <-round(norms$IAPS)
 un<-c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '9320', '9584', '9592', '9594', '9600', '9911', '9920', '9921') # all the unique(data$Stimulus) in a list
 norms<-as.data.frame(norms) # make a dataframe
 norms$row_num <- seq.int(nrow(norms)) # give row numbers
-#move column with names 
+#move column with names
 norms <- norms %>%
   relocate(desc, .after=row_num)
 
@@ -96,7 +102,7 @@ data$newid <- factor(data$ID, levels=levs, labels=seq_along(levs)) #this code re
 #we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
 #These moments were counterbalanced
 #when the order was B-A and the moment is B, this means it is the first test moment
-#and vice versa for A-B and moment A. 
+#and vice versa for A-B and moment A.
 
 # TestMoment 1 == Follicular phase
 # TestMoment 2 == Luteal phase
@@ -107,7 +113,7 @@ data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
 #check if there are still values missing (NA)
 #sum(is.na(data$TestMoment))
 
-# new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1, 
+# new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1,
 data$PMSScoreNew[data$PMSScore==0] = 'noPMS'
 data$PMSScoreNew[data$PMSScore==1] = 'PMS'
 data$PMSScoreNew[data$PMSScore==2] = 'PMS' #PMDD, mr niet officiële diagnose dus gewoon PMS
@@ -140,7 +146,7 @@ data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
 
 data_temp <- data #to get back to
 dataBig_out<-dataBig #the dataBig with the rt outliers
-#Dit zijn de data waar de rt outliers uitgehaald zijn! 
+#Dit zijn de data waar de rt outliers uitgehaald zijn!
 dataBig2 <- subset(dataBig, rt < 16)
 
 #now we add the sd and means from these data to this dataframe
@@ -187,7 +193,7 @@ GeomFlatViolin <-
           setup_data = function(data, params) {
             data$width <- data$width %||%
               params$width %||% (resolution(data$x, FALSE) * 0.9)
-            
+
             # ymin, ymax, xmin, and xmax define the bounding rectangle for each group
             data %>%
               group_by(group) %>%
@@ -195,40 +201,40 @@ GeomFlatViolin <-
                      ymax = max(y),
                      xmin = x,
                      xmax = x + width / 2)
-            
+
           },
-          
+
           draw_group = function(data, panel_scales, coord) {
             # Find the points for the line to go all the way around
             data <- transform(data, xminv = x,
                               xmaxv = x + violinwidth * (xmax - x))
-            
+
             # Make sure it's sorted properly to draw the outline
             newdata <- rbind(plyr::arrange(transform(data, x = xminv), y),
                              plyr::arrange(transform(data, x = xmaxv), -y))
-            
+
             # Close the polygon: set first and last point the same
             # Needed for coord_polar and such
             newdata <- rbind(newdata, newdata[1,])
-            
+
             ggplot2:::ggname("geom_flat_violin", GeomPolygon$draw_panel(newdata, panel_scales, coord))
           },
-          
+
           draw_key = draw_key_polygon,
-          
+
           default_aes = aes(weight = 1, colour = "grey20", fill = "white", size = 0.5,
                             alpha = NA, linetype = "solid"),
-          
+
           required_aes = c("x", "y")
 )
-    
+
     #standard error function
     standard_error <- function(x) sd(x)/sqrt(length(x))
-    
-    
-    
+
+
+
 #function for split violin
-    GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
+    GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin,
                            draw_group = function(self, data, ..., draw_quantiles = NULL) {
   data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
   grp <- data[1, "group"]
@@ -251,14 +257,14 @@ GeomFlatViolin <-
   }
 })
 
-geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., 
-                              draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, 
+geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ...,
+                              draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE,
                               show.legend = NA, inherit.aes = TRUE) {
-  layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, 
-        position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
+  layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin,
+        position = position, show.legend = show.legend, inherit.aes = inherit.aes,
         params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
 }
-    
+
 
 
 ```
@@ -266,7 +272,7 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
 ## Intro
 
 
-A lot of women feel unwell during the premenstrual phase of their cyclus. 
+A lot of women feel unwell during the premenstrual phase of their cyclus.
 This study looked into stress, rumination and emotion expression during the premenstrual phase with both healthy women and women who have PMS, or Pre Menstrual Syndrome.
 
 #### PMS
@@ -303,7 +309,7 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 
 ![](figures/screening.png){width=80%}
 
-+ screening tool for premenstrual symptoms: 
++ screening tool for premenstrual symptoms:
 
 - no/mild
 
@@ -343,7 +349,7 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 
 - higher stress?
 
-- more rumination? 
+- more rumination?
 
 - more negative responses? explicit: ratings, implicit: video emotion expressions
 
@@ -362,8 +368,8 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 
 ## PMS, TestMoment, PSS and BSRI
 
-* #### PMS: 
-three groups originally: low and high PMS and what counts as ... on the questionnaire. 
+* #### PMS:
+three groups originally: low and high PMS and what counts as ... on the questionnaire.
 These two last groups were taken together to form the 'no PMS' and 'PMS' groups
 
 
@@ -388,7 +394,7 @@ Marchetti et al. The Brief State Rumination Inventory (BSRI): Validation and Psy
 add image norms
 
 
-### Research Question: PMS vs no PMS: 
+### Research Question: PMS vs no PMS:
 - PSS
 - BSRI
 + Interactie testmoment
@@ -415,9 +421,9 @@ ui<- fluidPage( # makes the User Interface
 )
 
 server <- function (input, output){ #we have to add this to the server
-  
-  
-  output$pirateplot<- renderPlot({ 
+
+
+  output$pirateplot<- renderPlot({
       dpi=600    #pixels per square inch
     # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
     par(mfcol = c(1, 1))
@@ -470,7 +476,7 @@ server <- function (input, output){ #we have to add this to the server
       p2
     }
   })
-  
+
   # https://www.rpubs.com/jenrichmond/W6LL  here some info on the following plot
     output$raincloud2 <- renderPlot({
       #function for weighted average
@@ -512,7 +518,7 @@ server <- function (input, output){ #we have to add this to the server
           ylab("PSS")+
           theme_classic()
         raincloud_2
-      } 
+      }
       else if ((grepl("BSRI", input$formula_choice))){
          #dataframe for connected rainclouds
         dataf<- data
@@ -548,9 +554,9 @@ server <- function (input, output){ #we have to add this to the server
           theme_classic()
         raincloud_2
       }
-      
+
     })
-      
+
      models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
         m <- c()
         # Formula <- 'DASS_Stress ~ PMSScoreNew + (1|Subject)'
@@ -560,40 +566,40 @@ server <- function (input, output){ #we have to add this to the server
           m <- c(m, d1=d0.1)}, #we add this
           error=function(e){})
         tryCatch(
-          { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d1=d0.2)}, 
+          { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d1=d0.2)},
           error=function(e){})
         tryCatch(
-          { d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d3=d0.3)}, 
+          { d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d3=d0.3)},
           error=function(e){})
         tryCatch(
-          { d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d4=d0.4)}, 
+          { d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d4=d0.4)},
           error=function(e){})
         tryCatch(
-          { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d5=d0.5) }, 
+          { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d5=d0.5) },
           error=function(e){})
         tryCatch(
-          { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d6=d0.6) }, 
+          { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d6=d0.6) },
           error=function(e){})
         tryCatch(
           { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-          models <- c(models, d7=d0.7) }, 
+          models <- c(models, d7=d0.7) },
           error=function(e){})
         tryCatch(
-          { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d8=d0.8) }, 
+          { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d8=d0.8) },
           error=function(e){})
         tryCatch(
-          { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d9=d0.9) }, 
+          { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d9=d0.9) },
           error=function(e){})
         m
      })
-     
+
  output$table <-renderTable({
   modelNames<-c()
   tabel<-c()
@@ -605,7 +611,7 @@ server <- function (input, output){ #we have to add this to the server
     tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
     tabel
 })
-  
+
 output$Anova <- renderPrint({
   tabel<-c()
   for (i in 1:length(models())){
@@ -616,7 +622,7 @@ output$Anova <- renderPrint({
      cat(sprintf("\nAnova\n"))
      Anova_1
   })
-  
+
 output$emmeans <- renderPrint({
   tabel<-c()
   for (i in 1:length(models())){
@@ -633,8 +639,8 @@ output$emmeans <- renderPrint({
       Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment, adjust ="fdr", type="response")
       print(Emm)}
   })
-  
-  
+
+
   output$density <- renderPlot({
       if ((grepl("PSS", input$formula_choice))){
       p1 <- ggplot(data, aes(x = PMSScoreNew, y = PSS, fill = PMSScoreNew)) +
@@ -647,7 +653,7 @@ output$emmeans <- renderPrint({
       scale_fill_brewer(palette = "Dark2")+
       ggtitle("Figure: Repeated Measures - Factorial (Extended)")
       p1
-      
+
       } else {
       p2 <- ggplot(data, aes(x = PMSScoreNew, y = BSRI, fill = PMSScoreNew)) +
         geom_flat_violin(aes(fill = PMSScoreNew),position = position_nudge(x = .2, y = 0), adjust = 1.5, trim = FALSE, alpha = .5, colour = NA)+
@@ -826,36 +832,36 @@ server <- function (input, output){ #we have to add this to the server
           m <- c(m, d1=d0.1)}, #we add this
           error=function(e){})
         tryCatch(
-          { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d1=d0.2)}, 
+          { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d1=d0.2)},
           error=function(e){})
         tryCatch(
-          { d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d3=d0.3)}, 
+          { d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d3=d0.3)},
           error=function(e){})
         tryCatch(
-          { d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d4=d0.4)}, 
+          { d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d4=d0.4)},
           error=function(e){})
         tryCatch(
-          { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d5=d0.5) }, 
+          { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d5=d0.5) },
           error=function(e){})
         tryCatch(
-          { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d6=d0.6) }, 
+          { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d6=d0.6) },
           error=function(e){})
         tryCatch(
           { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-          models <- c(models, d7=d0.7) }, 
+          models <- c(models, d7=d0.7) },
           error=function(e){})
         tryCatch(
-          { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d8=d0.8) }, 
+          { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d8=d0.8) },
           error=function(e){})
         tryCatch(
-          { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d9=d0.9) }, 
+          { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d9=d0.9) },
           error=function(e){})
         m
      })
@@ -881,7 +887,7 @@ server <- function (input, output){ #we have to add this to the server
        cat(sprintf("\nAnova\n"))
        Anova_1
     })
-  
+
   output$emmeans <- renderPrint({
   tabel<-c()
   for (i in 1:length(models())){
@@ -904,7 +910,7 @@ shinyApp(ui=ui, server=server)
 
 ### Conclusions
 * sign more stress PMS than no PMS
-* sign more anxiety PMS than no 
+* sign more anxiety PMS than no
 * sign more depression PMS than no PMS
 
 ### Interpretation of DASS => put markers:
@@ -918,7 +924,7 @@ we plot the reaction times to find the outliers and filter the data
 
 ```{r echo=FALSE}
 #plot reaction times with raincloudplot
-d<-melt(data.frame(rt=c(dataBig_out$rt))) # we melt to wide format 
+d<-melt(data.frame(rt=c(dataBig_out$rt))) # we melt to wide format
 p1 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
   ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
@@ -967,21 +973,21 @@ mtext(paste('boxplot with outliers')) #boxplot with outliers
 
 ## Stimuli
 
-These were images that were either negative, positive or neutral. 
+These were images that were either negative, positive or neutral.
 22 matched images (e.g. in TestMoment 1 image of needle in arm, in TestMoment 2 needle in leg. or image puppy and image of another puppy)
 
 participants could indicate how the images scored for them on valence and arousal
 
 these already have the rt data filtered under 16 sec (outliers removed)
 
-we look at how people answer on the stimuli: can we categorize the stimuli in valence and arousal? Are there weird answers? 
+we look at how people answer on the stimuli: can we categorize the stimuli in valence and arousal? Are there weird answers?
 
 ```{r echo=FALSE}
 
 # unique<-sort(unique(dataBig$Stimulus), decreasing=FALSE) #find all the stimuli
 # we maken een density plotvoor zowel valence als arousal voor elke stimulus (2x22)
 
-ui<- fluidPage( 
+ui<- fluidPage(
     radioButtons("stimulus", label="Choose a Stimulus:",
             choices= c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '9320', '9584', '9592', '9594', '9600', '9911', '9920', '9921'), inline=TRUE,
             selected='1440'),
@@ -991,22 +997,22 @@ ui<- fluidPage(
     )
 )
 
-server <- function (input, output){ 
+server <- function (input, output){
   #we make a density plot of valence/arousal per stimulus.
   output$densityplot<- renderPlot({
     d<-melt(data.frame(valence=c(dataBig2$Valence[dataBig2$Stimulus==input$stimulus]),arousal=c(dataBig2$Arousal[dataBig2$Stimulus==input$stimulus])))
-    d2<-data.frame(valence=c(dataBig2$Valence[dataBig2$Stimulus==input$stimulus]), ID=c(dataBig2$newid[dataBig2$Stimulus==input$stimulus])) 
+    d2<-data.frame(valence=c(dataBig2$Valence[dataBig2$Stimulus==input$stimulus]), ID=c(dataBig2$newid[dataBig2$Stimulus==input$stimulus]))
     min<-d2$ID[which(d2$valence==min(d2$valence))]#ids of min valence
     max<-d2$ID[which(d2$valence==max(d2$valence))]#ids of max valence
     if (length(min)<length(max)){text=min } else {text=max}
-    
+
     pirateplot(
       formula=value~variable,
       data=d,
       main= input$stimulus,
       xlab= str_glue('outlier: {text}'))
   }, height=600)
-  
+
   output$IAPs_Image <- renderImage({
     list(src=str_glue("Z:/shares/ghep_lab/ImageDatabases/IAPS/{input$stimulus}.jpg"),
          filetype="image/jpeg",
@@ -1058,7 +1064,7 @@ same for valence: more of a gaussian curve when middle, more of a cup when towar
 
 
 ### mean reactions over all stimuli
-plot mean reaction per participant over all stimuli: 
+plot mean reaction per participant over all stimuli:
 -mean valence
 -mean arousal
 -standard deviation
@@ -1071,16 +1077,16 @@ plot mean reaction per participant over all stimuli:
 
 - plot means testmoment x PMS
 
-- statistical analysis: sign differences? 
+- statistical analysis: sign differences?
 
 ```{r echo=FALSE}
-ui<- fluidPage( 
+ui<- fluidPage(
 
     radioButtons("formula_choice", label="Choose a Formula:",
             choices= c('Valence~PMSScoreNew', 'Arousal~PMSScoreNew', 'Valence~PMSScoreNew * TestMoment', 'Arousal ~ PMSScoreNew * TestMoment'), inline=TRUE,
             selected='Valence~PMSScoreNew'),
-  
-  
+
+
 
     tabsetPanel(type = "tab",        
       tabPanel("pirateplot", plotOutput("pirateplot")),
@@ -1094,7 +1100,7 @@ ui<- fluidPage(
 )
 
 
-server <- function (input, output){ 
+server <- function (input, output){
   p_pms <-reactive({
     p<-(p()[[3]][1]) # this gets the p-value of the first row, for PMS
     star=c()
@@ -1104,9 +1110,9 @@ server <- function (input, output){
     }else if (p<0.05) {star='*'}
     star
   })
-  
+
   #for emmeans: em[[2]][1] is the p-value for first row
-  
+
   #we make a density plot of valence/arousal per stimulus.
   output$pirateplot<- renderPlot({
     pirateplot(
@@ -1132,7 +1138,7 @@ server <- function (input, output){
           xlab="",
         )
   }, height=600)
-  
+
   output$plotmeans <-renderPlot({
     if (grepl('Arousal', input$formula_choice) &grepl('TestMoment', input$formula_choice)){
       dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('PMSScoreNew', 'Moment'))
@@ -1148,7 +1154,7 @@ server <- function (input, output){
           geom_segment(aes(x = 1.97, y = 103, xend = 2.03, yend = 103), size= 2)+
           ggtitle('Arousal ~ PMSScoreNew * TestMoment')
         p3
-    
+
         }else if (grepl('Valence', input$formula_choice) & grepl('TestMoment', input$formula_choice)){
       dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMSScoreNew', 'Moment'))
         p3 <- ggplot(dataBig2, aes(x=Moment, y=Valence, fill=PMSScoreNew))+
@@ -1174,7 +1180,7 @@ server <- function (input, output){
             scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
             ggtitle('Arousal~PMSScoreNew')
             # coord_flip()
-          
+
                     p1 <- ggplot(dataBig2, aes(x = PMSScoreNew, y = Arousal)) +
             geom_flat_violin(aes(fill=PMSScoreNew),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
             geom_point(aes(colour=PMSScoreNew),position=position_jitter(width=.15), size=.25)+
@@ -1202,7 +1208,7 @@ server <- function (input, output){
         p1
     }
   }, height=600)
-          
+
   output$splitviolin <-renderPlot({
     if (grepl('Arousal', input$formula_choice)){
       dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('PMSScoreNew', 'Moment'))
@@ -1229,7 +1235,7 @@ server <- function (input, output){
     }
   }, height=600)
 
-  
+
   output$int_means <- renderPlot({
     if ((grepl('Valence', input$formula_choice))){
       dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('TestMoment', 'PMSScoreNew'))# this function gives sd, se mean and default 95% C.I.
@@ -1245,7 +1251,7 @@ server <- function (input, output){
         geom_point(size=3)
       p}
   })
-  
+
      models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
         m <- c()
         # Formula <- 'DASS_Stress ~ PMSScoreNew * TestMoment + (1|Subject)'
@@ -1255,40 +1261,40 @@ server <- function (input, output){
           m <- c(m, d1=d0.1)}, #we add this
           error=function(e){})
         tryCatch(
-          { d0.2 <- glmer(Formula,data=dataBig2, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d1=d0.2)}, 
+          { d0.2 <- glmer(Formula,data=dataBig2, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d1=d0.2)},
           error=function(e){})
         tryCatch(
-          { d0.3 <- glmer(Formula,data=dataBig2, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d3=d0.3)}, 
+          { d0.3 <- glmer(Formula,data=dataBig2, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d3=d0.3)},
           error=function(e){})
         tryCatch(
-          { d0.4 <- glmer(Formula,data=dataBig2, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d4=d0.4)}, 
+          { d0.4 <- glmer(Formula,data=dataBig2, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d4=d0.4)},
           error=function(e){})
         tryCatch(
-          { d0.5 <- glmer(Formula,data=dataBig2, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d5=d0.5) }, 
+          { d0.5 <- glmer(Formula,data=dataBig2, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d5=d0.5) },
           error=function(e){})
         tryCatch(
-          { d0.6 <- glmer(Formula,data=dataBig2, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d6=d0.6) }, 
+          { d0.6 <- glmer(Formula,data=dataBig2, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d6=d0.6) },
           error=function(e){})
         tryCatch(
           { d0.7 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-          models <- c(models, d7=d0.7) }, 
+          models <- c(models, d7=d0.7) },
           error=function(e){})
         tryCatch(
-          { d0.8 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d8=d0.8) }, 
+          { d0.8 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d8=d0.8) },
           error=function(e){})
         tryCatch(
-          { d0.9 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d9=d0.9) }, 
+          { d0.9 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d9=d0.9) },
           error=function(e){})
         m
      })
-  
+
   output$table <-renderTable({
     modelNames<-c()
     tabel<-c()
@@ -1300,7 +1306,7 @@ server <- function (input, output){
       tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
       tabel
   })
-  
+
   p<-reactive({
         tabel<-c()
     for (i in 1:length(models())){
@@ -1319,13 +1325,13 @@ server <- function (input, output){
     #    Anova_1 <- Anova(chosenModel[[1]])
     #    cat(sprintf("\nAnova\n"))
     #    an<-Anova_1
-       
+
   })
 
   output$Anova <- renderPrint({
     p()
     })
-  
+
   em <- reactive({
     tabel<-c()
     for (i in 1:length(models())){
@@ -1349,9 +1355,9 @@ server <- function (input, output){
     # }else{
     #   em<-  emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment, adjust ="fdr", type="response")
     # }
-    # 
+    #
   })
-  
+
     output$emmeans <- renderPrint({
       em()
   })
@@ -1383,11 +1389,11 @@ IAPS norms for Female Subjects
 
 
 ```{r echo=FALSE}
-ui<- fluidPage( 
+ui<- fluidPage(
 
     radioButtons("choice", label="choose",
             choices= c('Valence mean', 'Valence SD', 'Arousal mean', 'Arousal SD'), inline=TRUE,
-            selected='Valence mean'), 
+            selected='Valence mean'),
     tabsetPanel(type = "tab",        
       tabPanel("plot", plotOutput("plot")),
       tabPanel('correlations', plotOutput('correlations'))
@@ -1395,7 +1401,7 @@ ui<- fluidPage(
 )
 
 
-server <- function (input, output){ 
+server <- function (input, output){
   output$plot <-renderPlot({
         p1 <- ggplot(norms, aes(x = valmn_pms, y = aromn_pms))+
           geom_point(position=position_jitter(width=.15), size=2, colour='red')+
@@ -1404,38 +1410,38 @@ server <- function (input, output){
           ggtitle("mean Arousal and Valence norm females")
         p1      
     })
-    
-    
-    
+
+
+
 # calculate correlations
     output$correlations<- renderPlot({
       # p1<- ggplot(norms$valmn, norms$valmn_pms, method=c('pearson'))
       if ((grepl("Valence", input$choice)==TRUE)&(grepl("mean", input$choice)==TRUE)){
         ggscatter(norms, x='valmn', y='valmn_pms', add='reg.line', conf.int=TRUE,
-                  cor.coef=TRUE, cor.method='pearson', 
+                  cor.coef=TRUE, cor.method='pearson',
                   xlab='norm means Valence', ylab='PMS means Valence')}
         else if ((grepl("Valence", input$choice)==TRUE)&(grepl("SD", input$choice)==TRUE)){
             ggscatter(norms, x='valsd', y='valsd_pms', add='reg.line', conf.int=TRUE,
-                  cor.coef=TRUE, cor.method='pearson', 
+                  cor.coef=TRUE, cor.method='pearson',
                   xlab='norm SD Valence', ylab='PMS SD Valence')}
         else if ((grepl("Arousal", input$choice)==TRUE)&(grepl("mean", input$choice)==TRUE)){
             ggscatter(norms, x='aromn', y='aromn_pms', add='reg.line', conf.int=TRUE,
-                  cor.coef=TRUE, cor.method='pearson', 
+                  cor.coef=TRUE, cor.method='pearson',
                   xlab='norm means Arousal', ylab='PMS means Arousal')}
         else {ggscatter(norms, x='arosd', y='arosd_pms', add='reg.line', conf.int=TRUE,
-                  cor.coef=TRUE, cor.method='pearson', 
+                  cor.coef=TRUE, cor.method='pearson',
                   xlab='norm SD Arousal', ylab='PMS SD Arousal')}
-  
+
   }, height=600)
-  
+
 }
 shinyApp(ui=ui, server=server,options= list(height=800))
 
 ```
-    
+
 ### Conclusions
 
-The data are similar to those of the norms, except for Arousal. 
+The data are similar to those of the norms, except for Arousal.
 
 
 
@@ -1452,7 +1458,7 @@ knitr::kable(data.frame(
   PMS=c('cyclus duration:', round(mean(data$MenstrualDuration[data$PMSScoreNew=='PMS']), digits=1),
         'Age:', round(mean(data$Age[data$PMSScoreNew=='PMS']), digits=1),
         'first menstrual:', round(mean(data$FirstMenstrual[data$PMSScoreNew=='PMS']), digits=1)
-        ), 
+        ),
   noPMS= c('cyclus duration:', round(mean(data$MenstrualDuration[data$PMSScoreNew=='noPMS']), digits=1),
            'Age:', round(mean(data$Age[data$PMSScoreNew=='noPMS']), digits=1),
            'first menstrual:', round(mean(data$FirstMenstrual[data$PMSScoreNew=='noPMS']), digits=1)
@@ -1502,7 +1508,7 @@ TO DO wO
 
 -doe uitleg bij de plots in notes
 
-GEEN sign effect van tijd? 
+GEEN sign effect van tijd?
 
 -pas de violin plots toe incl. fullscreen
 -check de raincloud plots: er staat foutief PMS vs noPMS terwijl er testmoment moet staan!
@@ -1516,6 +1522,6 @@ STIMULI CORR:
 -geef de stimuli kleurtjes: rood voor alle stimuli die A zijn. om te zien: ga nr data, hier kan je zien als A en moment=1
 
 bij PSS:
--check of de vragen PSS zelfde zijn bij de norms voor corona zelfde vragen hebben gebruikt: zelfde soort PSS gebruikt? 
+-check of de vragen PSS zelfde zijn bij de norms voor corona zelfde vragen hebben gebruikt: zelfde soort PSS gebruikt?
 NORMERINGEN
 -voeg tabellen/afbn toe met de normeringen zodat plots meer betekenis
