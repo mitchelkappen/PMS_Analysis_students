@@ -50,6 +50,7 @@ library(jpeg)
 library(shiny)
 library(reshape2)
 library (yarrr)
+# library(htmltools)
 library(knitr)
 recode <- dplyr::recode
 count <- dplyr::count 
@@ -65,9 +66,9 @@ nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
 #### IMPORT data & INSPECTION #### -------------------------------------------------------------
 # knitr::opts_knit$set(root.dir = dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
 
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-# work_dir<-"C:/Users/ASUSTeK/OneDrive/Documenten/GitHub/internship_sofie"
-# setwd(work_dir)
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+ work_dir<-"C:/Users/ASUSTeK/OneDrive/Documenten/GitHub/internship_sofie"
+setwd(work_dir)
 
 data <- read.csv("Data/allPMSdata.csv", header=TRUE, sep=)
 
@@ -981,16 +982,13 @@ we look at how people answer on the stimuli: can we categorize the stimuli in va
 # we maken een density plotvoor zowel valence als arousal voor elke stimulus (2x22)
 
 ui<- fluidPage( 
-  sidebarPanel(
     radioButtons("stimulus", label="Choose a Stimulus:",
             choices= c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '9320', '9584', '9592', '9594', '9600', '9911', '9920', '9921'), inline=TRUE,
-            selected='1440'), ),
-  mainPanel(
+            selected='1440'),
     tabsetPanel(type = "tab",
       tabPanel("densityplot", plotOutput("densityplot")),
       tabPanel("IAPs_Image", plotOutput("IAPs_Image"))
-    ),
-  )
+    )
 )
 
 server <- function (input, output){ 
@@ -1007,7 +1005,7 @@ server <- function (input, output){
       data=d,
       main= input$stimulus,
       xlab= str_glue('outlier: {text}'))
-  })
+  }, height=600)
   
   output$IAPs_Image <- renderImage({
     list(src=str_glue("Z:/shares/ghep_lab/ImageDatabases/IAPS/{input$stimulus}.jpg"),
@@ -1016,7 +1014,7 @@ server <- function (input, output){
          height=300)
   })
 }
-shinyApp(ui=ui, server=server)
+shinyApp(ui=ui, server=server, options= list(height=800))
 
 ```
 
@@ -1077,11 +1075,13 @@ plot mean reaction per participant over all stimuli:
 
 ```{r echo=FALSE}
 ui<- fluidPage( 
-  sidebarPanel(
+
     radioButtons("formula_choice", label="Choose a Formula:",
             choices= c('Valence~PMSScoreNew', 'Arousal~PMSScoreNew', 'Valence~PMSScoreNew * TestMoment', 'Arousal ~ PMSScoreNew * TestMoment'), inline=TRUE,
-            selected='Valence~PMSScoreNew'), ),
-  mainPanel(
+            selected='Valence~PMSScoreNew'),
+  
+  
+
     tabsetPanel(type = "tab",        
       tabPanel("pirateplot", plotOutput("pirateplot")),
       tabPanel('plotmeans', plotOutput('plotmeans')),
@@ -1090,8 +1090,7 @@ ui<- fluidPage(
       tabPanel("AIC table", tableOutput("table")),
       tabPanel("Anova", verbatimTextOutput("Anova")),
       tabPanel("emmeans",verbatimTextOutput("emmeans"))
-    ),
-  )
+    )
 )
 
 
@@ -1132,7 +1131,7 @@ server <- function (input, output){
           point.cex = .7,
           xlab="",
         )
-  })
+  }, height=600)
   
   output$plotmeans <-renderPlot({
     if (grepl('Arousal', input$formula_choice) &grepl('TestMoment', input$formula_choice)){
@@ -1142,11 +1141,11 @@ server <- function (input, output){
           geom_boxplot(aes(x=Moment, y=Arousal, fill=PMSScoreNew), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
           geom_line(data=dmean, aes(x= as.numeric(Moment)+.1, y=Arousal, group=PMSScoreNew, colour=PMSScoreNew), size=1.5)+
           geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Arousal, group = PMSScoreNew, fill= PMSScoreNew), shape = 21, size=6)+
-          scale_x_discrete(labels=c('1'='luteal', '2'='follicular'))+
-          annotate('text', x=.73, y=60, label=sprintf("* {", size=5), colour='red')+
-          annotate('text', x=1.73, y=60, label=sprintf("* {", size=5), colour='red')+
-          annotate('text', x=1.5, y=85, label=sprintf("*", size=5), colour='red')+
-          geom_segment(aes(x = 1.025, y = 80, xend = 1.98, yend = 80), colour='red')+
+          scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
+          annotate('text', x=1, y=105, label='*', size=8)+
+          annotate('text', x=2, y=105, label='*', size=8)+
+          geom_segment(aes(x = 0.97, y = 103, xend = 1.03, yend = 103), size= 2)+
+          geom_segment(aes(x = 1.97, y = 103, xend = 2.03, yend = 103), size= 2)+
           ggtitle('Arousal ~ PMSScoreNew * TestMoment')
         p3
     
@@ -1157,7 +1156,7 @@ server <- function (input, output){
           geom_boxplot(aes(x=Moment, y=Valence, fill=PMSScoreNew), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
           geom_line(data=dmean, aes(x= as.numeric(Moment)+.1, y=Valence, group=PMSScoreNew, colour=PMSScoreNew), size=1.5)+
           geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Valence, group = PMSScoreNew, fill=PMSScoreNew), shape = 21, size=6)+
-          scale_x_discrete(labels=c('1'='luteal', '2'='follicular'))+
+          scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
           ggtitle('Valence~PMSScoreNew * TestMoment')
         p3
     }
@@ -1168,43 +1167,67 @@ server <- function (input, output){
             geom_point(aes(colour=PMSScoreNew),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMSScoreNew, y = Arousal, fill = PMSScoreNew),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew)+.2, y = Arousal, fill=PMSScoreNew), shape = 21, size=6)+
-            geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Arousal), size=1, colour='black')+
-          annotate('text', x=1.73, y=80, label=sprintf("\n%s\n", p_pms()), size=5, colour='red')+
+             geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Arousal), size=1, colour='black')+
+            geom_segment(aes(x = 1.2, y = 103, xend = 2.2, yend = 103), size= 1.7)+
+          # annotate('text', x=1.6, y=105, label=sprintf("\n%s\n", p_pms()), size=10)+
+            annotate('text', x=1.6, y=105, label='*', size=10)+
+            scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
+            ggtitle('Arousal~PMSScoreNew')
+            # coord_flip()
+          
+                    p1 <- ggplot(dataBig2, aes(x = PMSScoreNew, y = Arousal)) +
+            geom_flat_violin(aes(fill=PMSScoreNew),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_point(aes(colour=PMSScoreNew),position=position_jitter(width=.15), size=.25)+
+            geom_boxplot(aes(x = PMSScoreNew, y = Arousal, fill = PMSScoreNew),outlier.shape= NA, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew), y = Arousal, fill=PMSScoreNew), shape = 21, size=6)+
+            # geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Arousal), size=1, colour='black')+
+            geom_segment(aes(x = 1, y = 103, xend = 2, yend = 103), size= 1.7)+
+          # annotate('text', x=1.6, y=105, label=sprintf("\n%s\n", p_pms()), size=10)+
+            annotate('text', x=1.6, y=105, label='*', size=10)+
+            scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
             ggtitle('Arousal~PMSScoreNew')
             # coord_flip()
         p1
     }else {
       dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMSScoreNew'))
           p1 <- ggplot(dataBig2, aes(x = PMSScoreNew, y = Valence)) +
-            geom_flat_violin(aes(fill=PMSScoreNew),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_flat_violin(aes(fill=PMSScoreNew),position = position_nudge(x =.2, y = -1), adjust= 1.5, alpha = .5, colour = NA)+
             geom_point(aes(colour=PMSScoreNew),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMSScoreNew, y = Valence, fill = PMSScoreNew),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew)+.2, y = Valence, fill=PMSScoreNew), shape = 21, size=6)+
             geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Valence), size=1, colour='black')+
-          annotate('text', x=1.73, y=80, label=sprintf("\n%s\n", p_pms()), size=5, colour='red')+
+          # annotate('text', x=1.6, y=70, label=sprintf("\n%s\n", p_pms()), size=8)+
             ggtitle('Valence~PMSScoreNew')
             # coord_flip()
         p1
     }
-  })
+  }, height=600)
           
   output$splitviolin <-renderPlot({
     if (grepl('Arousal', input$formula_choice)){
       dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('PMSScoreNew', 'Moment'))
         p<- ggplot(dataBig2, aes(x=Moment, y=Arousal, fill=PMSScoreNew))+
-            geom_split_violin(alpha=.5)+
-          geom_boxplot(aes(x = Moment, y = Arousal, fill = PMSScoreNew),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
-          geom_point(data = dmean, aes(x = as.numeric(Moment), y = Arousal, group = PMSScoreNew, fill = PMSScoreNew), shape = 21, size=4)
+            geom_split_violin(adjust =1.5, alpha=.5, colour= NA)+
+          geom_boxplot(aes(x = Moment, y = Arousal, fill = PMSScoreNew), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+          geom_point(data = dmean, aes(x = as.numeric(Moment), y = Arousal, group = PMSScoreNew, fill = PMSScoreNew), position= position_dodge(0.2), shape = 21, size=4)+
+        scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
+          annotate('text', x=1, y=105, label='*', size=8)+
+          annotate('text', x=2, y=105, label='*', size=8)+
+          geom_segment(aes(x = 0.955, y = 103, xend = 1.055, yend = 103), size= 2)+
+          geom_segment(aes(x = 1.955, y = 103, xend = 2.055, yend = 103), size= 2)+
+          ggtitle('Arousal ~ PMS * TestMoment')
         p
     } else if (grepl('Valence', input$formula_choice)){
       dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMSScoreNew', 'Moment'))
         p<- ggplot(dataBig2, aes(x=Moment, y=Valence, fill=PMSScoreNew))+
-            geom_split_violin(alpha=.5)+
-          geom_boxplot(aes(x = Moment, y = Valence, fill = PMSScoreNew),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
-          geom_point(data = dmean, aes(x = as.numeric(Moment), y = Valence, group = PMSScoreNew, fill = PMSScoreNew), shape = 21, size=4)
+            geom_split_violin(adjust=1.5,alpha=.5, colour=NA)+
+          geom_boxplot(aes(x = Moment, y = Valence, fill = PMSScoreNew), position= position_dodge(0.2) ,outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+          geom_point(data = dmean, aes(x = as.numeric(Moment), y = Valence, group = PMSScoreNew, fill = PMSScoreNew), position=position_dodge(0.2), shape = 21, size=4)+
+          scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
+          ggtitle('Valence ~ PMS * TestMoment')
         p
     }
-  })
+  }, height=600)
 
   
   output$int_means <- renderPlot({
@@ -1334,18 +1357,17 @@ server <- function (input, output){
   })
 
 }
-shinyApp(ui=ui, server=server)
+shinyApp(ui=ui, server=server, options= list(height=800))
 ```
+
+Boxplots contain the medians, circles represent the means
 
 #### Conclusions
 
 - sign diff for both Arousal in PMS vs no PMS
 
-- no sign diff for Valence in PMS vs no PMS
+- no conclusions can be made for TestMoment: found no sign diff
 
-- no sign diff Valence/Arousal PMS no PMS in interaction TestMoment
-
-- for Arousal: noPMS1-PMS1, PMS1-noPMS2 and noPMS2-PMS2 sign contrasts
 
 
 
@@ -1362,16 +1384,14 @@ IAPS norms for Female Subjects
 
 ```{r echo=FALSE}
 ui<- fluidPage( 
-  sidebarPanel(
+
     radioButtons("choice", label="choose",
             choices= c('Valence mean', 'Valence SD', 'Arousal mean', 'Arousal SD'), inline=TRUE,
-            selected='Valence mean'), ),
-  mainPanel(
+            selected='Valence mean'), 
     tabsetPanel(type = "tab",        
       tabPanel("plot", plotOutput("plot")),
       tabPanel('correlations', plotOutput('correlations'))
-    ),
-  )
+    )
 )
 
 
@@ -1406,10 +1426,10 @@ server <- function (input, output){
                   cor.coef=TRUE, cor.method='pearson', 
                   xlab='norm SD Arousal', ylab='PMS SD Arousal')}
   
-  })
+  }, height=600)
   
 }
-shinyApp(ui=ui, server=server)
+shinyApp(ui=ui, server=server,options= list(height=800))
 
 ```
     
@@ -1439,8 +1459,7 @@ knitr::kable(data.frame(
            )
   ))
 
-A_B <- length(data$Order=='A-B')
-B_A <- length(data$Order=='B-A')
+table(data$Order)
 
 nat<- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Natural']))
 hor <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Hor.Coil'|data_allcontraception$Contraception=='Hor. Coil']))
@@ -1450,7 +1469,8 @@ oth <-length(unique(data_allcontraception$ID[data_allcontraception$Contraception
 
 ```
 
-the **A-B** order contains `r A_B` trials and **B-A** `r B_A` trials: they are counterbalanced
+A-B contained 237 participants,
+B-A contained 182 participant
 
 
 we took out all non-natural contraception methods. these are the descriptives:
@@ -1477,18 +1497,16 @@ KAPSTOK
 -descriptives
 
 
+TO DO wO
 
-bij STIMULI
--significantie: van boven, met rechte haakjes, dikker en zwart. 
--mr niet meer voor de kriskross: deze weglaten
--ipv testmoment1/2: control (1) en premenstrual
--dan: toon deze aan Mitchel
 
-Rest:
--pas de violin plots toe
+-doe uitleg bij de plots in notes
+
+GEEN sign effect van tijd? 
+
+-pas de violin plots toe incl. fullscreen
 -check de raincloud plots: er staat foutief PMS vs noPMS terwijl er testmoment moet staan!
 -check of alle plots nog werken
--shiny: dubbelklik zodat fullscreen/hele shiny app groter: zichtbaarheid!
 
 
 STIMULI CORR:
