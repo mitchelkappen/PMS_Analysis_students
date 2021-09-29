@@ -1203,17 +1203,17 @@ server <- function (input, output){
             ggtitle('Valence~PMSScoreNew')
             # coord_flip()
         p1
-        
-        p<- ggplot(dataBig2, aes(x=PMSScoreNew, y=Valence, fill=PMSScoreNew))+
-            geom_split_violin(adjust=1.5,alpha=.5, colour=NA )+
-          geom_point(aes(colour=PMSScoreNew),position=position_jitter(width=.15), size=.25)+
-          geom_boxplot(aes(x = PMSScoreNew, y = Valence, fill = PMSScoreNew),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
-          geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew), y = Valence, group = PMSScoreNew, fill = PMSScoreNew), position=position_dodge(0.2), shape = 21, size=4)+
-          ggtitle('Valence ~ PMS')
-        p
-        
-        
-        
+        # 
+        # p<- ggplot(dataBig2, aes(x=PMSScoreNew, y=Valence, fill=PMSScoreNew))+
+        #     geom_split_violin(adjust=1.5,alpha=.5, colour=NA )+
+        #   geom_point(aes(colour=PMSScoreNew),position=position_jitter(width=.15), size=.25)+
+        #   geom_boxplot(aes(x = PMSScoreNew, y = Valence, fill = PMSScoreNew),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+        #   geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew), y = Valence, group = PMSScoreNew, fill = PMSScoreNew), position=position_dodge(0.2), shape = 21, size=4)+
+        #   ggtitle('Valence ~ PMS')
+        # p
+        # 
+        # 
+        # 
     }
   }, height=600)
           
