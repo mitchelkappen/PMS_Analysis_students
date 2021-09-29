@@ -229,113 +229,31 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
         params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
 }
 #we create reactive values to store stuff in we make in Shiny using reactive inputs such as chosen_formula
-    
+
+
 ```
 
 ```{r echo=FALSE}
-ui<- fluidPage( # makes the User Interface
-  sidebarPanel(
-    selectInput("formula_choice", label="Choose a Formula:",
-            choices= c('PSS ~ TestMoment', 'BSRI ~ TestMoment'),
-            selected='PSS ~ TestMoment'), # puts the choices in the first element which is accessed via input$formula_choice
-    uiOutput(outputId="chosenModel")
-  ),
-  mainPanel(
-     tabsetPanel(type = "tab",
-                 tabPanel('table', tableOutput('table')),
-                  tabPanel("Anova", verbatimTextOutput("Anova")),
-                 tabPanel("emmeans", verbatimTextOutput("emmeans"))
-         )
-  )
+
+ui=fluidPage(
+  selectInput("data_input",label="Select data",
+              choices=c("mtcars","faithful","iris")),
+  tableOutput("table_output"),
+  uiOutput("ui")
 )
-server <- function (input, output){ #we have to add this to the server
+
+server=function(input,output) {
+  # getdata <- reactive({ get(input$data_input, 'package:datasets') })
   
-     models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
-        m <- c()
-        # Formula <- 'DASS_Stress ~ PMSScoreNew + (1|Subject)'
-        Formula <- paste0(input$formula_choice, '+ (1|Subject)')
-        tryCatch(
-          { d0.1 <- lmer(Formula,data=data); # if this formula works
-          m <- c(m, d1=d0.1)}, #we add this
-          error=function(e){})
-        tryCatch(
-          { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d1=d0.2)}, 
-          error=function(e){})
-        tryCatch(
-          { d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d3=d0.3)}, 
-          error=function(e){})
-        tryCatch(
-          { d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d4=d0.4)}, 
-          error=function(e){})
-        tryCatch(
-          { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d5=d0.5) }, 
-          error=function(e){})
-        tryCatch(
-          { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d6=d0.6) }, 
-          error=function(e){})
-        tryCatch(
-          { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-          models <- c(models, d7=d0.7) }, 
-          error=function(e){})
-        tryCatch(
-          { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d8=d0.8) }, 
-          error=function(e){})
-        tryCatch(
-          { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d9=d0.9) }, 
-          error=function(e){})
-        m
-     })
-
-
-output$table <-renderTable({
-  modelNames<-c()
-  tabel<-c()
-  for (i in 1:length(models())){
-    modelNames<-c(modelNames, names(models()[i]))
-    AIC<-AIC(models()[[i]])
-    tabel <- c (tabel, round(AIC))}
-    chosenModel = modelNames[which(tabel == min(tabel))]
-    tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
-    tabel
-})
-
-output$Anova <- renderPrint({
-  tabel<-c()
-  for (i in 1:length(models())){
-      AIC<- AIC(models()[[i]])
-      tabel <- c(tabel,round(AIC))}
-  chosenModel<-models()[which(tabel == min(tabel))]
-     Anova_1 <- Anova(chosenModel[[1]])
-     cat(sprintf("\nAnova\n"))
-     Anova_1
+  output$ui <- renderUI({
+    if(input$data_input=="iris") plotOutput("plot_output",width="400px")
   })
   
-output$emmeans <- renderPrint({
-  tabel<-c()
-  for (i in 1:length(models())){
-      AIC<- AIC(models()[[i]])
-      tabel <- c(tabel,round(AIC))}
-  chosenModel<-models()[which(tabel == min(tabel))]
-    cat(sprintf("\n formula: %s\n", input$formula_choice))
-    if ((grepl("PMS", input$formula_choice)==FALSE)){
-      cat(sprintf("\n~ TestMoment\n"))
-      Emm <- emmeans(chosenModel[[1]], pairwise ~ TestMoment, adjust ="fdr", type="response")
-      print(Emm)
-    }
-    if (grepl("PMS", input$formula_choice)){
-      cat(sprintf("\n~ PMS*TestMoment\n"))
-      Emm <- emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment, adjust ="fdr", type="response")
-      print(Emm)
-    }
-  })
+  output$plot_output <- renderPlot({hist(getdata()[, 1])})
+  output$table_output <- renderTable({head(getdata())})
 }
-shinyApp(ui=ui, server=server)
+shinyApp(ui, server)
 
 ```
+
+
