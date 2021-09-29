@@ -2,7 +2,6 @@
 title: "PMS STUDY"
 author: "Mitchel Kappen & Sofie Raeymakers"
 date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
-title: "PMS Study data analysis by Mitchel Kappens and 
 runtime: shiny
 output: html_document
 ---
