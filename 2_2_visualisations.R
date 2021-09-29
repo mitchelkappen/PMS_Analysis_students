@@ -1,4 +1,4 @@
-rm(list = ls()) # Clear environment
+ rm(list = ls()) # Clear environment
 cat("\014") # Clear console
 dev.off() # Clear plot window
 

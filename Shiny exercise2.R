@@ -1,20 +1,6 @@
----
-runtime: shiny
-output: html_document
----
 
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
-## PMS Study
-
-This is an interactive, Shiny Rmd file for the PMS study
-
-```{r libraries, include = FALSE}
-
-    
 #### Settings & Packages #### -----------------------------------------------------
 rm(list = ls())
 options(contrasts = c("contr.sum","contr.poly")) #use this for the p value of the t test
@@ -31,10 +17,20 @@ library(car)
 library(ggplot2)
 library(ggstatsplot)
 library(ggsignif)
+library(ggformula)
+library(ggdist)
+library(raincloudplots)
 library(gridExtra)
 library(tidyverse)
 library(ggeffects)
 library(pander)
+
+
+library(cowplot)
+library(readr)
+library(jpeg)
+library(ggpubr)
+
 # library(viridis)
 library (yarrr)
 library(knitr)
@@ -50,15 +46,12 @@ if (!dir.exists("figures")) dir.create("figures")
 
 # General settings
 nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
-```
 
-
-```{r load-data, echo=FALSE, results='asis'}
-#### IMPORT DATA & INSPECTION #### -------------------------------------------------------------
+#### IMPORT data & INSPECTION #### -------------------------------------------------------------
 knitr::opts_knit$set(root.dir = dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
 # setwd("C:\Users\ASUSTeK\OneDrive\2021-2022\internship\projects")
 data <- read.csv("Data/allPMSdata.csv", header=TRUE)
-# data <- read.table("Data/allPMSdata.csv",sep="\t", header=TRUE)
+# data <- read.table("data/allPMSdata.csv",sep="\t", header=TRUE)
 
 
 # from wide to long
@@ -87,7 +80,7 @@ data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
 # new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1, 
 data$PMSScoreNew[data$PMSScore==0] = 'noPMS'
 data$PMSScoreNew[data$PMSScore==1] = 'PMS'
-data$PMSScoreNew[data$PMSScore==2] = 'PMS'
+data$PMSScoreNew[data$PMSScore==2] = 'PMS' #PMDD, mr niet officiële diagnose dus gewoon PMS
 #sum(is.na(data$PMSScoreNew))
 
 
@@ -101,8 +94,8 @@ data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 
 
 # Exclude data?
 dataBig = data # Saved all the data here
-data = data[, -which(names(data) == "X" | names(data) == "Stimulus" | names(data) == "Valence" | names(data) == "Arousal" | names(data) == "rt")]
-data = distinct(data)
+data = data[, -which(names(data) == "X" | names(data) == "Stimulus" | names(data) == "Valence" | names(data) == "Arousal" | names(data) == "rt")] #removes these columns
+data= distinct(data)
 
 # exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
 data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor.Coil")
@@ -113,19 +106,8 @@ data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
 
 data_temp <- data #to get back to
 
-```
-
-
-```{r echo=FALSE}
-
-```
-## 
-
-
-
-```{r echo=FALSE}
   df<- data_1x1(array_1=data$PSS, array_2=data$PMSScoreNew, jit_distance=0.09, jit_seed=321)+
-    raincloud_1x1_repmes<- function(
+    raincloud_2<- raincloud_1x1_repmes(
       data= df(),
       colors= (c('dodgerblue', 'darkorange')),
       fills= (c('dodgerblue', 'darkorange')),
@@ -139,5 +121,4 @@ data_temp <- data #to get back to
       # xlab("PMS")+
       # theme_classic()
       
-
-```
+      raincloud_2

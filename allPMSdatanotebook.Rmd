@@ -1,8 +1,11 @@
 ---
-runtime: shiny
-output: html_document
+title: "PMS Study"
+author: "Mitchel Kappen & Sofie Raeymakers"
+date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
 ---
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -10,9 +13,24 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## PMS Study
 
-This is an interactive, Shiny Rmd file for the PMS study
+This is the data processing html for the PMS study
+
 
 ```{r libraries, include = FALSE}
+# we will first write some pseudocode to describe what we want to do
+#upload files
+#find best linear model to represent data with AI
+
+#     PSS ~ PMSScore*Moment + (1|Subject)
+# 
+#     PSS deppendent variablle
+#     pMS = 1 geen PMS
+#     keer moment: moment v afname
+#     1 out of subject: random effect toevoegen
+#     straks factoren vd PMS score en van moment: hoeveel levels? 
+#       formules van doen
+#     laten weten welke formule beste
+#     
 
     
 #### Settings & Packages #### -----------------------------------------------------
@@ -51,7 +69,6 @@ if (!dir.exists("figures")) dir.create("figures")
 # General settings
 nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
 ```
-
 
 ```{r load-data, echo=FALSE, results='asis'}
 #### IMPORT DATA & INSPECTION #### -------------------------------------------------------------
@@ -107,37 +124,13 @@ data = distinct(data)
 # exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
 data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor.Coil")
 
-data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
-
 # Define the formula for the model & check which model fits the data best
+formulas = c('PSS ~ PMSScoreNew*TestMoment') # important! after the ~should be the same every time
+
+plotTitles = c('PMSScore*TestMoment')
 
 data_temp <- data #to get back to
 
-```
 
-
-```{r echo=FALSE}
-
-```
-## 
-
-
-
-```{r echo=FALSE}
-  df<- data_1x1(array_1=data$PSS, array_2=data$PMSScoreNew, jit_distance=0.09, jit_seed=321)+
-    raincloud_1x1_repmes<- function(
-      data= df(),
-      colors= (c('dodgerblue', 'darkorange')),
-      fills= (c('dodgerblue', 'darkorange')),
-      line_color="gray",
-      line_alpha=.3,
-      size=1,
-      alpha= .6,
-      align_clouds=FALSE)+
-      
-      # scale_x_cntinuous (breaks=c(1,2), labels=c("1", "2"), limits=c(0,3))+
-      # xlab("PMS")+
-      # theme_classic()
-      
 
 ```

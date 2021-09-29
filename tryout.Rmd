@@ -1,0 +1,259 @@
+---
+runtime: shiny
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# PMS Study {.tabset}
+
+This is an interactive, Shiny Rmd file for the PMS study
+
+```{r libraries, include = FALSE}
+
+    
+#### Settings & Packages #### -----------------------------------------------------
+rm(list = ls())
+
+#install packages
+list.of.packages <- c("lme4",'lmerTest','effects','dplyr', 'car', 'Rmisc', 'emmeans','fitdistrplus','ggplot2', 'ggstatsplot','ggsignif', 'ggformula','ggdist','ggpubr','ggeffects', 'gplots', 'gridExtra','tidyverse','pander','stringr','cowplot','lavaan','readr','jpeg','shiny','reshape2', 'yarrr','knitr' )
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+
+library(Rmisc)
+library(lme4)
+library(lmerTest)
+library(effects)
+library(dplyr)
+library(car)
+library(emmeans)
+library(fitdistrplus)
+library(gplots)
+library(ggplot2)
+library(ggstatsplot)
+library(ggsignif)
+library(ggformula)
+library(ggdist)
+library(ggpubr)
+library(ggeffects)
+library(gridExtra)
+library(tidyverse)
+library(pander)
+library(stringr)
+library(cowplot)
+library(lavaan)
+library(readr)
+library(jpeg)
+library(shiny)
+library(reshape2)
+library (yarrr)
+library(knitr)
+recode <- dplyr::recode
+count <- dplyr::count 
+
+# create folder to save figures
+if (!dir.exists("figures")) dir.create("figures")
+
+
+# General settings
+nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
+```
+
+
+```{r load-data, echo=FALSE, results='asis'}
+#### IMPORT data & INSPECTION #### -------------------------------------------------------------
+knitr::opts_knit$set(root.dir = dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
+#data <-read.csv("C::/Downloads/allPMSdata.csv",header=TRUE)
+#setwd("C::/Users/ASUSTeK/OneDrive/Documenten/GitHub/internship_sofie")
+data <- read.csv("Data/allPMSdata.csv", header=TRUE)
+#IMPORTANT! when not online it will go to Onedrive/documenten, so put Data/allPMS there as well
+# data <- read.table("Data/allPMSdata.csv", header=TRUE)
+
+
+
+data$Subject <- factor(data$ID)
+
+levs<-union(data$ID, data$ID)
+data$newid <- factor(data$ID, levels=levs, labels=seq_along(levs)) #this code replaces the '627, 534 IDs with 1, 2, 3, )
+
+
+
+#we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
+#These moments were counterbalanced
+#when the order was B-A and the moment is B, this means it is the first test moment
+#and vice versa for A-B and moment A. 
+
+# TestMoment 1 == Follicular phase
+# TestMoment 2 == Luteal phase
+data$TestMoment[data$Order == "A-B" & data$Moment == "A"] = 1
+data$TestMoment[data$Order == "B-A" & data$Moment == "A"] = 2
+data$TestMoment[data$Order == "A-B" & data$Moment == "B"] = 2
+data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
+#check if there are still values missing (NA)
+#sum(is.na(data$TestMoment))
+
+# new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1, 
+data$PMSScoreNew[data$PMSScore==0] = 'noPMS'
+data$PMSScoreNew[data$PMSScore==1] = 'PMS'
+data$PMSScoreNew[data$PMSScore==2] = 'PMS' #PMDD, mr niet officiële diagnose dus gewoon PMS
+#sum(is.na(data$PMSScoreNew))
+
+#put rt in sec instead of ms
+
+data$rt= data$rt/1000
+
+# Check whether R recognizes the variable types correctly
+#we make factors of the independable variables
+
+data$PMSScore <- factor(data$PMSScore)
+data$PMSScoreNew <- factor(data$PMSScoreNew)
+
+data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 now
+
+
+
+# Exclude data?
+
+data_allcontraception <-data
+# exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
+data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor. Coil" & Contraception!='Hor.Coil')
+
+dataBig = data # Saved all the data here
+data = data[, -which(names(data) == "X" | names(data) == "Stimulus" | names(data) == "Valence" | names(data) == "Arousal" | names(data) == "rt")] #removes these columns
+data= distinct(data)
+
+
+data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
+
+# Define the formula for the model & check which model fits the data best
+
+data_temp <- data #to get back to
+
+  # violin function
+
+    geom_flat_violin <- function(mapping = NULL, data = NULL, stat = "ydensity",
+                                 position = "dodge", trim = TRUE, scale = "area",
+                                 show.legend = NA, inherit.aes = TRUE, ...) {
+      layer(
+      data = data,
+      mapping = mapping,
+      stat = stat,
+      geom = GeomFlatViolin,
+      position = position,
+      show.legend = show.legend,
+      inherit.aes = inherit.aes,
+      params = list(
+        trim = trim,
+        scale = scale,
+        ...
+     )
+    )
+    }
+GeomFlatViolin <-
+  ggproto("GeomFlatViolin", Geom,
+          setup_data = function(data, params) {
+            data$width <- data$width %||%
+              params$width %||% (resolution(data$x, FALSE) * 0.9)
+            
+            # ymin, ymax, xmin, and xmax define the bounding rectangle for each group
+            data %>%
+              group_by(group) %>%
+              mutate(ymin = min(y),
+                     ymax = max(y),
+                     xmin = x,
+                     xmax = x + width / 2)
+            
+          },
+          
+          draw_group = function(data, panel_scales, coord) {
+            # Find the points for the line to go all the way around
+            data <- transform(data, xminv = x,
+                              xmaxv = x + violinwidth * (xmax - x))
+            
+            # Make sure it's sorted properly to draw the outline
+            newdata <- rbind(plyr::arrange(transform(data, x = xminv), y),
+                             plyr::arrange(transform(data, x = xmaxv), -y))
+            
+            # Close the polygon: set first and last point the same
+            # Needed for coord_polar and such
+            newdata <- rbind(newdata, newdata[1,])
+            
+            ggplot2:::ggname("geom_flat_violin", GeomPolygon$draw_panel(newdata, panel_scales, coord))
+          },
+          
+          draw_key = draw_key_polygon,
+          
+          default_aes = aes(weight = 1, colour = "grey20", fill = "white", size = 0.5,
+                            alpha = NA, linetype = "solid"),
+          
+          required_aes = c("x", "y")
+)
+    
+    #standard error function
+    standard_error <- function(x) sd(x)/sqrt(length(x))
+    
+    
+    
+#function for split violin
+    GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
+                           draw_group = function(self, data, ..., draw_quantiles = NULL) {
+  data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
+  grp <- data[1, "group"]
+  newdata <- plyr::arrange(transform(data, x = if (grp %% 2 == 1) xminv else xmaxv), if (grp %% 2 == 1) y else -y)
+  newdata <- rbind(newdata[1, ], newdata, newdata[nrow(newdata), ], newdata[1, ])
+  newdata[c(1, nrow(newdata) - 1, nrow(newdata)), "x"] <- round(newdata[1, "x"])
+
+  if (length(draw_quantiles) > 0 & !scales::zero_range(range(data$y))) {
+    stopifnot(all(draw_quantiles >= 0), all(draw_quantiles <=
+      1))
+    quantiles <- ggplot2:::create_quantile_segment_frame(data, draw_quantiles)
+    aesthetics <- data[rep(1, nrow(quantiles)), setdiff(names(data), c("x", "y")), drop = FALSE]
+    aesthetics$alpha <- rep(1, nrow(quantiles))
+    both <- cbind(quantiles, aesthetics)
+    quantile_grob <- GeomPath$draw_panel(both, ...)
+    ggplot2:::ggname("geom_split_violin", grid::grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))
+  }
+  else {
+    ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
+  }
+})
+
+geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., 
+                              draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, 
+                              show.legend = NA, inherit.aes = TRUE) {
+  layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, 
+        position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
+        params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
+}
+#we create reactive values to store stuff in we make in Shiny using reactive inputs such as chosen_formula
+
+
+```
+
+```{r echo=FALSE}
+
+ui=fluidPage(
+  selectInput("data_input",label="Select data",
+              choices=c("mtcars","faithful","iris")),
+  tableOutput("table_output"),
+  uiOutput("ui")
+)
+
+server=function(input,output) {
+  # getdata <- reactive({ get(input$data_input, 'package:datasets') })
+  
+  output$ui <- renderUI({
+    if(input$data_input=="iris") plotOutput("plot_output",width="400px")
+  })
+  
+  output$plot_output <- renderPlot({hist(getdata()[, 1])})
+  output$table_output <- renderTable({head(getdata())})
+}
+shinyApp(ui, server)
+
+```
+
+
