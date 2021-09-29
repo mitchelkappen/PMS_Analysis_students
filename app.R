@@ -1,6 +1,7 @@
 library(shiny)
 
 ui<- fluidPage( # makes the User Interface
+
   sliderInput(inputId= "num", label="choose a number", value=25, min=1, max=100),
   plotOutput(outputId="hist")
 )
@@ -21,15 +22,7 @@ shinyApp(ui=ui, server=server)
 ##you MUST use the name app.R if you want to share it on the web. 
 #shinyapps.io free website that allows you to run your app on a distant server
 
-output$plotgraph1 <- renderPlot({
-  ggdensity(data$PSS)
-})
-output$plotgraph2 <- renderPlot({
-  ggdensity(data$BSRI)
-})
 
-tabPanel("density", fluidRow(
-  splitLayout(style = "border: 1px solid silver:", 
-              cellWidths = c(300,200,100), 
-              plotOutput("plotgraph1"), 
-              plotOutput("plotgraph2"))))
+
+shinyApp(ui=ui, server=server)
+
