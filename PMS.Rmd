@@ -171,6 +171,14 @@ norms<-cbind(norms, round(ddply(dataBig2, .(Stimulus), summarize,  arosd_pms=mea
 #make all columns unique!
 colnames(norms)<-make.unique(names(norms))
 
+# group stimuli depending on whether they are part of group A or group B in exp
+
+A<-unique(dataBig2$Stimulus[dataBig2$Order=='A-B' & dataBig2$Moment==1])
+B <-unique(dataBig2$Stimulus[dataBig2$Order=='B-A' & dataBig2$Moment==1])
+
+norms$group[norms$IAPS %in% A]='A'
+norms$group[norms$IAPS %in% B]='B'
+
 ```
 
 ```{r functions, echo=FALSE, results='asis'}
@@ -1213,17 +1221,17 @@ server <- function (input, output){
             ggtitle('Valence~PMSScoreNew')
             # coord_flip()
         p1
-        # 
+
         # p<- ggplot(dataBig2, aes(x=PMSScoreNew, y=Valence, fill=PMSScoreNew))+
-        #     geom_split_violin(adjust=1.5,alpha=.5, colour=NA )+
+        #   scale_x_discrete(breaks=c("0.5","1"))+
+        #     geom_split_violin(aes(x=PMSScoreNew, y=Valence),adjust=1.5,alpha=.5, colour=NA, width=1)+
         #   geom_point(aes(colour=PMSScoreNew),position=position_jitter(width=.15), size=.25)+
-        #   geom_boxplot(aes(x = PMSScoreNew, y = Valence, fill = PMSScoreNew),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+        #   geom_boxplot(aes(x = PMSScoreNew, y = Valence, fill = PMSScoreNew),outlier.shape= NA, alpha = .5, width = .15, colour = "black")+
         #   geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew), y = Valence, group = PMSScoreNew, fill = PMSScoreNew), position=position_dodge(0.2), shape = 21, size=4)+
-        #   ggtitle('Valence ~ PMS')
+        #   ggtitle('Valence ~ PMS')+
+        #   xlim(0,3)
         # p
-        # 
-        # 
-        # 
+
     }
   }, height=600)
           
@@ -1414,12 +1422,14 @@ ui<- fluidPage(
             selected='Valence mean'), 
     tabsetPanel(type = "tab",        
       tabPanel("plot", plotOutput("plot")),
-      tabPanel('correlations', plotOutput('correlations'))
+      tabPanel('correlations', plotOutput('correlations')),
+      tabPanel('groups', plotOutput('groups'))
     )
 )
 
 
 server <- function (input, output){ 
+  
   output$plot <-renderPlot({
         p1 <- ggplot(norms, aes(x = valmn_pms, y = aromn_pms))+
           geom_point(position=position_jitter(width=.15), size=2, colour='red')+
@@ -1435,23 +1445,83 @@ server <- function (input, output){
     output$correlations<- renderPlot({
       # p1<- ggplot(norms$valmn, norms$valmn_pms, method=c('pearson'))
       if ((grepl("Valence", input$choice)==TRUE)&(grepl("mean", input$choice)==TRUE)){
-        ggscatter(norms, x='valmn', y='valmn_pms', add='reg.line', conf.int=TRUE,
-                  cor.coef=TRUE, cor.method='pearson', 
-                  xlab='norm means Valence', ylab='PMS means Valence')}
+        p<- ggscatter(norms, x='valmn', y='valmn_pms', 
+                        add='reg.line', fullrange=TRUE,
+                    conf.int=TRUE,
+                    cor.coef=TRUE, cor.method='pearson', 
+                    xlab='norm means Valence', ylab='PMS means Valence', 
+                    xlim=c(0,10))+
+          geom_segment(aes(x = 0, y = 0, xend = 10, yend = 10), size= 1, colour='red')
+        p}
+
         else if ((grepl("Valence", input$choice)==TRUE)&(grepl("SD", input$choice)==TRUE)){
-            ggscatter(norms, x='valsd', y='valsd_pms', add='reg.line', conf.int=TRUE,
-                  cor.coef=TRUE, cor.method='pearson', 
-                  xlab='norm SD Valence', ylab='PMS SD Valence')}
+        p<- ggscatter(norms, x='valsd', y='valsd_pms', 
+                        add='reg.line', fullrange=TRUE,
+                    conf.int=TRUE,
+                    cor.coef=TRUE, cor.method='pearson', 
+                    xlab='norm SD Valence', ylab='PMS SD Valence', 
+                    xlim=c(0,10))+
+          geom_segment(aes(x = 0, y = 0, xend = 10, yend = 10), size= 1, colour='red')
+        p}
         else if ((grepl("Arousal", input$choice)==TRUE)&(grepl("mean", input$choice)==TRUE)){
-            ggscatter(norms, x='aromn', y='aromn_pms', add='reg.line', conf.int=TRUE,
-                  cor.coef=TRUE, cor.method='pearson', 
-                  xlab='norm means Arousal', ylab='PMS means Arousal')}
-        else {ggscatter(norms, x='arosd', y='arosd_pms', add='reg.line', conf.int=TRUE,
-                  cor.coef=TRUE, cor.method='pearson', 
-                  xlab='norm SD Arousal', ylab='PMS SD Arousal')}
+        p<- ggscatter(norms, x='aromn', y='aromn_pms', 
+                        add='reg.line', fullrange=TRUE,
+                    conf.int=TRUE,
+                    cor.coef=TRUE, cor.method='pearson', 
+                    xlab='norm means Arousal', ylab='PMS means Arousal', 
+                    xlim=c(0,10))+
+          geom_segment(aes(x = 0, y = 0, xend = 10, yend = 10), size= 1, colour='red')
+        p}
+        else {        p<- ggscatter(norms, x='arosd', y='arosd_pms', 
+                        add='reg.line', fullrange=TRUE,
+                    conf.int=TRUE,
+                    cor.coef=TRUE, cor.method='pearson', 
+                    xlab='norm SD Arousal', ylab='PMS SD Arousal', 
+                    xlim=c(0,10))+
+          geom_segment(aes(x = 0, y = 0, xend = 10, yend = 10), size= 1, colour='red')
+        p}
   
   }, height=600)
   
+    
+    output$groups <- renderPlot({
+      if ((grepl("Valence", input$choice)==TRUE)&(grepl("mean", input$choice)==TRUE)){
+                p<- ggscatter(norms, x='valmn', y='valmn_pms', 
+                      color= 'group',
+                      palette='jco',
+                      ellipse=TRUE, ellipse.type='convex',
+                    xlab='norm means Valence', ylab='PMS means Valence', 
+                    xlim=c(0,10))
+        p      
+    # http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/78-perfect-scatter-plots-with-correlation-and-marginal-histograms/
+      # ggpar(p, xlim=c(0,10))
+      }
+      else if ((grepl("Valence", input$choice)==TRUE)&(grepl("SD", input$choice)==TRUE)){
+                       p<- ggscatter(norms, x='valsd', y='valsd_pms', 
+                      color= 'group',
+                      palette='jco',
+                      ellipse=TRUE, ellipse.type='convex',
+                    xlab='norm SD Valence', ylab='PMS SD Valence', 
+                    xlim=c(0,10))
+        p } 
+              else if ((grepl("Arousal", input$choice)==TRUE)&(grepl("mean", input$choice)==TRUE)){
+                       p<- ggscatter(norms, x='aromn', y='aromn_pms', 
+                      color= 'group',
+                      palette='jco',
+                      ellipse=TRUE, ellipse.type='convex',
+                    xlab='norm means Arousal', ylab='PMS means Arousal', 
+                    xlim=c(0,10))
+        p } 
+      else {
+                       p<- ggscatter(norms, x='arosd', y='arosd_pms', 
+                      color= 'group',
+                      palette='jco',
+                      ellipse=TRUE, ellipse.type='convex',
+                    xlab='norm SD Arousal', ylab='PMS SD Arousal', 
+                    xlim=c(0,10))
+        p } 
+                
+    }, height=600)
 }
 shinyApp(ui=ui, server=server,options= list(height=800))
 
@@ -1523,7 +1593,7 @@ KAPSTOK
 
 TO DO wO
 
--doe datafolder in Share
+
 
 -doe uitleg bij de plots in notes
 
@@ -1538,7 +1608,6 @@ GEEN sign effect van tijd?
 
 STIMULI CORR:
 -zet alles op dezelfde schaal: autoscale uit, altijd 0-10
--bij SD: ook /10 gedaan? staan norm PMS op dezelfde schaal??
 -voeg een 'perfecte' correlatie lijn toe op de plot
 -geef de stimuli kleurtjes: rood voor alle stimuli die A zijn. om te zien: ga nr data, hier kan je zien als A en moment=1
 
