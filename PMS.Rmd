@@ -58,6 +58,7 @@ count <- dplyr::count
 if (!dir.exists("figures")) dir.create("figures")
 # General settings
 nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
+vpn = 1 # Set to 1 if using VPN
 ```
 
 
@@ -68,10 +69,15 @@ nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 # work_dir<-"C:/Users/ASUSTeK/OneDrive/Documenten/GitHub/internship_sofie"
 # setwd(work_dir)
+if (vpn == 1){
+  dataDir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\RMarkdown\\Data\\"
+} else {
+  dataDir = "Data\\"
+}
 
-data <- read.csv("Data/allPMSdata.csv", header=TRUE, sep=)
+data <- read.csv(paste0(dataDir,"allPMSdata.csv"), header=TRUE, sep=)
 
-norms <-read.table('Data/FemaleSubjects_1-20.txt', header=TRUE, fill=TRUE)
+norms <-read.table(paste0(dataDir,"FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE)
 # norms <-read.table('Data/IAPnormings.txt', header=TRUE, fill=TRUE)
 norms$IAPS <-round(norms$IAPS)
 un<-c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '9320', '9584', '9592', '9594', '9600', '9911', '9920', '9921') # all the unique(data$Stimulus) in a list
