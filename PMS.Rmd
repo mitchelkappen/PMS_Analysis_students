@@ -22,11 +22,12 @@ This is an interactive, Shiny Rmd file for the PMS study
 rm(list = ls())
 
 #install packages
-list.of.packages <- c("lme4",'lmerTest','effects','dplyr', 'car', 'Rmisc', 'emmeans','fitdistrplus','ggplot2', 'ggstatsplot','ggsignif', 'ggformula','ggdist','ggpubr','ggeffects', 'gplots', 'gridExtra','tidyverse','pander','stringr','cowplot','lavaan','readr','jpeg','shiny','reshape2', 'yarrr','knitr', 'remotes' )
+list.of.packages <- c("lme4",'lmerTest','effects','dplyr', 'car', 'Rmisc', 'emmeans','fitdistrplus','ggplot2', 'ggstatsplot','ggsignif', 'ggformula','ggdist','ggpubr','ggeffects', 'gplots', 'gridExtra','tidyverse','pander','stringr','cowplot','lavaan','readr','jpeg','shiny','reshape2', 'yarrr','knitr', 'remotes', 'raincloudplots')
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
 library(Rmisc)
+library(raincloudplots)
 library(lme4)
 library(lmerTest)
 library(effects)
@@ -69,22 +70,20 @@ vpn = 1 # Set to 1 if using VPN
 
 ```{r load-data, echo=FALSE}
 #### IMPORT data & INSPECTION #### -------------------------------------------------------------
-# knitr::opts_knit$set(root.dir = dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
-
-# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-#  work_dir<-"C:/Users/ASUSTeK/OneDrive/Documenten/GitHub/internship_sofie"
+# work_dir<-"Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\RMarkdown\\Data\\"
 # setwd(work_dir)
-
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-# work_dir<-"C:/Users/ASUSTeK/OneDrive/Documenten/GitHub/internship_sofie"
-# setwd(work_dir)
 if (vpn == 1){
   dataDir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\RMarkdown\\Data\\"
 } else {
   dataDir = "Data\\"
 }
-
 data <- read.csv(paste0(dataDir,"allPMSdata.csv"), header=TRUE, sep=)
+
+# work_dir<-"C:/Users/ASUSTeK/OneDrive/Documenten/GitHub/internship_sofie"
+# setwd(work_dir)
+# data <- read.csv(paste0(dataDir,"allPMSdata.csv"), header=TRUE, sep=)
+
 
 norms <-read.table(paste0(dataDir,"FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE)
 # norms <-read.table('Data/IAPnormings.txt', header=TRUE, fill=TRUE)
@@ -373,13 +372,6 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 
 
 
-
-```{r echo=FALSE}
-
-
-```
-
-
 ## PMS, TestMoment, PSS and BSRI
 
 * #### PMS: 
@@ -424,7 +416,8 @@ ui<- fluidPage( # makes the User Interface
      tabsetPanel(type = "tab",
                   tabPanel("pirateplot", plotOutput("pirateplot")),
                  tabPanel("raincloud", plotOutput("raincloud")),
-                 tabPanel("raincloud2", plotOutput("raincloud2")),
+                 tabPanel("splitviolin", plotOutput("splitviolin")),
+                 tabPanel("overlap", plotOutput("overlap")),
                  tabPanel("AIC table", tableOutput("table")),
                  tabPanel("Anova", verbatimTextOutput("Anova")),
                  tabPanel("emmeans",verbatimTextOutput("emmeans"))
@@ -489,6 +482,39 @@ server <- function (input, output){ #we have to add this to the server
     }
   }, height=600)
   
+    output$splitviolin <-renderPlot({
+    if (grepl('PSS', input$formula_choice)){
+      dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMSScoreNew', 'Moment'))
+        p<- ggplot(data, aes(x=Moment, y=PSS, fill=PMSScoreNew))+
+          # geom_split_violin(adjust =1.5, alpha=.5)+
+          geom_split_violin(adjust =1.5, alpha=.5, colour= NA)+
+          geom_boxplot(aes(x = Moment, y = PSS, fill = PMSScoreNew), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+          geom_point(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMSScoreNew, fill = PMSScoreNew), position= position_dodge(0.2), shape = 21, size=4)+
+        scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
+          annotate('text', x=1, y=42, label='*', size=8)+
+          annotate('text', x=2, y=42, label='*', size=8)+
+          geom_segment(aes(x = 0.955, y = 40, xend = 1.055, yend = 40), size= 2)+
+          geom_segment(aes(x = 1.955, y = 40, xend = 2.055, yend = 40), size= 2)+
+          ggtitle('PSS ~ PMS * TestMoment')
+        p
+    
+        } else if (grepl('BSRI', input$formula_choice)){
+      dmean<-summarySE(data, measurevar="BSRI", groupvars=c('PMSScoreNew', 'Moment'))
+        p<- ggplot(data, aes(x=Moment, y=BSRI, fill=PMSScoreNew))+
+          # geom_split_violin(adjust =1.5, alpha=.5)+
+          geom_split_violin(adjust =1.5, alpha=.5, colour= NA)+
+          geom_boxplot(aes(x = Moment, y = BSRI, fill = PMSScoreNew), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+          geom_point(data = dmean, aes(x = as.numeric(Moment), y = BSRI, group = PMSScoreNew, fill = PMSScoreNew), position= position_dodge(0.2), shape = 21, size=4)+
+        scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
+          annotate('text', x=1, y=810, label='*', size=8)+
+          annotate('text', x=2, y=810, label='*', size=8)+
+          geom_segment(aes(x = 0.955, y = 805, xend = 1.055, yend = 805), size= 2)+
+          geom_segment(aes(x = 1.955, y = 805, xend = 2.055, yend = 805), size= 2)+
+          ggtitle('PSS ~ PMS * TestMoment')
+        p
+        } 
+  }, height=600)
+  
   # https://www.rpubs.com/jenrichmond/W6LL  here some info on the following plot
     output$raincloud2 <- renderPlot({
       #function for weighted average
@@ -504,7 +530,7 @@ server <- function (input, output){ #we have to add this to the server
         dataf<- data
         # we create a dataframe with only PMSScoreNew and PSS
         require(reshape2)
-        dataf<- melt(dataf, id=c("TestMoment", "PSS")) #takes out these 2 variables
+        dataf<- melt(dataf, id=c("TestMoment", "BSRI")) #takes out these 2 variables
         head(dataf)
         #sort by TestMoment ascending (so moment 2 is last)
         dataf <- dataf[order(dataf$TestMoment),]
@@ -539,14 +565,15 @@ server <- function (input, output){ #we have to add this to the server
         require(reshape2)
         dataf<- melt(dataf, id=c("TestMoment", "BSRI")) #takes out these 2 variables
         head(dataf)
+        length(dataf$BSRI) # 9637
 
         #sort by TestMoment ascending (so moment 2 is last)
         dataf <- dataf[order(dataf$TestMoment),]
         head(dataf)
         tail(dataf)
         df <-data_1x1(
-          array_1= dataf$BSRI[1:length(dataf$BSRI)/2],
-          array_2=dataf$BSRI[(length(dataf$BSRI)/2)+1:length(dataf$BSRI)],
+          array_1= dataf$BSRI[dataf$TestMoment==1], #here we put the PPS of the first half, so Testmoment=1
+          array_2= dataf$BSRI[dataf$TestMoment==2],# here we put second half
           jit_distance=0.09,
           jit_seed=321)
         raincloud_2<-raincloud_1x1_repmes(
