@@ -285,7 +285,7 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
 ## Intro
 
 
-A lot of women feel unwell during the premenstrual phase of their cyclus. 
+A lot of the people that get their periods feel unwell during the premenstrual phase of their cyclus. 
 This study looked into stress, rumination and emotion expression during the premenstrual phase with both healthy women and women who have PMS, or Pre Menstrual Syndrome.
 
 #### PMS
@@ -1583,6 +1583,10 @@ KAPSTOK
 
 
 TO DO DONDERDAG
+
+Mitchel Kappen
+    De afstand tussen plot/bar en bar/asterix is wel nog een vaste waarde in je code verwacht ik ipv afhankelijk van de y-as! Maar dat is een etail
+
 -pas de violin plots toe. split violin plots en overlappende + lege tab voor 1x2 effect
 
 
