@@ -735,7 +735,7 @@ server <- function (input, output){ #we have to add this to the server
           theme(legend.position="none")+
           guides(fill=FALSE)+
           ggtitle("distribution Stress in PMS vs no PMS")
-        p1
+
       }else if ((grepl("Anxiety", input$formula_choice))){
         p2 <- ggplot(data, aes(x = PMSScoreNew, y = DASS_Anxiety, fill=PMSScoreNew))+
           geom_boxplot(width= .15, outlier.shape = NA)+
@@ -779,6 +779,8 @@ server <- function (input, output){ #we have to add this to the server
        cat(sprintf("\nAnova\n"))
        Anova_1
   })
+  
+  ### Make split raincloud plot by just making two seperate rainclouds and plotting over each other! 
 
     
     output$splitviolin <- renderPlot({
@@ -788,9 +790,9 @@ server <- function (input, output){ #we have to add this to the server
          p<- ggplot(data, aes(x=1, y=DASS_Stress, fill=PMSScoreNew))+
             geom_split_violin(adjust =1.5, alpha=.5)+
             geom_boxplot(aes(x = 1, y = DASS_Stress, fill = PMSScoreNew), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
-            geom_point(data = dmean, aes(x = 1, y = DASS_Stress, group = PMSScoreNew, fill = PMSScoreNew), position= position_dodge(0.2), shape = 21, size=4)+
-          scale_x_discrete(labels=c('0.75'='noPMS', '1.25'='PMS'))+
+            geom_point(data = dmean, aes(x = 1, y = DASS_Stress, group = PMSScoreNew, fill = PMSScoreNew), position= position_dodge(0.6), shape = 21, size=4)+
             annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+           # annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='3', size=10)+
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
             ggtitle('DASS_Stress ~ PMS')
           p
@@ -801,7 +803,6 @@ server <- function (input, output){ #we have to add this to the server
             geom_split_violin(adjust =1.5, alpha=.5)+
             geom_boxplot(aes(x = 1, y = DASS_Anxiety, fill = PMSScoreNew), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = 1, y = DASS_Anxiety, group = PMSScoreNew, fill = PMSScoreNew), position= position_dodge(0.2), shape = 21, size=4)+
-          scale_x_discrete(labels=c('0.75'='noPMS', '1.25'='PMS'))+
             annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
           p
@@ -812,11 +813,24 @@ server <- function (input, output){ #we have to add this to the server
             geom_split_violin(adjust =1.5, alpha=.5)+
             geom_boxplot(aes(x = 1, y = DASS_Depression, fill = PMSScoreNew), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = 1, y = DASS_Depression, group = PMSScoreNew, fill = PMSScoreNew), position= position_dodge(0.2), shape = 21, size=4)+
-          scale_x_discrete(labels=c('0.75'='noPMS', '1.25'='PMS'))+
             annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
             ggtitle('DASS_Depression ~ PMS')
           p
+          
+          
+          
+                  max_y<-max(as.integer(data$DASS_Depression))
+        dmean<-summarySE(data, measurevar="DASS_Depression", groupvars=c('PMSScoreNew', 'Moment'))
+         p<- ggplot(data, aes(x=1, y=DASS_Depression, fill=PMSScoreNew))+
+            geom_split_violin(adjust =1.5, alpha=.5)+
+            geom_boxplot(aes(x = 1, y = DASS_Depression, fill = PMSScoreNew), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = 1, y = DASS_Depression, group = PMSScoreNew, fill = PMSScoreNew), position= position_dodge(0.2), shape = 21, size=4)+
+            annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+            geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+            ggtitle('DASS_Depression ~ PMS')
+          p
+          
       }
       
     }, height=600)
@@ -1171,14 +1185,14 @@ server <- function (input, output){
             # coord_flip()
           
                     p1 <- ggplot(dataBig2, aes(x = PMSScoreNew, y = Arousal)) +
-            geom_flat_violin(aes(fill=PMSScoreNew),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
-            geom_point(aes(colour=PMSScoreNew),position=position_jitter(width=.15), size=.25)+
-            geom_boxplot(aes(x = PMSScoreNew, y = Arousal, fill = PMSScoreNew),outlier.shape= NA, width = .1, colour = "black")+
-            geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew), y = Arousal, fill=PMSScoreNew), shape = 21, size=6)+
-            # geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Arousal), size=1, colour='black')+
-            geom_segment(aes(x = 1, y = 103, xend = 2, yend = 103), size= 1.7)+
-          # annotate('text', x=1.6, y=105, label=sprintf("\n%s\n", p_pms()), size=10)+
-            annotate('text', x=1.6, y=105, label='*', size=10)+
+            geom_flat_violin(aes( fill=PMSScoreNew),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+          #   geom_point(aes(colour=PMSScoreNew),position=position_jitter(width=.15), size=.25)+
+          #   geom_boxplot(aes(x = PMSScoreNew, y = Arousal, fill = PMSScoreNew),outlier.shape= NA, width = .1, colour = "black")+
+          #   geom_point(data = dmean, aes(x = as.numeric(PMSScoreNew), y = Arousal, fill=PMSScoreNew), shape = 21, size=6)+
+          #   # geom_line(data=dmean, aes(x=as.numeric(PMSScoreNew)+.2, y=Arousal), size=1, colour='black')+
+          #   geom_segment(aes(x = 1, y = 103, xend = 2, yend = 103), size= 1.7)+
+          # # annotate('text', x=1.6, y=105, label=sprintf("\n%s\n", p_pms()), size=10)+
+          #   annotate('text', x=1.6, y=105, label='*', size=10)+
             scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
             ggtitle('Arousal~PMSScoreNew')
             # coord_flip()
@@ -1567,10 +1581,9 @@ KAPSTOK
 TO DO
 
 
--pas de violin plots toe mét automatische sterretjes. split violin plots en overlappende + lege tab voor 1x2 effect
+14u alle plots toevoegen en nakijken
 
-
--doe uitleg bij de plots in notes, opmaak vanaf begin
+15u doe uitleg bij de plots in notes, opmaak vanaf begin
 GEEN sign effect van tijd? 
 
 -kuis code op!!
