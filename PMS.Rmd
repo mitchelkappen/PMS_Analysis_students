@@ -5,8 +5,6 @@ date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
 runtime: shiny
 output: html_document
 ---
-
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -63,20 +61,20 @@ nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1ù
 vpn = 1 # Set to 1 if using VPN
 ```
 
-
 ```{r load-data, echo=FALSE}
 #### IMPORT data & INSPECTION #### -------------------------------------------------------------
 #data directly from VPN folder
 # work_dir<-"Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\RMarkdown\\Data\\"
 # setwd(work_dir)
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+# setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 if (vpn == 1){
-  dataDir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\RMarkdown\\Data\\" #data from VPN folder
+  Dir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\RMarkdown\\" #data from VPN folder
 } else {
-  dataDir = "Data\\" #data from github dir
+  Dir = "C:\\Users\\ASUSTeK\\OneDrive\\DocumentenGitHub\\internship_sofie\\" #data from github dir
 }
-data <- read.csv(paste0(dataDir,"allPMSdata.csv"), header=TRUE, sep=) #upload data
-norms <-read.table(paste0(dataDir,"FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE) #upload norms IAPs images
+setwd(Dir)
+data <- read.csv(paste0(Dir,"Data\\allPMSdata.csv"), header=TRUE, sep=) #upload data
+norms <-read.table(paste0(Dir,"Data\\FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE) #upload norms IAPs images
 
 #we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
 #These moments were counterbalanced. when the order was B-A and the moment is B, this means it is the first test moment, and vice versa for A-B and moment A. 
@@ -148,8 +146,8 @@ norms$group[norms$IAPS %in% B]='B'
       layer(data = data,mapping = mapping,stat = stat,geom = GeomFlatViolin,
             position = position,show.legend = show.legend, inherit.aes = inherit.aes,
       params = list(trim = trim,scale = scale,...))}
-GeomFlatViolin <-
-  ggproto("GeomFlatViolin", Geom,
+
+GeomFlatViolin <- ggproto("GeomFlatViolin", Geom,
           setup_data = function(data, params) {
             data$width <- data$width %||%
               params$width %||% (resolution(data$x, FALSE) * 0.9)
@@ -159,25 +157,20 @@ GeomFlatViolin <-
               mutate(ymin = min(y),
                      ymax = max(y),
                      xmin = x,
-                     xmax = x + width / 2)
-          },
+                     xmax = x + width / 2) },
           draw_group = function(data, panel_scales, coord) {
             # Find the points for the line to go all the way around
-            data <- transform(data, xminv = x,
-                              xmaxv = x + violinwidth * (xmax - x))
+            data <- transform(data, xminv = x,xmaxv = x + violinwidth * (xmax - x))
             # Make sure it's sorted properly to draw the outline
             newdata <- rbind(plyr::arrange(transform(data, x = xminv), y),
                              plyr::arrange(transform(data, x = xmaxv), -y))
             # Close the polygon: set first and last point the same
             # Needed for coord_polar and such
             newdata <- rbind(newdata, newdata[1,])
-            ggplot2:::ggname("geom_flat_violin", GeomPolygon$draw_panel(newdata, panel_scales, coord))
-          },
+            ggplot2:::ggname("geom_flat_violin", GeomPolygon$draw_panel(newdata, panel_scales, coord))},
           draw_key = draw_key_polygon,
           default_aes = aes(weight = 1, colour = "grey20", fill = "white", size = 0.5,
-                            alpha = NA, linetype = "solid"),
-          required_aes = c("x", "y")
-)
+                            alpha = NA, linetype = "solid"), required_aes = c("x", "y"))
     #standard error function
     standard_error <- function(x) sd(x)/sqrt(length(x))
     
@@ -198,17 +191,14 @@ GeomFlatViolin <-
     both <- cbind(quantiles, aesthetics)
     quantile_grob <- GeomPath$draw_panel(both, ...)
     ggplot2:::ggname("geom_split_violin", grid::grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))}
-  else {
-    ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
-  }})
+  else {ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...)) }})
 
 geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., 
                               draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, 
                               show.legend = NA, inherit.aes = TRUE) {
   layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, 
         position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
-        params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
-}
+        params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))}
 ```
 
 ## Intro
@@ -224,9 +214,7 @@ PMS is a clinical disorder that is characterized by behavioral and physical symp
 ##### Symptoms
 
 - disappear 1-2 days into menstruation
-
 - decreased serotonin levels
-
 - etiology and symptoms of PMS and depression are linked
 
 ### PMDD
@@ -236,9 +224,7 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 ##### Prevalence
 
 - 75% of women experience some symptoms
-
 - 20-30%: moderate to severe symptoms
-
 - 5-8% PMDD levels of symptoms
 
 ***
@@ -248,26 +234,19 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 ![](figures/screening.png){width=80%}
 
 * screening tool for premenstrual symptoms: 
-
     + no/mild
-
     + medium-severe
     
 ### PMS
 
 * three groups: low and high PMS and PMDD.
-
 * but, because PMDD no official diagnosis, taken together to form the 'noPMS' and 'PMS' group
-
 
 ### TestMoment
 
 * determined per participant, based on cycle
-
 * invitation via e-mail + 24 h reminder
-
 * execution via LimeSurvey
-
 * counterbalanced across participants
 
 ***
@@ -277,9 +256,7 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 #### control vs premenstrual phase:
 
 - higher stress?
-
 - more rumination? 
-
 - more negative responses? explicit: ratings, implicit: video emotion expressions
 
 ***
@@ -294,7 +271,7 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 ```{r echo=FALSE}
 ui<- fluidPage( # makes the User Interface
     selectInput("formula_choice", label="Choose a Formula:",
-            choices= c('PSS ~ PMS', 'BSRI ~ PMS', 'PSS~ PMSS*TestMoment', 'BSRI ~PMSS*TestMoment'),
+            choices= c('PSS ~ PMS', 'BSRI ~ PMS', 'PSS~ PMS*TestMoment', 'BSRI ~PMS*TestMoment'),
             selected='PSS ~ TestMoment'), # puts the choices in the first element which is accessed via input$formula_choice
      tabsetPanel(type = "tab",
                   tabPanel("pirateplot", plotOutput("pirateplot")),
@@ -309,28 +286,13 @@ ui<- fluidPage( # makes the User Interface
 server <- function (input, output){ 
   
   output$pirateplot<- renderPlot({ 
-      dpi=600    #pixels per square inch
     par(mfcol = c(1, 1))
       pirateplot(
-      formula= input$formula_choice,
+      formula= 'PSS~ PMS*TestMoment',
       data=data,
       theme= 3,
       pal= "xmen",
-      main= input$formula_choice,
-      bean.f.o = .5, # Bean fill
-      point.o = .3,  # Points
-      inf.f.o = .7,  # Inference fill
-      inf.b.o = .8,  # Inference border
-      avg.line.o = 1,  # Average line
-      bar.f.o = .5, # Bar
-      inf.f.col = "white",  # Inf fill col
-      inf.b.col = "black",  # Inf border col
-      avg.line.col = "black",  # avg line col
-      bar.f.col = gray(.8),  # bar filling color
-      point.pch = 21,
-      point.bg = "white",
-      point.col = "black",
-      point.cex = .7,
+      main= 'PSS~ PMS*TestMoment',
       xlab="",
     )
   }, height= 600)
@@ -357,7 +319,7 @@ server <- function (input, output){
   #https://wellcomeopenresearch.org/articles/4-63   some info on rainclouds
   output$raincloud <- renderPlot({
     if ((grepl("PSS", input$formula_choice))){
-      p1 <- ggplot(data, aes(x = PMS, y = PSS, fill=PMS))+
+      ggplot(data, aes(x = PMS, y = PSS, fill=PMS))+
         geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha=.5,adjust =2)+
         geom_boxplot(width= .15, outlier.shape = NA)+
         geom_point(position=position_jitter(width=.15), size=.25)+
@@ -365,9 +327,8 @@ server <- function (input, output){
         theme(legend.position="none")+
         guides(fill=FALSE)+
         ggtitle("distribution PSS in PMS vs no PMS")
-      p1
     }else{
-      p2 <- ggplot(data, aes(x = PMS, y = BSRI, fill=PMS))+
+      ggplot(data, aes(x = PMS, y = BSRI, fill=PMS))+
         geom_flat_violin(position = position_nudge(x = .2, y = 0),alpha=.5,adjust =2)+
         ylab('BSRI')+xlab('PMS')+coord_flip()+theme_cowplot()+
         geom_boxplot(width= .15, outlier.shape = NA)+
@@ -375,15 +336,14 @@ server <- function (input, output){
         theme(legend.position="none")+
         guides(fill=FALSE)+
         ggtitle("distribution BSRI in PMS vs no PMS")
-      p2
       }
   }, height=600)
   
     output$splitviolin <-renderPlot({
-      if ((grepl("PSS", input$formula_choice)==TRUE)&(grepl("PMS", input$formula_choice)==FALSE)){
+      if ((grepl("PSS", input$formula_choice)==TRUE)&!(grepl("TestMoment", input$formula_choice))){
               max_y<-max(as.integer(data$PSS))
         dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS'))
-         p<- ggplot(data, aes(x=1, y=PSS, fill=PMS))+
+         ggplot(data, aes(x=1, y=PSS, fill=PMS))+
             geom_split_violin(adjust =1.5, alpha=.5)+
             geom_boxplot(aes(x = 1, y = PSS, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = 1, y = PSS, group = PMS, fill = PMS), position= position_dodge(0.6), shape = 21, size=4)+
@@ -391,11 +351,10 @@ server <- function (input, output){
            # annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='3', size=10)+
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
             ggtitle('PSS ~ PMS')
-          p
-      }else if (grepl('PSS', input$formula_choice)&(grepl("PMS", input$formula_choice)==TRUE)){
+      }else if (grepl('PSS', input$formula_choice)&(grepl("TestMoment", input$formula_choice))){
         max_y<- max(as.integer(data$PSS))
         dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS', 'Moment'))
-          p<- ggplot(data, aes(x=Moment, y=PSS, fill=PMS))+
+          ggplot(data, aes(x=Moment, y=PSS, fill=PMS))+
             geom_split_violin(adjust =1.5, alpha=.5, colour= NA)+
             geom_boxplot(aes(x = Moment, y = PSS, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
@@ -405,12 +364,10 @@ server <- function (input, output){
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
             geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
             ggtitle('PSS ~ PMS * TestMoment')
-          p
-
-    } else if (grepl('BSRI', input$formula_choice)&(grepl("PMS", input$formula_choice)==TRUE)){
+    } else if (grepl('BSRI', input$formula_choice)&(grepl("TestMoment", input$formula_choice))){
     max_y<-max(as.integer(data$BSRI))
   dmean<-summarySE(data, measurevar="BSRI", groupvars=c('PMS', 'Moment'))
-    p<- ggplot(data, aes(x=Moment, y=BSRI, fill=PMS))+
+    ggplot(data, aes(x=Moment, y=BSRI, fill=PMS))+
       geom_split_violin(adjust =1.5, alpha=.5, colour= NA)+
       geom_boxplot(aes(x = Moment, y = BSRI, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
       geom_point(data = dmean, aes(x = as.numeric(Moment), y = BSRI, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
@@ -420,11 +377,9 @@ server <- function (input, output){
       geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
       geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
       ggtitle('PSS ~ PMS * TestMoment')
-    p
-    } else {
-                    max_y<-max(as.integer(data$BSRI))
+    } else {max_y<-max(as.integer(data$BSRI))
         dmean<-summarySE(data, measurevar="BSRI", groupvars=c('PMS'))
-         p<- ggplot(data, aes(x=1, y=BSRI, fill=PMS))+
+        ggplot(data, aes(x=1, y=BSRI, fill=PMS))+
             geom_split_violin(adjust =1.5, alpha=.5)+
             geom_boxplot(aes(x = 1, y = BSRI, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = 1, y = BSRI, group = PMS, fill = PMS), position= position_dodge(0.6), shape = 21, size=4)+
@@ -432,13 +387,71 @@ server <- function (input, output){
            # annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='3', size=10)+
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
             ggtitle('BSRI ~ PMS')
-          p
     }
   }, height=600)
+    
+    output$overlap <- renderPlot({
+      if (grepl('PSS', input$formula_choice) &grepl('TestMoment', input$formula_choice)){
+        max_y<-max(as.integer(data$PSS))
+        dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS', 'Moment'))
+        ggplot(dataBig2, aes(x=Moment, y=PSS, fill=PMS))+
+            geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
+            geom_boxplot(aes(x=Moment, y=PSS, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
+            geom_line(data=dmean, aes(x= as.numeric(Moment)+.1, y=PSS, group=PMS, colour=PMS), size=1.5)+
+            geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = PSS, group = PMS, fill= PMS), shape = 21, size=6)+
+                annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='*', size=8)+
+      annotate('text', x=2, y=max_y+(max_y/10)+(max_y/100), label='**', size=8)+
+      geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+      geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+            scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
+            ggtitle('PSS ~ PMS * TestMoment')
+    }else if (grepl('PSS', input$formula_choice) & !grepl('TestMoment', input$formula_choice)){
+      max_y<-max(as.integer(data$PSS))
+            dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS'))
+          ggplot(dataBig2, aes(x = PMS, y = PSS)) +
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
+            geom_boxplot(aes(x = PMS, y = PSS, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = as.numeric(PMS)+.2, y = PSS, group=PMS, fill=PMS), shape = 21, size=6)+
+             geom_line(data=dmean, aes(x=as.numeric(PMS)+.2, y=PSS), size=1, colour='black')+
+            geom_segment(aes(x = 1.2, y=max_y+(max_y/10)+(max_y/100), xend = 2.2, yend=max_y+(max_y/10)+(max_y/100)), size= 1.7)+
+          annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+            scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
+            ggtitle('PSS~PMS')
+    }
+    else if (grepl('BSRI', input$formula_choice) & grepl('TestMoment', input$formula_choice)){
+        max_y<-max(as.integer(data$BSRI))
+        dmean<-summarySE(data, measurevar="BSRI", groupvars=c('PMS', 'Moment'))
+        ggplot(dataBig2, aes(x=Moment, y=BSRI, fill=PMS))+
+            geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
+            geom_boxplot(aes(x=Moment, y=BSRI, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
+            geom_line(data=dmean, aes(x= as.numeric(Moment)+.1, y=BSRI, group=PMS, colour=PMS), size=1.5)+
+            geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = BSRI, group = PMS, fill= PMS), shape = 21, size=6)+
+                annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='*', size=8)+
+      annotate('text', x=2, y=max_y+(max_y/10)+(max_y/100), label='**', size=8)+
+      geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+      geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+            scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
+            ggtitle('BSRI ~ PMS * TestMoment')
+    }else {
+            max_y<-max(as.integer(data$BSRI))
+            dmean<-summarySE(data, measurevar="BSRI", groupvars=c('PMS'))
+          ggplot(dataBig2, aes(x = PMS, y = BSRI)) +
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
+            geom_boxplot(aes(x = PMS, y = BSRI, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = as.numeric(PMS)+.2, y = BSRI, fill=PMS), shape = 21, size=6)+
+             geom_line(data=dmean, aes(x=as.numeric(PMS)+.2, y=BSRI), size=1, colour='black')+
+            geom_segment(aes(x = 1.2, y=max_y+(max_y/10)+(max_y/100), xend = 2.2, yend=max_y+(max_y/10)+(max_y/100)), size= 1.7)+
+          annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/80), label=sprintf("\n%s\n", p_pms()), size=10)+
+            scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
+            ggtitle('BSRI~PMS')
+        }
+    }, height=600)
       
      models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
         m <- c()
-        # Formula <- 'DASS_Stress ~ PMS + (1|Subject)'
+        # Formula <- 'PSS~ PMS*TestMoment + (1|Subject)'
         Formula <- paste0(input$formula_choice, '+ (1|Subject)')
         tryCatch({ d0.1 <- lmer(Formula,data=data); # if this formula works
           m <- c(m, d1=d0.1)}, #we add this
@@ -465,12 +478,13 @@ server <- function (input, output){
  output$table <-renderTable({
   modelNames<-c()
   tabel<-c()
+  chosenModel<-c()
   for (i in 1:length(models())){
     modelNames<-c(modelNames, names(models()[i]))
     AIC<-AIC(models()[[i]])
-    tabel <- c (tabel, round(AIC))}
+    tabel <- c (tabel, AIC)}
     chosenModel = modelNames[which(tabel == min(tabel))]
-    tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
+    tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, round(tabel)))
     tabel
 })
   
@@ -486,11 +500,11 @@ output$emmeans <- renderPrint({
       tabel <- c(tabel,round(AIC))}
   chosenModel<-models()[which(tabel == min(tabel))]
     cat(sprintf("\n formula: %s\n", input$formula_choice))
-    if ((grepl("PMS", input$formula_choice)==FALSE)){
-      cat(sprintf("\n~ TestMoment\n"))
+    if ((grepl("TestMoment", input$formula_choice)==FALSE)){
+      cat(sprintf("\n~ PMS\n"))
       Emm <- emmeans(chosenModel[[1]], pairwise ~ TestMoment, adjust ="fdr", type="response")
       print(Emm)}
-    if (grepl("PMS", input$formula_choice)){
+    if (grepl("TestMoment", input$formula_choice)){
       cat(sprintf("\n~ PMS*TestMoment\n"))
       Emm <- emmeans(chosenModel[[1]], pairwise ~ PMS*TestMoment, adjust ="fdr", type="response")
       print(Emm)}
@@ -500,21 +514,19 @@ output$emmeans <- renderPrint({
 shinyApp(ui=ui, server=server, options=list(height=800))
 ```
 we do (G)LMM: generalized linear mixed models
-stress(PSS) or gender(BSRI) as dependable variable
+PSS or BSRI as dependable variable
 PMS(2 levels) x TestMoment (2 levels)
 
-AIC: Akaike Information Criterion: says which model best (lowest AIC) om beste fit model te vinden.
+AIC: Akaike Information Criterion: says which model best (lowest AIC) 
 
 ### conclusions
 
-=> PSS is higher in testmoment 2: luteal phase
-sign effect of PMS on PSS
-no sign difference between testmoment 1 and 2 with the PMS group!
+* PSS is higher in premenstrual phase
+    + sign effect of PMS on PSS
+    + no sign difference between testmoment 1 and 2 with the PMS group!
 
-
-=>gender difference of PMS vs no PMS: PMS group more 'androgynous'
-BSRI is higher in PMS than in noPMS group
--no effect of testmoment on BSRI
+* BSRI is higher in PMS than in noPMS group
+   + no effect of testmoment on BSRI
 
 ### PSS: Perceived Stress Scale
 
@@ -563,29 +575,26 @@ Brief State RUmination Index
 
 ## DASS
 
-* #### DASS-21_R
-Depression Anxiety Stress Scale
-DASS: 3 subschalen
-DASS_Total, DASS_Stress, DASS_Anxiety, DASS_Depression
-effect of PMS vs no PMSS
--geen interactie want het is trait: mr 1 afname
--wel interactie PSS: trait vs state?
+### DASS-21_R
+
+#### Depression Anxiety Stress Scale
+
+* DASS: 3 subschalen
+ + DASS_Total, DASS_Stress, DASS_Anxiety, DASS_Depression
+* effect of PMS vs no PMS
+   + no interaction Testmoment: Trait, not State
+   + interaction PSS? 
 
 #### onderzoeksvraag: PMS vs noPMS voor:
 - DASS_alle subschalen
-+interactie PSS
-
-
+- interactie PSS
 
 
 ```{r echo=FALSE}
-
 ui<- fluidPage( # makes the User Interface
-
     selectInput("formula_choice", label="Choose a Formula:",
             choices= c('DASS_Stress ~ PMS', 'DASS_Anxiety ~ PMS', 'DASS_Depression ~ PMS'),
             selected='DASS_Stress ~ PMS'), # puts the choices in the first element which is accessed via input$formula_choice
-
      tabsetPanel(type = "tab",
                   tabPanel("pirateplot", plotOutput("pirateplot")),
                   tabPanel("raincloud", plotOutput("raincloud")),
@@ -597,31 +606,10 @@ ui<- fluidPage( # makes the User Interface
 
 server <- function (input, output){ #we have to add this to the server
 
-
   output$pirateplot<- renderPlot({
-      dpi=600    #pixels per square inch
     par(mfcol = c(1, 1))
-      pirateplot(
-      formula= input$formula_choice,
-      data=data,
-      theme= 1,
-      pal= "info",
-      main= input$formula_choice,
-      bean.f.o = .6, # Bean fill
-      point.o = .3,  # Points
-      inf.f.o = .7,  # Inference fill
-      inf.b.o = .8,  # Inference border
-      avg.line.o = 1,  # Average line
-      bar.f.o = .5, # Bar
-      inf.f.col = "white",  # Inf fill col
-      inf.b.col = "black",  # Inf border col
-      avg.line.col = "black",  # avg line col
-      bar.f.col = gray(.8),  # bar filling color
-      point.pch = 21,
-      point.bg = "white",
-      point.col = "black",
-      point.cex = .7,
-      xlab="",
+      pirateplot(formula= input$formula_choice,data=data,
+      theme= 1,pal= "xmen",main= input$formula_choice,
     )
   }, height=600)
 
@@ -629,7 +617,7 @@ server <- function (input, output){ #we have to add this to the server
   #PMS vs noPMS over 2 fases Testmoment, https://github.com/jorvlan/raincloudplots
     output$raincloud <- renderPlot({
       if ((grepl("Stress", input$formula_choice))){
-        p1 <- ggplot(data, aes(x = PMS, y = DASS_Stress, fill=PMS))+
+        ggplot(data, aes(x = PMS, y = DASS_Stress, fill=PMS))+
           geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
           geom_boxplot(width= .15, outlier.shape = NA)+
           geom_point(position=position_jitter(width=.15), size=.25)+
@@ -637,9 +625,8 @@ server <- function (input, output){ #we have to add this to the server
           theme(legend.position="none")+
           guides(fill=FALSE)+
           ggtitle("distribution Stress in PMS vs no PMS")
-
       }else if ((grepl("Anxiety", input$formula_choice))){
-        p2 <- ggplot(data, aes(x = PMS, y = DASS_Anxiety, fill=PMS))+
+        ggplot(data, aes(x = PMS, y = DASS_Anxiety, fill=PMS))+
           geom_boxplot(width= .15, outlier.shape = NA)+
           geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
           geom_point(position=position_jitter(width=.15), size=.25)+
@@ -647,17 +634,14 @@ server <- function (input, output){ #we have to add this to the server
           theme(legend.position="none")+
           guides(fill=FALSE)+
           ggtitle("distribution Anxiety in PMS vs no PMS")
-        p2
       }else {
-        p2 <- ggplot(data, aes(x = PMS, y = DASS_Anxiety, fill=PMS))+
+        ggplot(data, aes(x = PMS, y = DASS_Anxiety, fill=PMS))+
           geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
-          #geom_boxplot(width= .15, outlier.shape = NA)+
           geom_point(position=position_jitter(width=.15), size=.25)+
           ylab('Stress')+xlab('PMS')+coord_flip()+theme_cowplot()+
           theme(legend.position="none")+
           guides(fill=FALSE)+
           ggtitle("distribution Depression in PMS vs no PMS")
-        p2
       }
     }, height=600)
     
@@ -682,14 +666,11 @@ server <- function (input, output){ #we have to add this to the server
        Anova_1
   })
   
-  ### Make split raincloud plot by just making two seperate rainclouds and plotting over each other! 
-
-    
     output$splitviolin <- renderPlot({
       if ((grepl("Stress", input$formula_choice))){
         max_y<-max(as.integer(data$DASS_Stress))
-        dmean<-summarySE(data, measurevar="DASS_Stress", groupvars=c('PMS', 'Moment'))
-         p<- ggplot(data, aes(x=1, y=DASS_Stress, fill=PMS))+
+        dmean<-summarySE(data, measurevar="DASS_Stress", groupvars=c('PMS'))
+         ggplot(data, aes(x=1, y=DASS_Stress, fill=PMS))+
             geom_split_violin(adjust =1.5, alpha=.5)+
             geom_boxplot(aes(x = 1, y = DASS_Stress, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = 1, y = DASS_Stress, group = PMS, fill = PMS), position= position_dodge(0.6), shape = 21, size=4)+
@@ -697,44 +678,27 @@ server <- function (input, output){ #we have to add this to the server
            # annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='3', size=10)+
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
             ggtitle('DASS_Stress ~ PMS')
-          p
       }  else if ((grepl("Anxiety", input$formula_choice))) {
         max_y<-max(as.integer(data$DASS_Anxiety))
-        dmean<-summarySE(data, measurevar="DASS_Anxiety", groupvars=c('PMS', 'Moment'))
-         p<- ggplot(data, aes(x=1, y=DASS_Anxiety, fill=PMS))+
+        dmean<-summarySE(data, measurevar="DASS_Anxiety", groupvars=c('PMS'))
+         ggplot(data, aes(x=1, y=DASS_Anxiety, fill=PMS))+
             geom_split_violin(adjust =1.5, alpha=.5)+
             geom_boxplot(aes(x = 1, y = DASS_Anxiety, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = 1, y = DASS_Anxiety, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
             annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
-          p
+           ggtitle('DASS_Anxiety ~ PMS')
       } else {
-        max_y<-max(as.integer(data$DASS_Depression))
-        dmean<-summarySE(data, measurevar="DASS_Depression", groupvars=c('PMS', 'Moment'))
-         p<- ggplot(data, aes(x=1, y=DASS_Depression, fill=PMS))+
-            geom_split_violin(adjust =1.5, alpha=.5)+
-            geom_boxplot(aes(x = 1, y = DASS_Depression, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
-            geom_point(data = dmean, aes(x = 1, y = DASS_Depression, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
-            annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
-            geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
-            ggtitle('DASS_Depression ~ PMS')
-          p
-          
-          
-          
                   max_y<-max(as.integer(data$DASS_Depression))
-        dmean<-summarySE(data, measurevar="DASS_Depression", groupvars=c('PMS', 'Moment'))
-         p<- ggplot(data, aes(x=1, y=DASS_Depression, fill=PMS))+
+        dmean<-summarySE(data, measurevar="DASS_Depression", groupvars=c('PMS'))
+         ggplot(data, aes(x=1, y=DASS_Depression, fill=PMS))+
             geom_split_violin(adjust =1.5, alpha=.5)+
             geom_boxplot(aes(x = 1, y = DASS_Depression, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = 1, y = DASS_Depression, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
             annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
             ggtitle('DASS_Depression ~ PMS')
-          p
-          
       }
-      
     }, height=600)
     
     
@@ -742,42 +706,24 @@ server <- function (input, output){ #we have to add this to the server
         m <- c()
         # Formula <- 'DASS_Stress ~ PMS + (1|Subject)'
         Formula <- paste0(input$formula_choice, '+ (1|Subject)')
-        tryCatch(
-          { d0.1 <- lmer(Formula,data=data); # if this formula works
-          m <- c(m, d1=d0.1)}, #we add this
-          error=function(e){})
-        tryCatch(
-          { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d1=d0.2)}, 
-          error=function(e){})
-        tryCatch(
-          { d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d3=d0.3)}, 
-          error=function(e){})
-        tryCatch(
-          { d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d4=d0.4)}, 
-          error=function(e){})
-        tryCatch(
-          { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d5=d0.5) }, 
-          error=function(e){})
-        tryCatch(
-          { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d6=d0.6) }, 
-          error=function(e){})
-        tryCatch(
-          { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-          models <- c(models, d7=d0.7) }, 
-          error=function(e){})
-        tryCatch(
-          { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d8=d0.8) }, 
-          error=function(e){})
-        tryCatch(
-          { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d9=d0.9) }, 
-          error=function(e){})
+        tryCatch({ d0.1 <- lmer(Formula,data=data); 
+          m <- c(m, d1=d0.1)}, error=function(e){})
+        tryCatch( { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d1=d0.2)},  error=function(e){})
+        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d3=d0.3)},  error=function(e){})
+        tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d4=d0.4)}, error=function(e){})
+        tryCatch( { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d5=d0.5) },  error=function(e){})
+        tryCatch(  { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d6=d0.6) },  error=function(e){})
+        tryCatch( { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          models <- c(models, d7=d0.7) },   error=function(e){})
+        tryCatch( { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d8=d0.8) },   error=function(e){})
+        tryCatch( { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d9=d0.9) },  error=function(e){})
         m
      })
   output$table <-renderTable({
@@ -788,8 +734,7 @@ server <- function (input, output){ #we have to add this to the server
       AIC<-AIC(models()[[i]])
       tabel <- c (tabel, round(AIC))}
       chosenModel = modelNames[which(tabel == min(tabel))]
-      tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
-      tabel
+      data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
   })
 
   output$Anova <- renderPrint({
@@ -810,11 +755,7 @@ server <- function (input, output){ #we have to add this to the server
 
 }
 
-
-
-
 shinyApp(ui=ui, server=server, options=list(height=800))
-
 ```
 
 ### Conclusions
@@ -822,7 +763,7 @@ shinyApp(ui=ui, server=server, options=list(height=800))
 * sign more anxiety PMS than no 
 * sign more depression PMS than no PMS
 
-### Interpretation of DASS => put markers:
+### Interpretation of DASS
 
 !["de Beurs et al., 'De DASS', 2001"](figures/DASS.png){width=80%}
 
@@ -831,31 +772,25 @@ shinyApp(ui=ui, server=server, options=list(height=800))
 
 we plot the reaction times to find the outliers and filter the data
 
-```{r echo=FALSE}
+```{r, echo=FALSE}
 #plot reaction times with raincloudplot
 d<-melt(data.frame(rt=c(dataBig_out$rt))) # we melt to wide format 
-p1 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
+ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
   ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
   geom_point(position=position_jitter(width=.15), size=2)+
   geom_boxplot(width= .10, outlier.shape = NA)+
   theme(legend.position="none")+
   ggtitle("reaction times with outliers")
-p1
 
-print('some summary info')
 summary(dataBig_out$rt)
-#outlier removal method 2
 
-upper_bound <- quantile (dataBig_out$rt, 0.9985)
 print('upper 99.85% bound')
-upper_bound
+quantile (dataBig_out$rt, 0.9985)
 
-defaultW<-getOption("warn")
-options(warn=-1)# this disables warning messages
 dataBig_out <- subset(dataBig_out, rt < 30)
 d<-melt(data.frame(rt=c(dataBig_out$rt)))
-p3 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
+ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
   geom_point(position=position_jitter(width=.15), size=0.25)+
   ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
@@ -863,19 +798,13 @@ p3 <- ggplot(d, aes(x = variable, y = value, fill=variable))+
   theme(legend.position="none")+
   guides(fill=FALSE)+
   ggtitle("reaction times < 16 sec")
-p3
 
-options(warn=defaultW)#put warnings back on
-print('some summary info')
 summary(dataBig_out$rt)
-#outlier removal method 2
-
 
 out<-boxplot.stats(dataBig_out$rt)$out#outliers
 out_ind<-which(dataBig_out$rt %in% c(out))#row numbers that contain outliers
 boxplot(dataBig_out$rt, ylab='rt') #boxplot
 mtext(paste('boxplot with outliers')) #boxplot with outliers
-
 ```
 
 
@@ -901,10 +830,8 @@ these already have the rt data filtered under 16 sec (outliers removed)
 we look at how people answer on the stimuli: can we categorize the stimuli in valence and arousal? Are there weird answers? 
 
 ```{r echo=FALSE}
-
 # unique<-sort(unique(dataBig$Stimulus), decreasing=FALSE) #find all the stimuli
 # we maken een density plotvoor zowel valence als arousal voor elke stimulus (2x22)
-
 ui<- fluidPage( 
     radioButtons("stimulus", label="Choose a Stimulus:",
             choices= c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '9320', '9584', '9592', '9594', '9600', '9911', '9920', '9921'), inline=TRUE,
@@ -927,7 +854,7 @@ server <- function (input, output){
     pirateplot(
       formula=value~variable,
       data=d,
-      main= input$stimulus,
+      main= input$stimulus, pal='xmen',
       xlab= str_glue('outlier: {text}'))
   }, height=600)
   
@@ -939,32 +866,29 @@ server <- function (input, output){
   })
 }
 shinyApp(ui=ui, server=server, options= list(height=800))
-
 ```
 
 
 
 #### outliers newid's:
 
-25: VI: times a negative reaction to nakedness/sex: 4180, 4290, 4490, 4550, 4561,4658
-75: IV: neg reactie nakedness and sex (4531, 4490, 4180, 4658)
-145: II, neg reaction nakedness (4290, 4561)
-284: III: neg reactie baby (2057, 2070, 2165)
+* 25: VI: times a negative reaction to nakedness/sex: 4180, 4290, 4490, 4550, 4561,4658
+* 75: IV: neg reactie nakedness and sex (4531, 4490, 4180, 4658)
+* 145: II, neg reaction nakedness (4290, 4561)
+* 284: III: neg reactie baby (2057, 2070, 2165)
 
-47: II: neg reaction to clouds (5982) and positive to a needle in an arm (9594)
-89: II: pos reactie op trippy schilderijen (7182, 7238)
-169: II: pos reactie op vrouw gered dr brandweer (9921)
-194: II: neg reactie ijsbergen (5600) en pasta (194)
-1: II: antwoord altijd 0 of 100, ook op saaie kast (7224), schilderij (7238)
+* 47: II: neg reaction to clouds (5982) and positive to a needle in an arm (9594)
+* 89: II: pos reactie op trippy schilderijen (7182, 7238)
+* 169: II: pos reactie op vrouw gered dr brandweer (9921)
+* 194: II: neg reactie ijsbergen (5600) en pasta (194)
+* 1: II: antwoord altijd 0 of 100, ook op saaie kast (7224), schilderij (7238)
 
 one-time outliers:    
 10  27  30  31  40  74  97 100 119 121 128 134 136 167 168 206 221
 233 240 244 251 252 257 259 262 293 315 334 351 365 374 376
 
 
-'medium'= 40-60
-
-|  |  |
+| 'medium'= 40-60 |  |
 |:----|:----------------------|
 |  **high valence, high arousal:** | 4658, 4561, 4658  |
 | **high valence, low arousal:** |  2360, 5030, 5600, 5800, 5982, 5030, 5800, 5982 |
@@ -975,10 +899,6 @@ one-time outliers:
 | **medium valence, high arousal:** | 7182 |
 | **medium valence, low arousal:** |  7224, 7224 |
 | **medium valence, medium arousal:** |  7211, 7238, 4550, 7211, 7238 |
-
-when Medium, arousal tends to be normally distributed
-However: we often find 2 gauss curves on top of each other
-same for valence: more of a gaussian curve when middle, more of a cup when towards the extreme.
 
 
 ### mean reactions over all stimuli
@@ -1004,7 +924,7 @@ ui<- fluidPage(
             selected='Valence~PMS'),
     tabsetPanel(type = "tab",        
       tabPanel("pirateplot", plotOutput("pirateplot")),
-      tabPanel('plotmeans', plotOutput('plotmeans')),
+      tabPanel('overlap', plotOutput('plotmeans')),
       tabPanel('splitviolin', plotOutput('splitviolin')),
       tabPanel('int_means', plotOutput('int_means')),
       tabPanel("AIC table", tableOutput("table")),
@@ -1017,12 +937,10 @@ ui<- fluidPage(
 server <- function (input, output){ 
   p_pms <-reactive({
     p<-(p()[[3]][1]) # this gets the p-value of the first row, for PMS
-    star=c()
-    if (p> 0.05) {star=''
-    }else if (p<0.0005){star='***'
-    }else if (p<0.005){star='**'
-    }else if (p<0.05) {star='*'}
-    star
+    if (p> 0.05) {''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}
   })
   
   #for emmeans: em[[2]][1] is the p-value for first row
@@ -1033,23 +951,8 @@ server <- function (input, output){
           formula= input$formula_choice,
           data=dataBig2,
           theme= 1,
-          pal= "info",
+          pal= "xmen",
           main= input$formula_choice,
-          bean.f.o = .6, # Bean fill
-          point.o = .05,  # Points
-          inf.f.o = .7,  # Inference fill
-          inf.b.o = .8,  # Inference border
-          avg.line.o = 1,  # Average line
-          bar.f.o = .5, # Bar
-          inf.f.col = "white",  # Inf fill col
-          inf.b.col = "black",  # Inf border col
-          avg.line.col = "black",  # avg line col
-          bar.f.col = gray(.8),  # bar filling color
-          point.pch = 21,
-          point.bg = "white",
-          point.col = "black",
-          point.cex = .7,
-          xlab="",
         )
   }, height=600)
   
@@ -1093,20 +996,6 @@ server <- function (input, output){
             annotate('text', x=1.6, y=105, label='*', size=10)+
             scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
             ggtitle('Arousal~PMS')
-            # coord_flip()
-          
-                    p1 <- ggplot(dataBig2, aes(x = PMS, y = Arousal)) +
-            geom_flat_violin(aes( fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
-          #   geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
-          #   geom_boxplot(aes(x = PMS, y = Arousal, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
-          #   geom_point(data = dmean, aes(x = as.numeric(PMS), y = Arousal, fill=PMS), shape = 21, size=6)+
-          #   # geom_line(data=dmean, aes(x=as.numeric(PMS)+.2, y=Arousal), size=1, colour='black')+
-          #   geom_segment(aes(x = 1, y = 103, xend = 2, yend = 103), size= 1.7)+
-          # # annotate('text', x=1.6, y=105, label=sprintf("\n%s\n", p_pms()), size=10)+
-          #   annotate('text', x=1.6, y=105, label='*', size=10)+
-            scale_x_discrete(labels=c('1'='control', '2'='premenstrual'))+
-            ggtitle('Arousal~PMS')
-            # coord_flip()
         p1
     }else {
       dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMS'))
@@ -1120,17 +1009,6 @@ server <- function (input, output){
             ggtitle('Valence~PMS')
             # coord_flip()
         p1
-
-        # p<- ggplot(dataBig2, aes(x=PMS, y=Valence, fill=PMS))+
-        #   scale_x_discrete(breaks=c("0.5","1"))+
-        #     geom_split_violin(aes(x=PMS, y=Valence),adjust=1.5,alpha=.5, colour=NA, width=1)+
-        #   geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
-        #   geom_boxplot(aes(x = PMS, y = Valence, fill = PMS),outlier.shape= NA, alpha = .5, width = .15, colour = "black")+
-        #   geom_point(data = dmean, aes(x = as.numeric(PMS), y = Valence, group = PMS, fill = PMS), position=position_dodge(0.2), shape = 21, size=4)+
-        #   ggtitle('Valence ~ PMS')+
-        #   xlim(0,3)
-        # p
-
     }
   }, height=600)
           
@@ -1451,7 +1329,7 @@ knitr::kable(data.frame(
            )
   ))
 
-table(data$Order)
+kable(table(data$Order))
 
 nat<- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Natural']))
 hor <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Hor.Coil'|data_allcontraception$Contraception=='Hor. Coil']))
@@ -1479,20 +1357,6 @@ we took out all non-natural contraception methods. these are the descriptives:
 
 ## TO DO
 
-KAPSTOK
--intro: opzet studie, uitleg verloop en metingen
--PSS
--BSRI
--DASS
--RT outliers
--Stimuli
--descriptives
-
-
-TO DO
-
--alle code opkuisen, plots toevoegen en nakijken, debuggen
--AIC table bij PSS!
 
 -doe figuren ook in VPN map
 
