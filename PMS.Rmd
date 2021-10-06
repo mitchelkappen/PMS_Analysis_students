@@ -73,7 +73,7 @@ if (vpn == 1){
   Dir = "C:\\Users\\ASUSTeK\\OneDrive\\DocumentenGitHub\\internship_sofie\\" #data from github dir
 }
 setwd(Dir)
-data <- read.csv(paste0(Dir,"Data\\allPMSdata.csv"), header=TRUE, sep=) #upload data
+data2 <- read.csv(paste0(Dir,"Data\\allPMSData.csv"), header=TRUE, sep=) #upload data
 norms <-read.table(paste0(Dir,"Data\\FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE) #upload norms IAPs images
 
 #we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
