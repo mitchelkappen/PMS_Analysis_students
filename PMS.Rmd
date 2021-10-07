@@ -73,7 +73,7 @@ if (vpn == 1){
   Dir = "C:\\Users\\ASUSTeK\\OneDrive\\DocumentenGitHub\\internship_sofie\\" #data from github dir
 }
 setwd(Dir)
-data2 <- read.csv(paste0(Dir,"Data\\allPMSData.csv"), header=TRUE, sep=) #upload data
+data <- read.csv(paste0(Dir,"Data\\allPMSData.csv"), header=TRUE, sep=) #upload data
 norms <-read.table(paste0(Dir,"Data\\FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE) #upload norms IAPs images
 
 #we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
@@ -845,7 +845,7 @@ ui<- fluidPage(
 server <- function (input, output){ 
   #we make a density plot of valence/arousal per stimulus.
   output$densityplot<- renderPlot({
-    d<-melt(data.frame(valence=c(dataBig2$Valence[dataBig2$Stimulus==input$stimulus]),arousal=c(dataBig2$Arousal[dataBig2$Stimulus==input$stimulus])))
+    d<-melt(data.frame(valence=c(dataBig2$Valence[dataBig2$Stimulus==input$stimulus]),arousal=c(dataBig2$Arousal[dataBig2$Stimulus==input$stimulus]), order=c(dataBig2$Order[dataBig2$Stimulus==input$stimulus])))
     d2<-data.frame(valence=c(dataBig2$Valence[dataBig2$Stimulus==input$stimulus]), ID=c(dataBig2$newid[dataBig2$Stimulus==input$stimulus])) 
     min<-d2$ID[which(d2$valence==min(d2$valence))]#ids of min valence
     max<-d2$ID[which(d2$valence==max(d2$valence))]#ids of max valence
@@ -866,6 +866,19 @@ server <- function (input, output){
   })
 }
 shinyApp(ui=ui, server=server, options= list(height=800))
+
+
+pirateplot(
+  formula=Arousal ~ Order,
+  data=dataBig2,
+  pal='xmen',
+)
+
+pirateplot(
+  formula=Valence ~ Order,
+  data=dataBig2,
+  pal='xmen',
+)
 ```
 
 
