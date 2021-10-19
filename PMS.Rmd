@@ -15,7 +15,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-# A Data Analysis Repport {.tabset}
+# A Data Analysis Report {.tabset}
 
 ```{r libraries, include = FALSE}
 #### Settings & Packages #### -----------------------------------------------------
@@ -550,6 +550,7 @@ output$emmeans <- renderPrint({
 }
 shinyApp(ui=ui, server=server, options=list(height=1200, width=1200))
 ```
+
 we do (G)LMM: generalized linear mixed models
 PSS or BSRI as dependable variable
 PMS(2 levels) x TestMoment (2 levels)
@@ -619,20 +620,18 @@ Brief State RUmination Index
 
 #### Depression Anxiety Stress Scale
 
-* DASS: 3 subschalen
+* DASS: 3 subscales
  + DASS_Total, DASS_Stress, DASS_Anxiety, DASS_Depression
 * effect of PMS vs no PMS
    + no interaction Testmoment: Trait, not State
-   + interaction PSS? 
 
 #### onderzoeksvraag: PMS vs noPMS voor:
 - DASS_alle subschalen
-- interactie PSS
 
 
 ```{r echo=FALSE}
 ui<- fluidPage( # makes the User Interface
-    selectInput("formula_choice", label="Choose a Formula:",
+    selectInput("formula_choice", label="Choose a Subscale:",
             choices= c('DASS_Stress ~ PMS', 'DASS_Anxiety ~ PMS', 'DASS_Depression ~ PMS'),
             selected='DASS_Stress ~ PMS'), # puts the choices in the first element which is accessed via input$formula_choice
      tabsetPanel(type = "tab",
