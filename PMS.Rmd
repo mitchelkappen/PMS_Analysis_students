@@ -556,7 +556,7 @@ PSS or BSRI as dependable variable
 PMS(2 levels) x TestMoment (2 levels)
 
 AIC: Akaike Information Criterion: says which model best (lowest AIC) 
-
+ 
 ### conclusions
 
 * PSS is higher in premenstrual phase
@@ -601,7 +601,7 @@ PSS during pandemic:D
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7680058/
 
 
-![PSS](figures/PSS.png){width=50%}
+![PSS](figures/PSS.png){width=30%}
 ![Covid Stress 2020](figures/covid_stress.png){width=80%}
 bij PSS:
 -infographic Vanderhasselt COVID mental healt
