@@ -15,7 +15,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-# PMS Study {.tabset}
+# A Data Analysis Repport {.tabset}
 
 ```{r libraries, include = FALSE}
 #### Settings & Packages #### -----------------------------------------------------
@@ -208,7 +208,7 @@ This study looked into stress, rumination and emotion expression during the prem
 
 PMS is a clinical disorder that is characterized by behavioral and physical symptoms that occur during the luteal phase, which we will refer to as the premenstrual phase.
 
-!["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](figures/MC.png){width=60%}
+!["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](figures/MC.png){width=50%}
 
 ##### Symptoms
 
@@ -230,7 +230,7 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 
 ### Screening
 
-![](figures/screening.png){width=50%}
+![](figures/screening.png){width=40%}
 
 * screening tool for premenstrual symptoms: 
     + no/mild
@@ -837,7 +837,7 @@ ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_boxplot(width= .10, outlier.shape = NA)+
   theme(legend.position="none")+
   guides(fill=FALSE)+
-  ggtitle("reaction times < 16 sec")
+  ggtitle("reaction times < 30 sec")
 
 summary(dataBig_out$rt)
 
@@ -851,23 +851,24 @@ mtext(paste('boxplot with outliers')) #boxplot with outliers
 
 ## IAPs Images
 
-#### IAPs images
+### IAPs images
 
 - Rating of 22 IAPS images while webcam records
-  +  counterbalanced across TestMoment: e.g. during moment 1 a puppy, during moment 2 a different puppy. this order (serie A of images and serie B of images)
+  +  two image groups (A and B), counterbalanced across TestMoment
+  + e.g. during Moment 1 a puppy, during moment 2 a different puppy.
 
-- Report experienced Valence, Arousal
+- participants could indicate how the images scored for them on valence and arousal
 
-![](figures/screening.png){width=50%}
+![](figures/Stimuli.png){width=40%}
 
-These were images that were either negative, positive or neutral. 
-22 matched images (e.g. in TestMoment 1 image of needle in arm, in TestMoment 2 needle in leg. or image puppy and image of another puppy)
+these already have the rt data filtered under 30 sec (outliers removed)
 
-participants could indicate how the images scored for them on valence and arousal
+we looked at how participants answered. 
 
-these already have the rt data filtered under 16 sec (outliers removed)
+- weird answers? outliers? trends? 
+- looking for the unexpected e.g. people who hate kittens. 
 
-we look at how people answer on the stimuli: can we categorize the stimuli in valence and arousal? Are there weird answers? 
+the numbers are those of the IAPs index. 
 
 ```{r echo=FALSE}
 # unique<-sort(unique(dataBig$Stimulus), decreasing=FALSE) #find all the stimuli
@@ -896,44 +897,39 @@ server <- function (input, output){
       data=d,
       main= input$stimulus, pal='xmen',
       xlab= str_glue('outlier: {text}'))
-  }, height=600)
+  }, height=800, width= 1200)
   
   output$IAPs_Image <- renderImage({
     list(src=str_glue("Z:/shares/ghep_lab/ImageDatabases/IAPS/{input$stimulus}.jpg"),
-         filetype="image/jpeg",
-         width=400,
-         height=300)})
-}
-shinyApp(ui=ui, server=server, options= list(height=800))
+         filetype="image/jpeg",width=800,height=600)})}
 
-pirateplot(
-  formula=Arousal ~ Order,
-  data=dataBig2,
-  pal='xmen')
-
-pirateplot(
-  formula=Valence ~ Order,
-  data=dataBig2,
-  pal='xmen')
+shinyApp(ui=ui, server=server, options= list(height=1000))
 ```
 
-#### outliers newid's:
+As you can see, there isn't much difference depending on the order. 
 
-* 25: VI: times a negative reaction to nakedness/sex: 4180, 4290, 4490, 4550, 4561,4658
-* 75: IV: neg reactie nakedness and sex (4531, 4490, 4180, 4658)
+#### outliers: 
+
+arabic numbers indicate newIDs, roman numbers the amount of times they had the most extreme answer.
+
+Because these are 'extreme' participants, we looked into them a bit further to look for any trends. 
+
+* 25: VI: negative reaction to nakedness/sex: 4180, 4290, 4490, 4550, 4561,4658
+* 75: IV: neg react nakedness and sex (4531, 4490, 4180, 4658)
 * 145: II, neg reaction nakedness (4290, 4561)
-* 284: III: neg reactie baby (2057, 2070, 2165)
+* 284: III: neg react baby (2057, 2070, 2165)
 
 * 47: II: neg reaction to clouds (5982) and positive to a needle in an arm (9594)
-* 89: II: pos reactie op trippy schilderijen (7182, 7238)
-* 169: II: pos reactie op vrouw gered dr brandweer (9921)
-* 194: II: neg reactie ijsbergen (5600) en pasta (194)
-* 1: II: antwoord altijd 0 of 100, ook op saaie kast (7224), schilderij (7238)
+* 89: II: pos reaction on trippy schilderijen (7182, 7238)
+* 169: II: pos reaction on violent image (9921)
+* 194: II: neg reaction mountains (5600) and pasta (194)
+* 1: II: always answers 0 or 100, also on boring closet (7224), painting (7238) => got removed!
 
 one-time outliers:    
 10  27  30  31  40  74  97 100 119 121 128 134 136 167 168 206 221
 233 240 244 251 252 257 259 262 293 315 334 351 365 374 376
 
+#### Scoring of images on valence and arousal
 
 | 'medium'= 40-60 |  |
 |:----|:----------------------|
@@ -948,20 +944,26 @@ one-time outliers:
 | **medium valence, medium arousal:** |  7211, 7238, 4550, 7211, 7238 |
 
 
-### mean reactions over all stimuli
-plot mean reaction per participant over all stimuli: 
--mean valence
--mean arousal
--standard deviation
+### Effect of Order? 
+```{r, echo=FALSE}
+pirateplot(formula=Arousal ~ Order,
+  data=dataBig2,
+  pal='xmen')
 
+pirateplot(formula=Valence ~ Order,
+  data=dataBig2,
+  pal='xmen')
+```
 
 ### Statistics
 
-- plot means valence & arousal between groups (PMS, noPMS) on stimuli
+- effects of PMS/noPMS and Testmoment on Valence and Arousal
 
-- plot means testmoment x PMS
+- plots
 
 - statistical analysis: sign differences? 
+
+Boxplots contain the medians, circles represent the means
 
 ```{r echo=FALSE}
 ui<- fluidPage( 
@@ -970,9 +972,8 @@ ui<- fluidPage(
             selected='Valence~PMS'),
     tabsetPanel(type = "tab",        
       tabPanel("pirateplot", plotOutput("pirateplot")),
-      tabPanel('overlap', plotOutput('plotmeans')),
+      tabPanel('overlap', plotOutput('overlap')),
       tabPanel('splitviolin', plotOutput('splitviolin')),
-      tabPanel('int_means', plotOutput('int_means')),
       tabPanel("AIC table", tableOutput("table")),
       tabPanel("Anova", verbatimTextOutput("Anova")),
       tabPanel("emmeans",verbatimTextOutput("emmeans"))
@@ -999,15 +1000,14 @@ server <- function (input, output){
           pal= "xmen",
           main= input$formula_choice,
         )
-  }, height=600)
+  }, height=600, width= 1300)
   
-  output$plotmeans <-renderPlot({
+  output$overlap <-renderPlot({
     if (grepl('Arousal', input$formula_choice) &grepl('TestMoment', input$formula_choice)){
       dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('PMS', 'Moment'))
         ggplot(dataBig2, aes(x=Moment, y=Arousal, fill=PMS))+
           geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
           geom_boxplot(aes(x=Moment, y=Arousal, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
-          geom_line(data=dmean, aes(x= as.numeric(Moment)+.1, y=Arousal, group=PMS, colour=PMS), size=1.5)+
           geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Arousal, group = PMS, fill= PMS), shape = 21, size=6)+
           scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
           annotate('text', x=1, y=105, label='*', size=8)+
@@ -1020,7 +1020,6 @@ server <- function (input, output){
         ggplot(dataBig2, aes(x=Moment, y=Valence, fill=PMS))+
           geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
           geom_boxplot(aes(x=Moment, y=Valence, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
-          geom_line(data=dmean, aes(x= as.numeric(Moment)+.1, y=Valence, group=PMS, colour=PMS), size=1.5)+
           geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Valence, group = PMS, fill=PMS), shape = 21, size=6)+
           scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
           ggtitle('Valence~PMS * TestMoment')
@@ -1031,8 +1030,7 @@ server <- function (input, output){
             geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = Arousal, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
-            geom_point(data = dmean, aes(x = as.numeric(PMS)+.2, y = Arousal, fill=PMS), shape = 21, size=6)+
-             geom_line(data=dmean, aes(x=as.numeric(PMS)+.2, y=Arousal), size=1, colour='black')+
+            geom_point(data = dmean, aes(x = as.numeric(PMS), y = Arousal, fill=PMS), shape = 21, size=6)+
             geom_segment(aes(x = 1.2, y = 103, xend = 2.2, yend = 103), size= 1.7)+
           # annotate('text', x=1.6, y=105, label=sprintf("\n%s\n", p_pms()), size=10)+
             annotate('text', x=1.6, y=105, label='*', size=10)+
@@ -1044,11 +1042,10 @@ server <- function (input, output){
             geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust= 1.5, alpha = .5, colour = NA)+
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = Valence, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
-            geom_point(data = dmean, aes(x = as.numeric(PMS)+.2, y = Valence, fill=PMS), shape = 21, size=6)+
-            geom_line(data=dmean, aes(x=as.numeric(PMS)+.2, y=Valence), size=1, colour='black')+
+            geom_point(data = dmean, aes(x = as.numeric(PMS), y = Valence, fill=PMS), shape = 21, size=6)+
             ggtitle('Valence~PMS')
     }
-  }, height=600)
+  }, height=800)
           
   # output$splitviolin <-renderPlot({
   #   if (grepl('Arousal', input$formula_choice)){
@@ -1120,24 +1117,8 @@ server <- function (input, output){
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
             ggtitle('Valence ~ PMS')
     }
-  }, height=700)
+  }, height=700, width=1100)
 
-  
-  output$int_means <- renderPlot({
-    if ((grepl('Valence', input$formula_choice))){
-      dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('TestMoment', 'PMS'))# this function gives sd, se mean and default 95% C.I.
-      ggplot(dmean, aes(x=TestMoment, y=Valence, colour=PMS, group=PMS)) +
-          geom_errorbar(aes(ymin=Valence-standard_error(Valence), ymax=Valence+standard_error(Valence), width=.1))+
-        geom_line() +
-        geom_point(size=3)
-      } else {
-      dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('TestMoment', 'PMS'))
-    ggplot(dmean, aes(x=TestMoment, y=Arousal, colour=PMS, group=PMS)) +
-          geom_errorbar(aes(ymin=Arousal-standard_error(Arousal), ymax=Arousal+standard_error(Arousal), width=.1))+
-        geom_line() +
-        geom_point(size=3)
-      }
-  })
   
      models <- reactive({
         m <- c()
@@ -1196,23 +1177,24 @@ server <- function (input, output){
 shinyApp(ui=ui, server=server, options= list(height=1000))
 ```
 
-Boxplots contain the medians, circles represent the means
+### Conclusions
 
-#### Conclusions
-
-- sign diff for both Arousal in PMS vs no PMS
+- sign diff for Arousal in PMS vs no PMS, also when controlled for TestMoment
 
 - no conclusions can be made for TestMoment: found no sign diff
 
+
 ### further data processing
 
-- divide stimuli groups on valence (read about IAP images): plot stimuli on axis of valence and arousal
+- We took the IAPs norms for Female Subjects and made a dataframe
+- the dataframe has SD and Mean for Valence/Arousal for both norms and PMS study. 
 
-
-IAPS norms for Female Subjects
--norms: dataframe met daarin SD en mean voor Valence, Arousal voor normgroepen én die van deze studie
-- pirateplots to compare norms and PMS means and valence
-
+- the first plot shows the norms and PMS plotted with x=means of Valence and y= means of Arousal
+- the second plot shows the ideal correlation (red line), the actual correlation (black line) and the C.I. (grey)
+  + each point is where PMS and norms come together. 
+  + These are positively correlated if Valence is scored similarly in the PMS study (e.g. low for image x)
+  
+- the last plot shows Image Group A vs B (matched images) in PMS vs norms
 
 ```{r echo=FALSE}
 ui<- fluidPage( 
@@ -1230,11 +1212,11 @@ server <- function (input, output){
   
   output$plot <-renderPlot({
         ggplot(norms, aes(x = valmn_pms, y = aromn_pms))+
-          geom_point(position=position_jitter(width=.15), size=2, colour='red')+
-          # geom_text(aes(label=IAPS),hjust=0, vjust=0, size=3)+
+          geom_text(aes(label=IAPS),hjust=0, vjust=0, size=3)+
           geom_point(data= norms, aes(x=valmn, y=aromn), size=2, colour='black')+
+          geom_point(data= norms, aes(x=valmn_pms, y=aromn_pms), size=2, colour='red')+
           ggtitle("mean Arousal and Valence norm females")
-    })
+    }, height=800)
     
 # calculate correlations
     output$correlations<- renderPlot({
@@ -1269,7 +1251,7 @@ server <- function (input, output){
                     xlab='norm SD Arousal', ylab='PMS SD Arousal')+
           geom_segment(aes(x = 0, y = 0, xend = 4, yend = 10), size= 1, colour='red')
         }
-  }, height=600)
+  }, height=800)
     
     output$groups <- renderPlot({
       if ((grepl("Valence", input$choice)==TRUE)&(grepl("mean", input$choice)==TRUE)){
@@ -1300,16 +1282,16 @@ server <- function (input, output){
                       ellipse=TRUE, ellipse.type='convex',
                     xlab='norm SD Arousal', ylab='PMS SD Arousal')
         } 
-    }, height=600)
+    }, height=800)
 }
-shinyApp(ui=ui, server=server,options= list(height=800))
+shinyApp(ui=ui, server=server,options= list(height=1000))
 ```
-    
+
 ### Conclusions
 
 The data are similar to those of the norms, except for Arousal. 
 
-elk puntje is waar de mean van PMS en de mean van de normgroep samenkomen. Die zijn positief gecorreleerd, wat wilt zeggen dat de Valence ongeveer hetzelfde beoordeeld wordt in de PMS studie (als laag beoordeeld, ook laag in de normgroep). We zien geen grote verschillen tussen de foto's A en B. 
+
 
 ## Descriptives
 ```{r echo=FALSE}
