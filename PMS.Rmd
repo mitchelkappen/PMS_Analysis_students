@@ -206,11 +206,14 @@ This study looked into stress, rumination and emotion expression during the prem
 
 ### PMS
 
-PMS is a clinical disorder that is characterized by behavioral and physical symptoms that occur during the luteal phase, which we will refer to as the premenstrual phase.
+PMS is a clinical disorder exclusive to people who menstruate. 
+
+##### Symptoms
+
+![the etiology of PMS and depression have been linked together as well](figures/PMS_Symptoms.png){width=50%}
 
 !["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](figures/MC.png){width=50%}
 
-##### Symptoms
 
 - disappear 1-2 days into menstruation
 - decreased serotonin levels
@@ -439,7 +442,6 @@ server <- function (input, output){
         ggplot(dataBig2, aes(x=Moment, y=PSS, fill=PMS))+
             geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
             geom_boxplot(aes(x=Moment, y=PSS, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
-            geom_line(data=dmean, aes(x= as.numeric(Moment)+.1, y=PSS, group=PMS, colour=PMS), size=1.5)+
             geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = PSS, group = PMS, fill= PMS), shape = 21, size=6)+
                 annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='*', size=8)+
       annotate('text', x=2, y=max_y+(max_y/10)+(max_y/100), label='**', size=8)+
@@ -603,6 +605,7 @@ https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7680058/
 
 ![PSS](figures/PSS.png){width=30%}
 ![Covid Stress 2020](figures/covid_stress.png){width=80%}
+
 bij PSS:
 -infographic Vanderhasselt COVID mental healt
 -check of de vragen PSS zelfde zijn bij de norms voor corona zelfde vragen hebben gebruikt: zelfde soort PSS gebruikt? 
@@ -1030,7 +1033,7 @@ server <- function (input, output){
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = Arousal, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = Arousal, fill=PMS), shape = 21, size=6)+
-            geom_segment(aes(x = 1.2, y = 103, xend = 2.2, yend = 103), size= 1.7)+
+            geom_segment(aes(x = 1., y = 103, xend = 2., yend = 103), size= 1.7)+
           # annotate('text', x=1.6, y=105, label=sprintf("\n%s\n", p_pms()), size=10)+
             annotate('text', x=1.6, y=105, label='*', size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
