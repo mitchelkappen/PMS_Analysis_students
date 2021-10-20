@@ -210,16 +210,23 @@ PMS is a clinical disorder exclusive to people who menstruate.
 
 ##### Symptoms
 
-![the etiology of PMS and depression have been linked together as well](figures/PMS_Symptoms.png){width=50%}
+- mood swings, anxiety
+- tiredness, sleep problems
+- abdominal pain, bloating, gas, diarrhea
+- tender breasts, spotty skin
+- headaches
+- changes in appetite and sex drive
+- lower serotonin levels
+- etiology & symptoms of PMS and depression have been linked
+
+![](figures/PMS_Symptoms.png){width=50%}
 
 !["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](figures/MC.png){width=50%}
 
 
-- disappear 1-2 days into menstruation
-- decreased serotonin levels
-- etiology and symptoms of PMS and depression are linked
+- 'pre-menstrual': during luteal phase, symptoms disappear 1-2 days into menstruation
 
-### PMDD
+#### PMDD
 
 PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this is a more severe version of PMS.
 
@@ -230,6 +237,17 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 - 5-8% PMDD levels of symptoms
 
 ***
+### Hypotheses
+
+#### PMS/ no PMS:
+
+- higher stress?
+- more rumination? 
+- more negative responses? explicit: ratings, implicit: video emotion expressions
+
+#### follicular or premenstrual: same
+
+*** 
 
 ### Screening
 
@@ -239,36 +257,45 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
     + no/mild
     + medium-severe
     
-### PMS
+### 2 groups
 
 * three groups: low and high PMS and PMDD.
 * but, because PMDD no official diagnosis, taken together to form the 'noPMS' and 'PMS' group
 
 ### TestMoment
 
-* determined per participant, based on cycle
+
+* participants tested twice, based on cycle
 * invitation via e-mail + 24 h reminder
 * execution via LimeSurvey
 * counterbalanced across participants
+* fill in questionnaires
+* judge pictures on valence & arousal
+* filmed through webcam: analysis of emotional expressions
 
 ***
 
-### Hypotheses
 
-#### follicular vs premenstrual phase:
-
-- higher stress?
-- more rumination? 
-- more negative responses? explicit: ratings, implicit: video emotion expressions
 
 ***
 
 ## PSS and BSRI
 
-#### PMS vs no PMS: 
-- PSS
-- BSRI
-+ Interactie testmoment
+### PSS: Perceived Stress Scale 
+
+### BSRI: Brief State Rumination Index
+
+measured at two time points
+
+#### PSS and BSRI 
+- PMS vs no PMS
+- follicular and premenstrual/luteal phase
+
+we first fitted several GLM (Generalized Linear Mixed) models with PSS/ BSRI as dependent variable and PMS(2 levels) x TestMoment (2 levels) and took the one with the lowest AIC (Akaike Information Criterion)
+
+Then we did Anova and contrasts of means. 
+
+Boxplots contain the medians, circles represent the means
 
 ```{r echo=FALSE}
 ui<- fluidPage( # makes the User Interface
@@ -276,10 +303,10 @@ ui<- fluidPage( # makes the User Interface
             choices= c('PSS ~ PMS', 'BSRI ~ PMS', 'PSS~ PMS*TestMoment', 'BSRI ~PMS*TestMoment'),
             selected='PSS ~ TestMoment'), # puts the choices in the first element which is accessed via input$formula_choice
      tabsetPanel(type = "tab",
-                  tabPanel("pirateplot", plotOutput("pirateplot")),
-                 tabPanel("TestMoment_distribution", plotOutput("raincloud2")),
-                 tabPanel("splitviolin", plotOutput("splitviolin")),
                  tabPanel("overlap", plotOutput("overlap")),
+                 tabPanel("splitviolin", plotOutput("splitviolin")),
+                 tabPanel("pirateplot", plotOutput("pirateplot")),
+                 tabPanel("TestMoment_distribution", plotOutput("raincloud2")),
                  tabPanel("AIC table", tableOutput("table")),
                  tabPanel("Anova", verbatimTextOutput("Anova")),
                  tabPanel("emmeans",verbatimTextOutput("emmeans"))
@@ -553,22 +580,21 @@ output$emmeans <- renderPrint({
 shinyApp(ui=ui, server=server, options=list(height=1200, width=1200))
 ```
 
-we do (G)LMM: generalized linear mixed models
-PSS or BSRI as dependable variable
-PMS(2 levels) x TestMoment (2 levels)
-
-AIC: Akaike Information Criterion: says which model best (lowest AIC) 
  
 ### conclusions
 
-* PSS is higher in premenstrual phase
-    + sign effect of PMS on PSS
-    + no sign difference between testmoment 1 and 2 with the PMS group!
+* PSS
+ + when we look at PSS we can see sign effect (with alpha= 0.05) of PMS, even when we control for TestMoment.
+ + we found no significant effect for TestMoment itself. 
+ 
+* BSRI
+ + same
+ 
+=> we can conclude that participants with PMS have more stress and ruminate more.
 
-* BSRI is higher in PMS than in noPMS group
-   + no effect of testmoment on BSRI
+***
 
-### PSS: Perceived Stress Scale
+### PSS norms
 
 #### Norm Groups PSS (young) women
 
@@ -606,16 +632,11 @@ https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7680058/
 ![PSS](figures/PSS.png){width=30%}
 ![Covid Stress 2020](figures/covid_stress.png){width=80%}
 
-bij PSS:
--infographic Vanderhasselt COVID mental healt
--check of de vragen PSS zelfde zijn bij de norms voor corona zelfde vragen hebben gebruikt: zelfde soort PSS gebruikt? 
 
-### BSRI:
-Brief State RUmination Index
+### BSRI norms: 
 
 ![Marchetti et al. The Brief State Rumination Inventory (BSRI): Validation and Psychometric Evaluation](figures/BSRI.png){width=40%}
 !["Altan-Atalay et al., 2020"](figures/BSRI_norms2.png){width=50%}
-
 
 ## DASS
 
@@ -625,12 +646,11 @@ Brief State RUmination Index
 
 * DASS: 3 subscales
  + DASS_Total, DASS_Stress, DASS_Anxiety, DASS_Depression
-* effect of PMS vs no PMS
-   + no interaction Testmoment: Trait, not State
 
 #### onderzoeksvraag: PMS vs noPMS voor:
 - DASS_alle subschalen
 
+Trait, not State: we didn't look for interaction TestMoment
 
 ```{r echo=FALSE}
 ui<- fluidPage( # makes the User Interface
@@ -638,9 +658,9 @@ ui<- fluidPage( # makes the User Interface
             choices= c('DASS_Stress ~ PMS', 'DASS_Anxiety ~ PMS', 'DASS_Depression ~ PMS'),
             selected='DASS_Stress ~ PMS'), # puts the choices in the first element which is accessed via input$formula_choice
      tabsetPanel(type = "tab",
-                  tabPanel("pirateplot", plotOutput("pirateplot")),
                   tabPanel("overlap", plotOutput("raincloud")),
                  tabPanel("splitviolin", plotOutput("splitviolin")),
+                 tabPanel("pirateplot", plotOutput("pirateplot")),
                  tabPanel("AIC table", tableOutput("table")),
                  tabPanel("Anova", verbatimTextOutput("Anova")),
                  tabPanel("emmeans",verbatimTextOutput("emmeans"))
@@ -651,8 +671,7 @@ server <- function (input, output){ #we have to add this to the server
   output$pirateplot<- renderPlot({
     par(mfcol = c(1, 1))
       pirateplot(formula= input$formula_choice,data=data,
-      theme= 1,pal= "xmen",main= input$formula_choice,
-    )
+      theme= 1,pal= "xmen",main= input$formula_choice)
   }, height=800, width=1000)
 
     output$raincloud <- renderPlot({
@@ -802,9 +821,7 @@ shinyApp(ui=ui, server=server, options=list(height=1000))
 ```
 
 ### Conclusions
-* sign more stress PMS than no PMS
-* sign more anxiety PMS than no 
-* sign more depression PMS than no PMS
+* people with PMS scored higher on all 3 subscales
 
 ### Interpretation of DASS
 
@@ -855,17 +872,21 @@ mtext(paste('boxplot with outliers')) #boxplot with outliers
 
 ### IAPs images
 
-- Rating of 22 IAPS images while webcam records
-  +  two image groups (A and B), counterbalanced across TestMoment
-  + e.g. during Moment 1 a puppy, during moment 2 a different puppy.
+Now, let's look at the images the participants had to judge (while webcam records expressions). 
 
-- participants could indicate how the images scored for them on valence and arousal
+These were images from the IAPs dataset which is already been thoroughly tested and normed. 
+
+*  two image groups (A and B), counterbalanced across TestMoment
+  + e.g. during Moment 1 a puppy + a scary image, during moment 2 a different puppy, different scary image.
+  + some participants got imagegroup A on first TestMoment, others got B. 
+
+- participants could indicate how the images scored for them on valence and arousal (first two rows)
 
 ![](figures/Stimuli.png){width=40%}
 
 these already have the rt data filtered under 30 sec (outliers removed)
 
-we looked at how participants answered. 
+We looked at the images and at participants who were outliers, e.g. who rated an image negatively when everyone else rated the image positively to see if there were any trends. We removed one participant who always rated 0 or 100. 
 
 - weird answers? outliers? trends? 
 - looking for the unexpected e.g. people who hate kittens. 
@@ -961,11 +982,6 @@ pirateplot(formula=Valence ~ Order,
 
 - effects of PMS/noPMS and Testmoment on Valence and Arousal
 
-- plots
-
-- statistical analysis: sign differences? 
-
-Boxplots contain the medians, circles represent the means
 
 ```{r echo=FALSE}
 ui<- fluidPage( 
@@ -973,9 +989,9 @@ ui<- fluidPage(
             choices= c('Valence~PMS', 'Arousal~PMS', 'Valence~PMS * TestMoment', 'Arousal ~ PMS * TestMoment'),
             selected='Valence~PMS'),
     tabsetPanel(type = "tab",        
-      tabPanel("pirateplot", plotOutput("pirateplot")),
       tabPanel('overlap', plotOutput('overlap')),
       tabPanel('splitviolin', plotOutput('splitviolin')),
+      tabPanel("pirateplot", plotOutput("pirateplot")),
       tabPanel("AIC table", tableOutput("table")),
       tabPanel("Anova", verbatimTextOutput("Anova")),
       tabPanel("emmeans",verbatimTextOutput("emmeans"))
@@ -1181,12 +1197,15 @@ shinyApp(ui=ui, server=server, options= list(height=1000))
 
 ### Conclusions
 
-- sign diff for Arousal in PMS vs no PMS, also when controlled for TestMoment
+
+
+- We found that people with PMS rated the images higher on Arousal on average, but found no significant differences for Valence. When controlling for Testmoment we got the same results. 
 
 - no conclusions can be made for TestMoment: found no sign diff
 
 
 ### further data processing
+
 
 - We took the IAPs norms for Female Subjects and made a dataframe
 - the dataframe has SD and Mean for Valence/Arousal for both norms and PMS study. 
@@ -1291,9 +1310,199 @@ shinyApp(ui=ui, server=server,options= list(height=1000))
 
 ### Conclusions
 
-The data are similar to those of the norms, except for Arousal. 
+- We checked if there were differences between our study and the norms on these images in arousal and valence, and found high and significant correlations. 
+
+- We did not find much differences between the image groups A and B. 
 
 
+## Videos
+
+<!-- knitr::include_graphics(path="./Animations/Animation.gif") -->
+<!-- htmltools::tags$iframe(title = "Embedded HTML", src = "./Animations/Animation.html", height=800, width=800) -->
+
+```{r echo=FALSE}
+ui<- fluidPage( 
+      selectInput("formula_choice", label="Choose a Formula:",
+            choices= c('Valence~PMS', 'Arousal~PMS', 'Valence~PMS * TestMoment', 'Arousal ~ PMS * TestMoment'),
+            selected='Valence~PMS'),
+    tabsetPanel(type = "tab",        
+      tabPanel('overlap', plotOutput('overlap')),
+      tabPanel('splitviolin', plotOutput('splitviolin')),
+      tabPanel("pirateplot", plotOutput("pirateplot")),
+      tabPanel("AIC table", tableOutput("table")),
+      tabPanel("Anova", verbatimTextOutput("Anova")),
+      tabPanel("emmeans",verbatimTextOutput("emmeans"))
+    ))
+
+server <- function (input, output){ 
+  p_pms <-reactive({
+    p<-(p()[[3]][1]) # this gets the p-value of the first row, for PMS
+    if (p> 0.05) {''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}
+  })
+  
+  #we make a density plot of valence/arousal per stimulus.
+  output$pirateplot<- renderPlot({
+    pirateplot(
+          formula= input$formula_choice,
+          data=dataBig2,
+          theme= 1,
+          pal= "xmen",
+          main= input$formula_choice,
+        )
+  }, height=600, width= 1300)
+  
+  output$overlap <-renderPlot({
+    if (grepl('Arousal', input$formula_choice) &grepl('TestMoment', input$formula_choice)){
+      dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('PMS', 'Moment'))
+        ggplot(dataBig2, aes(x=Moment, y=Arousal, fill=PMS))+
+          geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
+          geom_boxplot(aes(x=Moment, y=Arousal, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
+          geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Arousal, group = PMS, fill= PMS), shape = 21, size=6)+
+          scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+          annotate('text', x=1, y=105, label='*', size=8)+
+          annotate('text', x=2, y=105, label='*', size=8)+
+          geom_segment(aes(x = 0.97, y = 103, xend = 1.03, yend = 103), size= 2)+
+          geom_segment(aes(x = 1.97, y = 103, xend = 2.03, yend = 103), size= 2)+
+          ggtitle('Arousal ~ PMS * TestMoment')
+        }else if (grepl('Valence', input$formula_choice) & grepl('TestMoment', input$formula_choice)){
+      dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMS', 'Moment'))
+        ggplot(dataBig2, aes(x=Moment, y=Valence, fill=PMS))+
+          geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
+          geom_boxplot(aes(x=Moment, y=Valence, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
+          geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Valence, group = PMS, fill=PMS), shape = 21, size=6)+
+          scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+          ggtitle('Valence~PMS * TestMoment')
+    }
+    else if (grepl('Arousal', input$formula_choice) & !grepl('TestMoment', input$formula_choice)){
+      dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('PMS'))
+          ggplot(dataBig2, aes(x = PMS, y = Arousal)) +
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
+            geom_boxplot(aes(x = PMS, y = Arousal, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = as.numeric(PMS), y = Arousal, fill=PMS), shape = 21, size=6)+
+            geom_segment(aes(x = 1., y = 103, xend = 2., yend = 103), size= 1.7)+
+          # annotate('text', x=1.6, y=105, label=sprintf("\n%s\n", p_pms()), size=10)+
+            annotate('text', x=1.6, y=105, label='*', size=10)+
+            scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+            ggtitle('Arousal~PMS')
+    }else {
+      dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMS'))
+          ggplot(dataBig2, aes(x = PMS, y = Valence)) +
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust= 1.5, alpha = .5, colour = NA)+
+            geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
+            geom_boxplot(aes(x = PMS, y = Valence, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = as.numeric(PMS), y = Valence, fill=PMS), shape = 21, size=6)+
+            ggtitle('Valence~PMS')
+    }
+  }, height=800)
+
+  output$splitviolin <-renderPlot({
+      if ((grepl("Arousal", input$formula_choice)==TRUE)&!(grepl("TestMoment", input$formula_choice))){
+        max_y<-max(as.integer(dataBig2$Arousal))
+        dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('PMS'))
+        ggplot(dataBig2, aes(x=1, y=Arousal, fill=PMS))+
+            geom_split_violin(adjust =1.5, alpha=.5)+
+            geom_boxplot(aes(x = 1, y = Arousal, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = 1, y = Arousal, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
+            annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+           # annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='3', size=10)+
+            geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+            ggtitle('Arousal ~ PMS')
+      }else if (grepl('Arousal', input$formula_choice)&(grepl("TestMoment", input$formula_choice))){
+        max_y <- max( as.integer(dataBig2$Arousal) )
+      dmean<-summarySE(dataBig2, measurevar='Arousal', groupvars=c('PMS', 'Moment'))
+        ggplot(dataBig2, aes(x=Moment, y=Arousal, fill=PMS))+
+            geom_split_violin(adjust =1.5, alpha=.5, colour= NA)+
+          geom_boxplot(aes(x = Moment, y = Arousal, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+          geom_point(data = dmean, aes(x = as.numeric(Moment), y = Arousal, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
+        scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+          annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='*', size=8)+
+          annotate('text', x=2, y=max_y+(max_y/10)+(max_y/100), label='*', size=8)+
+          geom_segment(aes(x = 0.955, y=(max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+max_y/10)-(max_y/80)), size= 2)+
+          geom_segment(aes(x = 1.955, y=max_y+(max_y/10)-(max_y/80), xend = 2.055, yend = max_y+(max_y/10)-(max_y/80)), size= 2)+
+          ggtitle('Arousal ~ PMS * TestMoment')
+    } else if (grepl('Valence', input$formula_choice)&(grepl("TestMoment", input$formula_choice))){
+      dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMS', 'Moment'))
+        ggplot(dataBig2, aes(x=Moment, y=Valence, fill=PMS))+
+            geom_split_violin(adjust=1.5,alpha=.5, colour=NA)+
+          geom_boxplot(aes(x = Moment, y = Valence, fill = PMS), position= position_dodge(0.2) ,outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+          geom_point(data = dmean, aes(x = as.numeric(Moment), y = Valence, group = PMS, fill = PMS), position=position_dodge(0.2), shape = 21, size=4)+
+          scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+          ggtitle('Valence ~ PMS * TestMoment')
+    } else {
+        max_y<-max(as.integer(dataBig2$Valence))
+        dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMS'))
+        ggplot(dataBig2, aes(x=1, y=Valence, fill=PMS))+
+            geom_split_violin(adjust =1.5, alpha=.5)+
+            geom_boxplot(aes(x = 1, y = Valence, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = 1, y = Valence, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
+            annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+           # annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='3', size=10)+
+            geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+            ggtitle('Valence ~ PMS')
+    }
+  }, height=700, width=1100)
+
+  
+     models <- reactive({
+        m <- c()
+        Formula <- paste0(input$formula_choice, '+ (1|Subject)')
+        tryCatch({ d0.1 <- lmer(Formula,data=dataBig2); m <- c(m, d1=d0.1)}, error=function(e){})
+        tryCatch({ d0.2 <- glmer(Formula,data=dataBig2, family = gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d1=d0.2)}, error=function(e){})
+        tryCatch({ d0.3 <- glmer(Formula,data=dataBig2, family = gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d3=d0.3)}, error=function(e){})
+        tryCatch({ d0.4 <- glmer(Formula,data=dataBig2, family = Gamma(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d4=d0.4)},error=function(e){})
+        tryCatch({ d0.5 <- glmer(Formula,data=dataBig2, family = Gamma(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d5=d0.5) }, error=function(e){})
+        tryCatch({ d0.6 <- glmer(Formula,data=dataBig2, family = Gamma(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d6=d0.6) }, error=function(e){})
+        tryCatch({ d0.7 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);models <- c(models, d7=d0.7) }, error=function(e){})
+        tryCatch({ d0.8 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d8=d0.8) }, 
+          error=function(e){})
+        tryCatch(+{ d0.9 <- glmer(Formula,data=dataBig2, family = inverse.gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);  m <- c(m, d9=d0.9) }, 
+          error=function(e){})
+        m
+        })
+  
+  output$table <-renderTable({
+    modelNames<-c()
+    tabel<-c()
+    for (i in 1:length(models())){
+      modelNames<-c(modelNames, names(models()[i]))
+      AIC<-AIC(models()[[i]])
+      tabel <- c (tabel, round(AIC))}
+      chosenModel = modelNames[which(tabel == min(tabel))]
+      tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
+      tabel
+      })
+  
+  p<-reactive({
+      tabel<-c()
+  for (i in 1:length(models())){
+      AIC<- AIC(models()[[i]])
+      tabel <- c(tabel,round(AIC))}
+  chosenModel<-models()[which(tabel == min(tabel))]
+     cat(sprintf("\nAnova\n"))
+     Anova(chosenModel[[1]])})
+
+  output$Anova <- renderPrint({p()})
+  
+  em <- reactive({
+    tabel<-c()
+    for (i in 1:length(models())){
+      AIC<- AIC(models()[[i]])
+      tabel <- c(tabel,round(AIC))}
+    chosenModel<-models()[which(tabel == min(tabel))]
+    cat(sprintf("\nemmeans of formula: %s\n", input$formula_choice))
+    if ((grepl("TestMoment", input$formula_choice)==FALSE)){
+      emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type="response")
+    }else{emmeans(chosenModel[[1]], pairwise ~ PMS*TestMoment, adjust ="fdr", type="response")}
+  })
+  
+    output$emmeans <- renderPrint({em()})
+}
+shinyApp(ui=ui, server=server, options= list(height=1000))
+```
 
 ## Descriptives
 ```{r echo=FALSE}
