@@ -480,7 +480,7 @@ server <- function (input, output){
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = PSS, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = PSS, group=PMS, fill=PMS), shape = 21, size=6)+
-            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/130), xend = 2, yend=max_y+(max_y/10)+(max_y/130)), size= 1.7)+
+            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/150), xend = 2, yend=max_y+(max_y/10)+(max_y/150)), size= 1.7)+
           annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             ggtitle('PSS~PMS')
@@ -506,7 +506,7 @@ server <- function (input, output){
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = BSRI, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = BSRI, fill=PMS), shape = 21, size=6)+
-            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/130), xend = 2, yend=max_y+(max_y/10)+(max_y/130)), size= 1.7)+
+            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/150), xend = 2, yend=max_y+(max_y/10)+(max_y/150)), size= 1.7)+
           annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/80), label=sprintf("\n%s\n", p_pms()), size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             ggtitle('BSRI~PMS')
@@ -679,7 +679,7 @@ server <- function (input, output){ #we have to add this to the server
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = DASS_Stress, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Stress, group=PMS, fill=PMS), shape = 21, size=6)+
-            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/130), xend = 2, yend=max_y+(max_y/10)+(max_y/130)), size= 1.7)+
+            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/150), xend = 2, yend=max_y+(max_y/10)+(max_y/150)), size= 1.7)+
           annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             ggtitle('DASS_Stress~PMS')
@@ -691,7 +691,7 @@ server <- function (input, output){ #we have to add this to the server
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = DASS_Anxiety, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Anxiety, group=PMS, fill=PMS), shape = 21, size=6)+
-            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/130), xend = 2, yend=max_y+(max_y/10)+(max_y/130)), size= 1.7)+
+            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/200), xend = 2, yend=max_y+(max_y/10)+(max_y/200)), size= 1.7)+
           annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             ggtitle('DASS_Anxiety~PMS')
@@ -703,7 +703,7 @@ server <- function (input, output){ #we have to add this to the server
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = DASS_Depression, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Depression, group=PMS, fill=PMS), shape = 21, size=6)+
-            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/130), xend = 2, yend=max_y+(max_y/10)+(max_y/130)), size= 1.7)+
+            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/200), xend = 2, yend=max_y+(max_y/10)+(max_y/200)), size= 1.7)+
           annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             ggtitle('DASS_Depression~PMS')
@@ -1181,7 +1181,7 @@ server <- function (input, output){
           theme_classic()+
           ggtitle("distribution Arousal in follicular vs premenstrual")
       }
-    }, height=900)
+    }, height=800, width=1200)
 
 
   
@@ -1401,7 +1401,7 @@ server <- function (input, output){
           pal= "xmen",
           main= input$formula_choice,
         )
-  }, height=600, width= 1300)
+  }, height=600, width= 1500)
   
   output$overlap <-renderPlot({
     if (grepl('Arousal', input$formula_choice) &grepl('TestMoment', input$formula_choice)){
