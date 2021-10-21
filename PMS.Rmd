@@ -306,7 +306,7 @@ ui<- fluidPage( # makes the User Interface
                  tabPanel("overlap", plotOutput("overlap")),
                  tabPanel("splitviolin", plotOutput("splitviolin")),
                  tabPanel("pirateplot", plotOutput("pirateplot")),
-                 tabPanel("TestMoment_distribution", plotOutput("raincloud2")),
+                 tabPanel("TestMoment_variance", plotOutput("raincloud2")),
                  tabPanel("AIC table", tableOutput("table")),
                  tabPanel("Anova", verbatimTextOutput("Anova")),
                  tabPanel("emmeans",verbatimTextOutput("emmeans"))
@@ -320,7 +320,8 @@ server <- function (input, output){
       formula= input$formula_choice,
       data=data,
       theme= 3,
-      pal= "xmen",
+      pal= "google",
+      bean.f.o=0.5,
       main= 'PSS~ PMS*TestMoment',
       xlab=" TestMoment" )
     }, height= 800)
@@ -370,12 +371,12 @@ server <- function (input, output){
           jit_distance=0.09,jit_seed=321)
        raincloud_1x1_repmes(
           data= df,
-          colors= (c('dodgerblue', 'darkorange')),
-          fills= (c('dodgerblue', 'darkorange')),
+          colors= (c('#00CCCC', '#FF9999')),
+          fills= (c('#00CCCC', '#FF9999')),
           line_color="gray",
            line_alpha=.2,
           size=1,
-          alpha= .6)+
+          alpha= .5)+
           scale_x_continuous (breaks=c(1,2), labels=c("follicular", "premenstrual"), limits=c(0,3))+
           xlab("TestMoment")+
           ylab("PSS")+
@@ -391,12 +392,12 @@ server <- function (input, output){
           jit_distance=0.09, jit_seed=321)
         raincloud_1x1_repmes(
           data= df,
-          colors= (c('dodgerblue', 'darkorange')),
-          fills= (c('dodgerblue', 'darkorange')),
+          colors= (c('#00CCCC', '#FF9999')),
+          fills= (c('#00CCCC', '#FF9999')),
           line_color="gray",
           line_alpha=.2,
           size=1,
-          alpha= .6)+
+          alpha= .5)+
           scale_x_continuous (breaks=c(1,2), labels=c("follicular", "premenstrual"), limits=c(0,3))+
           xlab("TestMoment")+
           ylab("BSRI")+
@@ -411,7 +412,7 @@ server <- function (input, output){
         max_y<-max(as.integer(data$PSS))
         dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS'))
         ggplot(data, aes(x=1, y=PSS, fill=PMS))+
-            geom_split_violin(adjust =1.5, alpha=.5)+
+            geom_split_violin(adjust =1.5, alpha=.5, colour= NA)+
             geom_boxplot(aes(x = 1, y = PSS, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = 1, y = PSS, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
             annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
@@ -447,12 +448,12 @@ server <- function (input, output){
         geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
           geom_segment(aes(x = 1.05, y = (max_y+(max_y/10)-(max_y/15)), xend = 2.05, yend = (max_y+(max_y/10)-(max_y/15))), size= 2)+
           annotate('text', x=1.5, y=(max_y+(max_y/10)-(max_y/20)), label='***', size=8)+
-        ggtitle('PSS ~ PMS * TestMoment')
+        ggtitle('BSRI ~ PMS * TestMoment')
     } else {
       max_y<-max(as.integer(data$BSRI))
       dmean<-summarySE(data, measurevar="BSRI", groupvars=c('PMS'))
       ggplot(data, aes(x=1, y=BSRI, fill=PMS))+
-          geom_split_violin(adjust =1.5, alpha=.5)+
+          geom_split_violin(adjust =1.5, alpha=.5, colour= NA)+
           geom_boxplot(aes(x = 1, y = BSRI, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
           geom_point(data = dmean, aes(x = 1, y = BSRI, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
           annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
@@ -470,8 +471,8 @@ server <- function (input, output){
             geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
             geom_boxplot(aes(x=Moment, y=PSS, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
             geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = PSS, group = PMS, fill= PMS), shape = 21, size=6)+
-                annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='***', size=8)+
-      annotate('text', x=2, y=max_y+(max_y/10)+(max_y/100), label='***', size=8)+
+                annotate('text', x=1, y=max_y+(max_y/10)+(max_y/130), label='***', size=8)+
+      annotate('text', x=2, y=max_y+(max_y/10)+(max_y/130), label='***', size=8)+
       geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
       geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
           geom_segment(aes(x = 1.05, y = (max_y+(max_y/10)-(max_y/15)), xend = 2.05, yend = (max_y+(max_y/10)-(max_y/15))), size= 2)+
@@ -487,7 +488,7 @@ server <- function (input, output){
             geom_boxplot(aes(x = PMS, y = PSS, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = PSS, group=PMS, fill=PMS), shape = 21, size=6)+
             geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/150), xend = 2, yend=max_y+(max_y/10)+(max_y/150)), size= 1.7)+
-          annotate('text', x=1.5, y=max_y+(max_y/10)+(max_y/90), label=sprintf("\n%s\n", p_pms()), size=10)+
+          annotate('text', x=1.5, y=max_y+(max_y/10)+(max_y/50), label=sprintf("\n%s\n", p_pms()), size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             ggtitle('PSS~PMS')
     }
@@ -516,7 +517,7 @@ server <- function (input, output){
             geom_boxplot(aes(x = PMS, y = BSRI, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = BSRI, fill=PMS), shape = 21, size=6)+
             geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/150), xend = 2, yend=max_y+(max_y/10)+(max_y/150)), size= 1.7)+
-          annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/80), label=sprintf("\n%s\n", p_pms()), size=10)+
+          annotate('text', x=1.5, y=max_y+(max_y/10)+(max_y/60), label=sprintf("\n%s\n", p_pms()), size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             ggtitle('BSRI~PMS')
         }
@@ -587,40 +588,38 @@ shinyApp(ui=ui, server=server, options=list(height=1200, width=1200))
 ### conclusions
 
 * PSS
- + when we look at PSS we can see sign effect (with alpha= 0.05) of PMS, even when we control for TestMoment.
- + we found no significant effect for TestMoment itself. 
+  + when we look at PSS we can see sign effect (with alpha= 0.05) of PMS, even when we control for TestMoment.
+  + we also have a significant difference between PMS in the follicular and the premenstrual/luteal phase, with the premenstrual phase having a higher level of PSS.
+  + this effect is not found for the noPMS group. 
  
 * BSRI
- + same
+  + same
  
 => we can conclude that participants with PMS have more stress and ruminate more.
 
 ***
 
-### PSS norms
+### PSS interpretation
 
 #### Norm Groups PSS (young) women
 
-```{r echo=FALSE}
-meanPSS<-mean(data$PSS)
-maxPSS<-max(data$PSS)
-minPSS<-min(data$PSS)
-```
-
 Women have on average higher stress scales. 
 
-Perceived Stress Scale Sheldon Cohen
-women: mean=13.7, SD:6.6
-men: mean:12.1, SD: 5.9
-age 18-29: 14.2, SD: 6.2
-30-44: 13, 6.2
-45-54: 12.6, 6.1
+**Perceived Stress Scale Sheldon Cohen** 
 
-KIJK of we zelfde PSS items gebruiken
+| |**mean**|**SD**|
+|:-|:-|:-|
+|  **Women:**|13.7|6.6|
+| **Men:** |12.1|5.9|
+| **18-29**|14.2|6.2
+| **30-44**  |13|6.2|
+| **45-54**  |12.6|6.1|
 
-https://bmcpsychiatry.biomedcentral.com/articles/10.1186/s12888-016-0875-9/tables/6
-women age 20-29: Mn=8.2, SD= 4.6
-women age 40-40: Mn=7.6, SD= 4.2
+13.7 is average for women. 
+
+Scores of 20/ higher are considered high stress. 
+
+We can see that with our noPMS group, the average is around 15, where the average for the PMS group is around 18. This is higher than the typical average, but considering this study was conducted in the middle of a worldwide pandemic, this might make more sense. We will conduct additional analyses to see what the effect of time was. March-may and nov-dec especially contrasted to the rest of the time (lockdown vs no lockdown)
 
 https://www.frontiersin.org/files/Articles/558691/fpsyt-11-558691-HTML/image_m/fpsyt-11-558691-t003.jpg
 
@@ -640,6 +639,8 @@ https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7680058/
 
 ![Marchetti et al. The Brief State Rumination Inventory (BSRI): Validation and Psychometric Evaluation](figures/BSRI.png){width=40%}
 !["Altan-Atalay et al., 2020"](figures/BSRI_norms2.png){width=50%}
+
+Our BSRI scores were also higher than during non-covid times.
 
 ## DASS
 
@@ -740,10 +741,10 @@ server <- function (input, output){ #we have to add this to the server
         max_y<-max(as.integer(data$DASS_Stress))
         dmean<-summarySE(data, measurevar="DASS_Stress", groupvars=c('PMS'))
          ggplot(data, aes(x=1, y=DASS_Stress, fill=PMS))+
-            geom_split_violin(adjust =1.5, alpha=.5)+
+            geom_split_violin(adjust =1.5, alpha=.5, colour=NA)+
             geom_boxplot(aes(x = 1, y = DASS_Stress, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = 1, y = DASS_Stress, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
-            annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+            annotate('text', x=0.9, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
            # annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='3', size=10)+
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
             ggtitle('DASS_Stress ~ PMS')
@@ -751,19 +752,19 @@ server <- function (input, output){ #we have to add this to the server
         max_y<-max(as.integer(data$DASS_Anxiety))
         dmean<-summarySE(data, measurevar="DASS_Anxiety", groupvars=c('PMS'))
          ggplot(data, aes(x=1, y=DASS_Anxiety, fill=PMS))+
-            geom_split_violin(adjust =1.5, alpha=.5)+
+            geom_split_violin(adjust =1.5, alpha=.5, colour=NA)+
             geom_boxplot(aes(x = 1, y = DASS_Anxiety, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = 1, y = DASS_Anxiety, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
-            annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+            annotate('text', x=0.9, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
            ggtitle('DASS_Anxiety ~ PMS')
       } else {max_y<-max(as.integer(data$DASS_Depression))
         dmean<-summarySE(data, measurevar="DASS_Depression", groupvars=c('PMS'))
          ggplot(data, aes(x=1, y=DASS_Depression, fill=PMS))+
-            geom_split_violin(adjust =1.5, alpha=.5)+
+            geom_split_violin(adjust =1.5, alpha=.5, colour=NA)+
             geom_boxplot(aes(x = 1, y = DASS_Depression, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = 1, y = DASS_Depression, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
-            annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+            annotate('text', x=0.9, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
             ggtitle('DASS_Depression ~ PMS')
       }
@@ -1097,7 +1098,7 @@ server <- function (input, output){
         max_y<-max(as.integer(dataBig2$Arousal))
         dmean<-summarySE(dataBig2, measurevar="Arousal", groupvars=c('PMS'))
         ggplot(dataBig2, aes(x=1, y=Arousal, fill=PMS))+
-            geom_split_violin(adjust =1.5, alpha=.5)+
+            geom_split_violin(adjust =1.5, alpha=.5, colour=NA)+
             geom_boxplot(aes(x = 1, y = Arousal, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = 1, y = Arousal, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
             annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
@@ -1129,12 +1130,12 @@ server <- function (input, output){
         max_y<-max(as.integer(dataBig2$Valence))
         dmean<-summarySE(dataBig2, measurevar="Valence", groupvars=c('PMS'))
         ggplot(dataBig2, aes(x=1, y=Valence, fill=PMS))+
-            geom_split_violin(adjust =1.5, alpha=.5)+
+            geom_split_violin(adjust =1.5, alpha=.5, colour=NA)+
             geom_boxplot(aes(x = 1, y = Valence, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = 1, y = Valence, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
             annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
            # annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='3', size=10)+
-            geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+            # geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
             ggtitle('Valence ~ PMS')
     }
   }, height=700, width=1100)
@@ -1156,12 +1157,13 @@ server <- function (input, output){
           jit_distance=0.09,jit_seed=321)
        raincloud_1x1_repmes(
           data= df,
-          colors= (c('dodgerblue', 'darkorange')),
-          fills= (c('dodgerblue', 'darkorange')),
+          colors= (c('#00CCCC', '#FF9999')),
+          fills= (c('#00CCCC', '#FF9999')),
+          line_color="gray",
           line_color="gray",
            line_alpha=.2,
           size=1,
-          alpha= .6)+
+          alpha= .5)+
           scale_x_continuous (breaks=c(1,2), labels=c("follicular", "premenstrual"), limits=c(0,3))+
           xlab("TestMoment")+ylab("Valence")+
           theme_classic()+
@@ -1176,12 +1178,13 @@ server <- function (input, output){
           jit_distance=0.09, jit_seed=321)
         raincloud_1x1_repmes(
           data= df,
-          colors= (c('dodgerblue', 'darkorange')),
-          fills= (c('dodgerblue', 'darkorange')),
+          colors= (c('#00CCCC', '#FF9999')),
+          fills= (c('#00CCCC', '#FF9999')),
+          line_color="gray",
           line_color="gray",
           line_alpha=.2,
           size=1,
-          alpha= .6)+
+          alpha= .5)+
           scale_x_continuous (breaks=c(1,2), labels=c("follicular", "premenstrual"), limits=c(0,3))+
           xlab("TestMoment")+
           ylab("Arousal")+
