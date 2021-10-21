@@ -71,12 +71,12 @@ vpn = 1 # Set to 1 if using VPN
 # work_dir<-"Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\RMarkdown\\Data\\"
 # setwd(work_dir)
 #setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-if (vpn == 1){Dir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\RMarkdown\\" #data from VPN folder
+if (vpn == 1){Dir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\" #data from VPN folder
 } else {Dir = "C:\\Users\\ASUSTeK\\OneDrive\\DocumentenGitHub\\internship_sofie\\" #data from github dir
 }
 setwd(Dir)
-data <- read.csv(paste0(Dir,"Data\\allPMSData.csv"), header=TRUE, sep=) #upload data
-norms <-read.table(paste0(Dir,"Data\\FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE) #upload norms IAPs images
+data <- read.csv(paste0(Dir,"06102021\\allPMSData.csv"), header=TRUE, sep=) #upload data
+norms <-read.table(paste0(Dir,"\\RMarkdown\\Data\\FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE) #upload norms IAPs images
 
 #we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
 #These moments were counterbalanced. when the order was B-A and the moment is B, this means it is the first test moment, and vice versa for A-B and moment A. 
@@ -325,13 +325,6 @@ server <- function (input, output){
       xlab=" TestMoment" )
     }, height= 800)
   
-    p_pms <-reactive({
-    p<-(p()[[3]][1]) # this gets the p-value of the first row, for PMS
-    if (p> 0.05) {star=''
-    }else if (p<0.0005){'***'
-    }else if (p<0.005){'**'
-    }else if (p<0.05) {'*'}})
-  
   p<-reactive({
         tabel<-c()
     for (i in 1:length(models())){
@@ -341,6 +334,13 @@ server <- function (input, output){
        Anova_1 <- Anova(chosenModel[[1]])
        cat(sprintf("\nAnova\n"))
        Anova_1 })
+  
+  p_pms <-reactive({
+    p<-(p()[[3]][1]) # this gets the p-value of the first row, for PMS
+    if (p> 0.05) {star=''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}})
 
   #https://wellcomeopenresearch.org/articles/4-63   some info on rainclouds
       # https://www.rpubs.com/jenrichmond/W6LL  here some info on the following plot
@@ -426,10 +426,12 @@ server <- function (input, output){
             geom_boxplot(aes(x = Moment, y = PSS, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
           scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-            annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='*', size=8)+
-            annotate('text', x=2, y=max_y+(max_y/10)+(max_y/100), label='*', size=8)+
+            annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='***', size=8)+
+            annotate('text', x=2, y=max_y+(max_y/10)+(max_y/100), label='***', size=8)+
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
             geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+          geom_segment(aes(x = 1.05, y = (max_y+(max_y/10)-(max_y/15)), xend = 2.05, yend = (max_y+(max_y/10)-(max_y/15))), size= 2)+
+          annotate('text', x=1.5, y=(max_y+(max_y/10)-(max_y/20)), label='***', size=8)+
             ggtitle('PSS ~ PMS * TestMoment')
     } else if (grepl('BSRI', input$formula_choice)&(grepl("TestMoment", input$formula_choice))){
       max_y<-max(as.integer(data$BSRI))
@@ -439,10 +441,12 @@ server <- function (input, output){
         geom_boxplot(aes(x = Moment, y = BSRI, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
         geom_point(data = dmean, aes(x = as.numeric(Moment), y = BSRI, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
       scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-        annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='*', size=8)+
-        annotate('text', x=2, y=max_y+(max_y/10)+(max_y/100), label='**', size=8)+
+        annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='**', size=8)+
+        annotate('text', x=2, y=max_y+(max_y/10)+(max_y/100), label='***', size=8)+
         geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
         geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+          geom_segment(aes(x = 1.05, y = (max_y+(max_y/10)-(max_y/15)), xend = 2.05, yend = (max_y+(max_y/10)-(max_y/15))), size= 2)+
+          annotate('text', x=1.5, y=(max_y+(max_y/10)-(max_y/20)), label='***', size=8)+
         ggtitle('PSS ~ PMS * TestMoment')
     } else {
       max_y<-max(as.integer(data$BSRI))
@@ -466,10 +470,12 @@ server <- function (input, output){
             geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
             geom_boxplot(aes(x=Moment, y=PSS, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
             geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = PSS, group = PMS, fill= PMS), shape = 21, size=6)+
-                annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='*', size=8)+
-      annotate('text', x=2, y=max_y+(max_y/10)+(max_y/100), label='**', size=8)+
+                annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='***', size=8)+
+      annotate('text', x=2, y=max_y+(max_y/10)+(max_y/100), label='***', size=8)+
       geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
       geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+          geom_segment(aes(x = 1.05, y = (max_y+(max_y/10)-(max_y/15)), xend = 2.05, yend = (max_y+(max_y/10)-(max_y/15))), size= 2)+
+          annotate('text', x=1.5, y=(max_y+(max_y/10)-(max_y/20)), label='***', size=8)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             ggtitle('PSS ~ PMS * TestMoment')
     }else if (grepl('PSS', input$formula_choice) & !grepl('TestMoment', input$formula_choice)){
@@ -481,7 +487,7 @@ server <- function (input, output){
             geom_boxplot(aes(x = PMS, y = PSS, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = PSS, group=PMS, fill=PMS), shape = 21, size=6)+
             geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/150), xend = 2, yend=max_y+(max_y/10)+(max_y/150)), size= 1.7)+
-          annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+          annotate('text', x=1.5, y=max_y+(max_y/10)+(max_y/90), label=sprintf("\n%s\n", p_pms()), size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             ggtitle('PSS~PMS')
     }
@@ -491,12 +497,15 @@ server <- function (input, output){
         ggplot(dataBig2, aes(x=Moment, y=BSRI, fill=PMS))+
             geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
             geom_boxplot(aes(x=Moment, y=BSRI, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
-            geom_line(data=dmean, aes(x= as.numeric(Moment)+.1, y=BSRI, group=PMS, colour=PMS), size=1.5)+
+            # geom_line(data=dmean, aes(x= as.numeric(Moment)+.1, y=BSRI, group=PMS, colour=PMS), size=1.5)+
             geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = BSRI, group = PMS, fill= PMS), shape = 21, size=6)+
-                annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='*', size=8)+
-      annotate('text', x=2, y=max_y+(max_y/10)+(max_y/100), label='**', size=8)+
+                annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='**', size=8)+
+      annotate('text', x=2, y=max_y+(max_y/10)+(max_y/100), label='***', size=8)+
       geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
       geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+          
+          geom_segment(aes(x = 1.05, y = (max_y+(max_y/10)-(max_y/15)), xend = 2.05, yend = (max_y+(max_y/10)-(max_y/15))), size= 2)+
+          annotate('text', x=1.5, y=(max_y+(max_y/10)-(max_y/20)), label='***', size=8)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             ggtitle('BSRI ~ PMS * TestMoment')
     }else {max_y<-max(as.integer(data$BSRI))
@@ -516,6 +525,7 @@ server <- function (input, output){
      models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
         m <- c()
         Formula <- paste0(input$formula_choice, '+ (1|Subject)')
+        # Formula <- PSS ~ PMS * TestMoment+ (1|Subject)
         tryCatch({ d0.1 <- lmer(Formula,data=data); # if this formula works
           m <- c(m, d1=d0.1)}, #we add this
           error=function(e){})
@@ -554,23 +564,20 @@ server <- function (input, output){
   output$Anova <- renderPrint({
        cat(sprintf("\nAnova\n"))
        p()})
-  
-output$emmeans <- renderPrint({
-  tabel<-c()
-  for (i in 1:length(models())){
+
+  em <- reactive({
+    tabel<-c()
+    for (i in 1:length(models())){
       AIC<- AIC(models()[[i]])
       tabel <- c(tabel,round(AIC))}
-  chosenModel<-models()[which(tabel == min(tabel))]
-    cat(sprintf("\n formula: %s\n", input$formula_choice))
+    chosenModel<-models()[which(tabel == min(tabel))]
+    cat(sprintf("\nemmeans of formula: %s\n", input$formula_choice))
     if ((grepl("TestMoment", input$formula_choice)==FALSE)){
-      cat(sprintf("\n~ PMS\n"))
-      Emm <- emmeans(chosenModel[[1]], pairwise ~ TestMoment, adjust ="fdr", type="response")
-      print(Emm)}
-    if (grepl("TestMoment", input$formula_choice)){
-      cat(sprintf("\n~ PMS*TestMoment\n"))
-      Emm <- emmeans(chosenModel[[1]], pairwise ~ PMS*TestMoment, adjust ="fdr", type="response")
-      print(Emm)}
+      emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type="response")
+    }else{emmeans(chosenModel[[1]], pairwise ~ PMS*TestMoment, adjust ="fdr", type="response")}
   })
+  
+  output$emmeans <- renderPrint({em()})
 
 }
 shinyApp(ui=ui, server=server, options=list(height=1200, width=1200))
