@@ -3,7 +3,9 @@ title: "PMS STUDY"
 author: "Mitchel Kappen & Sofie Raeymakers"
 date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
 runtime: shiny
-output: html_document
+output: 
+  html_document:
+    keep_md: yes
 ---
 <style type="text/css">
 .main-container {
@@ -13,7 +15,10 @@ output: html_document
 }
 </style>
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(dev = "png",
+                      fig.path='Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\figures\\',
+                      dpi = 300,
+                      cache = FALSE)
 ```
 # A Data Analysis Report {.tabset}
 
@@ -124,14 +129,16 @@ data_out<-data #the data with the rt outliers
 data <- subset(data, rt < 30)#Dit zijn de data waar de rt outliers uitgehaald zijn! 
 
 datafaces<-data
+datafaces<- subset(datafaces,  select= -c(PD_Mean, PD_Std, PD_Max, Exclusie))
 
 # REMOVE CONFIDENCE UNDER 95
 # datafaces<-subset(data, confidence >.95)#only take data where confidence is bigger than 95
 
 #remove datafaces with NA varaibles
-datafaces<-na.omit(datafaces)
+# datafaces<-na.omit(datafaces)
 
-datafaces$VideoValence= datafaces$AU12 - datafaces$AU15
+datafaces$VideoValence <-data$happy
+
 
 #dataframe with the norms for the stimuli (IAPs images)
 norms$IAPS <-round(norms$IAPS)
@@ -316,7 +323,7 @@ Then we did Anova and contrasts of means.
 
 Boxplots contain the medians, circles represent the means
 
-```{r echo=FALSE}
+```{r PSS&BSRI, echo=FALSE, cache=FALSE}
 ui<- fluidPage( # makes the User Interface
     selectInput("formula_choice", label="Choose a Formula:",
             choices= c('PSS ~ PMS', 'BSRI ~ PMS', 'PSS~ PMS*TestMoment', 'BSRI ~PMS*TestMoment'),
@@ -676,7 +683,7 @@ Our BSRI scores were also higher than during non-covid times.
 
 Trait, not State: we didn't look for interaction TestMoment
 
-```{r echo=FALSE}
+```{r DASS, echo=FALSE}
 ui<- fluidPage( # makes the User Interface
     selectInput("formula_choice", label="Choose a Subscale:",
             choices= c('DASS_Stress ~ PMS', 'DASS_Anxiety ~ PMS', 'DASS_Depression ~ PMS'),
@@ -855,7 +862,7 @@ shinyApp(ui=ui, server=server, options=list(height=1000))
 
 we plot the reaction times to find the outliers and filter the data
 
-```{r, echo=FALSE}
+```{r RTs, echo=FALSE}
 #plot reaction times with raincloudplot
 d<-melt(data.frame(rt=c(data_out$rt))) # we melt to wide format 
 ggplot(d, aes(x = variable, y = value, fill=variable))+
@@ -917,7 +924,7 @@ We looked at the images and at participants who were outliers, e.g. who rated an
 
 the numbers are those of the IAPs index. 
 
-```{r echo=FALSE}
+```{r Stimuli, echo=FALSE}
 # unique<-sort(unique(data$Stimulus), decreasing=FALSE) #find all the stimuli
 # we maken een density plotvoor zowel valence als arousal voor elke stimulus (2x22)
 ui<- fluidPage( 
@@ -1007,7 +1014,7 @@ As you can see, there isn't much difference depending on the order.
 - effects of PMS/noPMS and Testmoment on Valence and Arousal
 
 
-```{r echo=FALSE}
+```{r ValenceArousal, echo=FALSE}
 ui<- fluidPage( 
       selectInput("formula_choice", label="Choose a Formula:",
             choices= c('Valence~PMS', 'Arousal~PMS', 'Valence~PMS * TestMoment', 'Arousal ~ PMS * TestMoment'),
@@ -1295,7 +1302,7 @@ shinyApp(ui=ui, server=server, options= list(height=1000))
   
 - the last plot shows Image Group A vs B (matched images) in PMS vs norms
 
-```{r echo=FALSE}
+```{r VACorrelations, echo=FALSE}
 ui<- fluidPage( 
     radioButtons("choice", label="choose",
             choices= c('Valence mean', 'Valence SD', 'Arousal mean', 'Arousal SD'), inline=TRUE,
@@ -1398,6 +1405,46 @@ shinyApp(ui=ui, server=server,options= list(height=1000))
 
 **TO DO**
 
+- zet tilia liese marie-anne en steven weyers op de pp! 
+
+- 3 testmomenten: intake/screening, tesmoment 1 en 2 (herlees Tilias masterproef: methode en stappen). tijdens screening sociaal demografische gegevens+ trait questionnairs DASS 
+
+- tussenhoofdstukje: methode. meer ingaan op bv ruminatie. overzichtje van alle vragenlijsten en mss voorbeeld v hoe trial eruit ziet: afbeelding, reactie. technische info: hoeveel seconden, welke dingen allemaal beoordelen, (valence arousal)
+
+-EINDIG met DASS: trait stress anxiety depression is higher: universal PMS vs noPMS
+-plots op slides over heen typen titels moment etc
+
+-maak aparte slides van de correlaties want nu te klein!
+
+- zet statistieken erbij: grootte p (zoek op laatste publicatie Mitchel/jens wat gerapporteerd en uitlezen uit emmeans/anovatabellen)
+
+-opslaan Rmd files png automatisch! 
+
+hoofdstukjes: stress, vragenlijsten voor stress/ resultaten stress
+
+slide voor de plots met descriptives: hoeveel data , n participanten, alpha
+bij gezichtenn: meld dat minder data! 
+ 
+- oefen presentatie: welke info nodig om resultaten te begrijpen
+
+- betere bronvermelding PSST (v pp Mitchel/tilia masterproef/liese)
+
+- deze tool is gematched met diagnose die doktoren wel kunen geven en prevalenties in die groepen kwamen overeen: meest betrouwb screeningstool die er op deze moment is. 
+
+- ondersch: geen tot weinig, mild tot sterk en ernstige klachten. laatste twee samen. PMDD kan enkel psychiater vaststellen. 
+
+-bij testmoments: zet afb nog eens bij 
+-pp emotiµes: im^plicit= sliders explicit= emotional expressions
+
+- maak PMDD minder centraal!! das psychiatrische aandoening, niet noemen. enkel noemen ifv dat het meer aandacht krijgt nu sinds opgenomen in DSM: meer erkenning voor PMS klachten ; zoals bij veel dingen DSM versie prevalentie vrij laag  maar veel vrouwen hebben evengoed symptomen, 20-30 sprake van PMS (geen officiele diagnose moeilijk af te kaderen)
+
+- gebruik andere afbeelding v helloclue
+
+- zet N op de corr
+
+- doe valence en arousal!  plot? per groep? 
+
+
 - er komt een kolom 'confidence' en bv only use facial data when >.95
 
 - change videovalence to happy
@@ -1421,9 +1468,9 @@ shinyApp(ui=ui, server=server,options= list(height=1000))
 | **anger** | Brow Lowerer, Upper LId Raiser, Lid Tightener, Lip Tigheter | ![](https://media.imotions.com/images/20190411123352/AU4-brow-lowerer.gif){width=20%}![](https://media.imotions.com/images/20190411123322/AU5-upper-lid-raiser.gif){width=20%}![](https://media.imotions.com/images/20190411123350/AU7-lid-tightener.gif){width=20%}![](https://media.imotions.com/images/20190411123341/AU23-lip-tightener.gif){width=20%} |
 | **scared** |  Inner Brow Raiser, Outer Brow Raiser, Brow Lowerer, Upper Lid Raiser, Lid Tightener, Lip Stretcher, Jaw Drop | ![](https://media.imotions.com/images/20190411123323/AU1-inner-brow-raiser.gif){width=20%}![](https://media.imotions.com/images/20190411123322/AU2-outer-brow-raiser.gif){width=20%}![](https://media.imotions.com/images/20190411123352/AU4-brow-lowerer.gif){width=20%}![](https://media.imotions.com/images/20190411123322/AU5-upper-lid-raiser.gif){width=20%}![](https://media.imotions.com/images/20190411123350/AU7-lid-tightener.gif){width=20%}![](https://media.imotions.com/images/20190411123343/AU20-lip-stretcher.gif){width=20%}![](https://media.imotions.com/images/20190411123321/AU26-jaw-drop.gif){width=20%} |
 
-**ValenceVideo= AU12-AU15!**
+**ValenceVideo= happyness**
 
-```{r echo=FALSE}
+```{r stimulivideo, echo=FALSE}
 ui<- fluidPage( 
     radioButtons("stimulus", label="Choose a Stimulus:",
             choices= c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '9320', '9584', '9592', '9594', '9600', '9911', '9920', '9921'), inline=TRUE,
@@ -1434,6 +1481,7 @@ ui<- fluidPage(
       tabPanel("ValenceCorrelation", plotOutput("ValenceCorrelation")),
       tabPanel("ArousalVideo", plotOutput("ArousalVideo")),
       tabPanel("ArousalCorrelation", plotOutput("ArousalCorrelation")),
+      tabPanel("overlap", plotOutput("overlap")),
       tabPanel("photo", plotOutput("photo"))
     )
 )
@@ -1450,8 +1498,10 @@ server <- function (input, output){
                          scared=c(datafaces$scared[datafaces$Stimulus==input$stimulus])
                          ))
       
-            d<-melt(data.frame(AU12=c(datafaces$AU12[datafaces$Stimulus==1440])
-                         ))
+            # d<-melt(data.frame(AU12=c(datafaces$AU12[datafaces$Stimulus==1440]),
+            #                AU15=c(datafaces$AU15[datafaces$Stimulus==1440]),
+            #              happy=c(datafaces$happy[datafaces$Stimulus==1440])    
+            #              ))
       
 
       pirateplot(formula=value~variable,
@@ -1461,7 +1511,8 @@ server <- function (input, output){
       }, height=1000, width=1500)
   
     output$ValenceVideo<- renderPlot({
-    d<-melt(data.frame(Valence=c((datafaces$AU12[datafaces$Stimulus==input$stimulus])-datafaces$AU15[datafaces$Stimulus==input$stimulus])))
+    # d<-melt(data.frame(Valence=c((datafaces$AU12[datafaces$Stimulus==input$stimulus])-datafaces$AU15[datafaces$Stimulus==input$stimulus])))
+      d<-melt(data.frame(Valence=c((datafaces$happy[datafaces$Stimulus==input$stimulus]))))
     pirateplot(formula=value~variable,
       data=d,
       main= input$stimulus, pal='xmen',)
@@ -1469,24 +1520,187 @@ server <- function (input, output){
     
     output$ValenceCorrelation<- renderPlot({
       NAs<-sum(is.na(datafaces$AU12))
-      n<-length(datafaces$AU12-length(NAs))
-      ggscatter(datafaces, x = "Valence", y = "VideoValence", 
+      datapoints<-length(datafaces$AU12-length(NAs))
+      n<- length(unique(datafaces$ID))
+      ggscatter(datafaces, x = "Valence", y = "happy", 
       add = "reg.line", conf.int = TRUE, 
+      xlab='Valence', ylab='VideoValence',
       cor.coef = TRUE, cor.method = "pearson",
-      title=sprintf("\ndatapoints: %s\n", n))# NAs in AU12 & AU15
+      title=sprintf("\ndatapoints: %s, n: %s\n", datapoints, n))# NAs in AU12 & AU15
       # geom_segment(aes(x = 0, y = 0, xend = 100, yend = 2), size= 1, colour='red')
       # library('ggpubr')
       # ggqqplot(datafaces$AU12)
     }, height=1000, width=1500)
-  
-  output$photo <- renderImage({
-    list(src=str_glue("Z:/shares/ghep_lab/ImageDatabases/IAPS/{input$stimulus}.jpg"),
-         filetype="image/jpeg",width=800,height=600)})
-  }
-
+    
+    output$ArousalVideo<- renderPlot({
+      d<-melt(data.frame(Arousal=c((datafaces$arousal[datafaces$Stimulus==input$stimulus]))))
+    pirateplot(formula=value~variable,
+      data=d,
+      main= input$stimulus, pal='xmen',)
+    }, height=700, width= 1000)
+        
+  output$ArousalCorrelation<- renderPlot({
+      NAs<-sum(is.na(datafaces$AU12))
+      datapoints<-length(datafaces$AU12-length(NAs))
+      n<- length(unique(datafaces$ID))
+      ggscatter(datafaces, x = "Arousal", y = "arousal", 
+      add = "reg.line", conf.int = TRUE, 
+      xlab='Arousal', ylab='VideoArousal',
+      cor.coef = TRUE, cor.method = "pearson",
+      title=sprintf("\ndatapoints: %s, n: %s\n", datapoints, n))# NAs in AU12 & AU15
+      # geom_segment(aes(x = 0, y = 0, xend = 100, yend = 2), size= 1, colour='red')
+      # library('ggpubr')
+      # ggqqplot(datafaces$AU12)
+    }, height=1000, width=1500)
+}
 shinyApp(ui=ui, server=server, options= list(height=1200))
 ```
-```{r, echo=FALSE}
+
+
+
+```{r videoValenceArousal, echo=FALSE}
+ui<- fluidPage( 
+      selectInput("formula_choice", label="Choose a Formula:",
+            choices= c('VideoValence~PMS', 'arousal~PMS', 'VideoValence~PMS * TestMoment', 'arousal ~ PMS * TestMoment'),
+            selected='VideoValence~PMS'),
+    tabsetPanel(type = "tab",        
+      tabPanel('overlap', plotOutput('overlap')),
+      tabPanel("pirateplot", plotOutput("pirateplot")),
+      tabPanel("AIC table", tableOutput("table")),
+      tabPanel("Anova", verbatimTextOutput("Anova")),
+      tabPanel("emmeans",verbatimTextOutput("emmeans"))
+    )
+)
+
+server <- function (input, output){ 
+  p_pms <-reactive({
+    p<-(p()[[3]][1]) # this gets the p-value of the first row, for PMS
+    if (p> 0.05) {''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}
+  })
+  
+  #we make a density plot of VideoValence/arousall per stimulus.
+  output$pirateplot<- renderPlot({
+    pirateplot(
+          formula= input$formula_choice,
+          data=datafaces,
+          theme= 1,
+          pal= "xmen",
+          main= input$formula_choice,
+        )
+  }, height=600, width= 1100)
+  
+  output$overlap <-renderPlot({
+    if (grepl('arousal', input$formula_choice) &grepl('TestMoment', input$formula_choice)){
+      dmean<-summarySE(datafaces, measurevar='arousal', groupvars=c('Moment', 'PMS'),na.rm=TRUE)
+        ggplot(datafaces, aes(x=Moment, y=arousal, fill=PMS))+
+          geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
+          geom_boxplot(aes(x=Moment, y=arousal, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
+          geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = arousal, group = PMS, fill= PMS), shape = 21, size=6)+
+          xlim(-1, 2)+
+          scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+          # annotate('text', x=1, y=105, label='*', size=8)+
+          # annotate('text', x=2, y=105, label='*', size=8)+
+          # geom_segment(aes(x = 0.97, y = 103, xend = 1.03, yend = 103), size= 2)+
+          # geom_segment(aes(x = 1.97, y = 103, xend = 2.03, yend = 103), size= 2)+
+          ggtitle('arousal ~ PMS * TestMoment')
+        }else if (grepl('VideoValence', input$formula_choice) & grepl('TestMoment', input$formula_choice)){
+      dmean<-summarySE(datafaces, measurevar='VideoValence', groupvars=c('Moment', 'PMS'), na.rm=TRUE)
+        ggplot(datafaces, aes(x=Moment, y=VideoValence, fill=PMS))+
+          geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
+          geom_boxplot(aes(x=Moment, y=VideoValence, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
+          geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = VideoValence, group = PMS, fill=PMS), shape = 21, size=6)+
+          scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+          ggtitle('VideoValence~PMS * TestMoment')
+    }
+    else if (grepl('arousal', input$formula_choice) & !grepl('TestMoment', input$formula_choice)){
+      dmean<-summarySE(datafaces, measurevar="arousal", groupvars=c('PMS'),na.rm=TRUE)
+          ggplot(datafaces, aes(x = PMS, y = arousal)) +
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
+            geom_boxplot(aes(x = PMS, y = arousal, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = as.numeric(PMS), y = arousal, fill=PMS), shape = 21, size=6)+
+          #   geom_segment(aes(x = 1., y = 103, xend = 2., yend = 103), size= 1.7)+
+          # # annotate('text', x=1.6, y=105, label=sprintf("\n%s\n", p_pms()), size=10)+
+          #   annotate('text', x=1.6, y=105, label='*', size=10)+
+            scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+            ggtitle('arousal~PMS')
+    }else {
+      dmean<-summarySE(datafaces, measurevar="VideoValence", groupvars=c('PMS'),na.rm=TRUE)
+          ggplot(datafaces, aes(x = PMS, y = VideoValence)) +
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust= 1.5, alpha = .5, colour = NA)+
+            geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
+            geom_boxplot(aes(x = PMS, y = VideoValence, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = as.numeric(PMS), y = VideoValence, fill=PMS), shape = 21, size=6)+
+            ggtitle('VideoValence~PMS')
+    }
+  }, height=700, width=1100)
+
+  
+
+
+  
+     models <- reactive({
+        m <- c()
+        Formula <- paste0(input$formula_choice, '+ (1|Subject)')
+        tryCatch({ d0.1 <- lmer(Formula,data=data); m <- c(m, d1=d0.1)}, error=function(e){})
+        tryCatch({ d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d1=d0.2)}, error=function(e){})
+        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d3=d0.3)}, error=function(e){})
+        tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d4=d0.4)},error=function(e){})
+        tryCatch({ d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d5=d0.5) }, error=function(e){})
+        tryCatch({ d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d6=d0.6) }, error=function(e){})
+        tryCatch({ d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);models <- c(models, d7=d0.7) }, error=function(e){})
+        tryCatch({ d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d8=d0.8) }, 
+          error=function(e){})
+        tryCatch(+{ d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);  m <- c(m, d9=d0.9) }, 
+          error=function(e){})
+        m
+     })
+  
+  output$table <-renderTable({
+    modelNames<-c()
+    tabel<-c()
+    for (i in 1:length(models())){
+      modelNames<-c(modelNames, names(models()[i]))
+      AIC<-AIC(models()[[i]])
+      tabel <- c (tabel, round(AIC))}
+      chosenModel = modelNames[which(tabel == min(tabel))]
+      tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
+      tabel
+  })
+  
+  p<-reactive({
+      tabel<-c()
+  for (i in 1:length(models())){
+      AIC<- AIC(models()[[i]])
+      tabel <- c(tabel,round(AIC))}
+  chosenModel<-models()[which(tabel == min(tabel))]
+     cat(sprintf("\nAnova\n"))
+     Anova(chosenModel[[1]])})
+
+  output$Anova <- renderPrint({p()})
+  
+  em <- reactive({
+    tabel<-c()
+    for (i in 1:length(models())){
+      AIC<- AIC(models()[[i]])
+      tabel <- c(tabel,round(AIC))}
+    chosenModel<-models()[which(tabel == min(tabel))]
+    cat(sprintf("\nemmeans of formula: %s\n", input$formula_choice))
+    if ((grepl("TestMoment", input$formula_choice)==FALSE)){
+      emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type="response")
+    }else{emmeans(chosenModel[[1]], pairwise ~ PMS*TestMoment, adjust ="fdr", type="response")}
+  })
+  
+    output$emmeans <- renderPrint({em()})
+}
+shinyApp(ui=ui, server=server, options= list(height=1000))
+```
+
+
+```{r emotionplots, echo=FALSE}
 ui<- fluidPage( 
     selectInput("Emotion", label="Choose an Emotion:",
             choices= c('happy', 'sad', 'disgust', 'anger', 'scared'),
@@ -1507,39 +1721,34 @@ if ( "disgust" %in% input$Emotion) return(datafaces$disgust)
 if ( "anger" %in% input$Emotion) return(datafaces$anger)
 if ( "scared" %in% input$Emotion) return(datafaces$scared)
   })
-    
-  dmean<-reactive({
-    summarySE(datafaces, measurevar=input$Emotion, groupvars=c('PMS', 'Moment'))
-  })
 
   Y_MEAN<- reactive({
-    if ( "happy" %in% input$Emotion) return(dmean()$happy)
-    if ( "sad" %in% input$Emotion) return(dmean()$sad)
-    if ( "disgust" %in% input$Emotion) return(dmean()$disgust)
-    if ( "anger" %in% input$Emotion) return(dmean()$anger)
-    if ( "scared" %in% input$Emotion) return(dmean()$scared)
+    dmean<-dmean<-summarySE(datafaces, measurevar=input$Emotion, groupvars=c('Moment', 'PMS'), na.rm=TRUE)
+    if ( "happy" %in% input$Emotion) return(dmean$happy)
+    if ( "sad" %in% input$Emotion) return(dmean$sad)
+    if ( "disgust" %in% input$Emotion) return(dmean$disgust)
+    if ( "anger" %in% input$Emotion) return(dmean$anger)
+    if ( "scared" %in% input$Emotion) return(dmean$scared)
       })
 
   
   output$plot <-renderPlot({
-    # dmean<-summarySE(datafaces, measurevar='happy', groupvars=c('PMS', 'Moment'))
-    #     ggplot(datafaces, aes(x=Moment, y=Y_VAR(), fill=PMS))+
-    #       geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
-    #       geom_boxplot(aes(x=Moment, y=Y_VAR(), fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
-    #       stat_summary(fun.y=mean) +
-    # theme(legend.position="none") +
-    #       geom_point(data = dmean(), aes(x = as.numeric(Moment)+.1, y = Y_MEAN(), group = PMS, fill=PMS), shape = 21, size=6)+
-    #       scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-    #       ggtitle(sprintf("\n%s ~PMS*TestMoment\n", input$Emotion))
-
-    
-    
-    dmean<-summarySE(datafaces, measurevar='sad', groupvars=c('PMS', 'Moment'))
-    ggplot(datafaces, aes(x=Moment, y=sad, fill=PMS))+
+    dmean<-dmean<-summarySE(datafaces, measurevar=input$Emotion, groupvars=c('Moment', 'PMS'), na.rm=TRUE)
+        ggplot(datafaces, aes(x=Moment, y=Y_VAR(), fill=PMS))+
           geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
-          geom_boxplot(aes(x=Moment, y=sad, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
-          # geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = sad, group = PMS, fill= PMS), shape = 21, size=6)+
-          scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))
+          geom_boxplot(aes(x=Moment, y=Y_VAR(), fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
+          stat_summary(fun.y=mean) +
+    theme(legend.position="none") +
+          geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Y_MEAN(), group = PMS, fill=PMS), shape = 21, size=6)+
+          scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+          ggtitle(sprintf("\n%s ~PMS*TestMoment\n", input$Emotion))
+
+    # dmean<-summarySE(datafaces, measurevar='sad', groupvars=c('Moment', 'PMS'), na.rm=TRUE)
+    # ggplot(datafaces, aes(x=Moment, y=sad, fill=PMS))+
+    #       geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
+    #       geom_boxplot(aes(x=Moment, y=sad, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
+    #       geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = sad, group = PMS, fill= PMS), shape = 21, size=6)+
+    #       scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))
     
   }, height=800)
   
@@ -1554,7 +1763,7 @@ shinyApp(ui=ui, server=server, options= list(height=1200))
 ```
 
 ## Descriptives
-```{r echo=FALSE}
+```{r descriptives, echo=FALSE}
 #dataframe with the means of descriptives
 knitr::kable(data.frame(
   PMS=c('cyclus duration:', round(mean(data$MenstrualDuration[data$PMS=='PMS']), digits=1),
