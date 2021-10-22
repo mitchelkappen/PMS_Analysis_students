@@ -75,15 +75,16 @@ vpn = 1 # Set to 1 if using VPN
 # setwd(work_dir)
 #setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 if (vpn == 1){Dir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\" #data from VPN folder
-} else {"ERROR" #data from github dir
+} else {Dir="C:\\Users\\ASUSTeK\\OneDrive\\Documenten\\GitHub" #data from github dir
 }
 
 setwd(Dir)
+# data <- read.csv(paste0(Dir,"allPMSData.csv"), header=TRUE, sep=)
 data <- read.csv(paste0(Dir,"06102021\\allPMSData.csv"), header=TRUE, sep=) #upload data
 norms <-read.table(paste0(Dir,"\\RMarkdown\\Data\\FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE) #upload norms IAPs images
 
 #put 'NA' into empty spaces
-# data = lapply(data, function(x) {x[x == ""] <- NA})
+# data = lapply(data, function(x) {x[x == " "] <- NA})
 
 #we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
 #These moments were counterbalanced. when the order was B-A and the moment is B, this means it is the first test moment, and vice versa for A-B and moment A. 
@@ -113,19 +114,24 @@ data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 
 # Exclude data?
 data_allcontraception <-data
 # exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
+# data <- data[Contraception!="Pill"& Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor. Coil" & Contraception!='Hor.Coil']
 
-
-# data = data # Saved data that contains stimuli columns
-# data = data[, -which(names(data) == "X" | names(data) == "Stimulus" | names(data) == "Valence" | names(data) == "Arousal" | names(data) == "rt")] #removes these columns
-# data= distinct(data)
+data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contraception=="Cop.Coil"|data$Contraception=="Hor. Coil"|data$Contraception=="Hor.Coil"),]
+# data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor. Coil" & Contraception!='Hor.Coil', na.rm=TRUE)
 
 data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
 data_out<-data #the data with the rt outliers
 data <- subset(data, rt < 30)#Dit zijn de data waar de rt outliers uitgehaald zijn! 
-data$VideoValence = data$AU12 - data$AU15
 
-# data <- data[which(data$Contraception!="Pill"& data$Contraception!="other" & data$Contraception!="Cop. Coil" & data$Contraception!="Hor. Coil" & data$Contraception!='Hor.Coil')]
-data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor. Coil" & Contraception!='Hor.Coil', na.rm=TRUE)
+datafaces<-data
+
+# REMOVE CONFIDENCE UNDER 95
+# datafaces<-subset(data, confidence >.95)#only take data where confidence is bigger than 95
+
+#remove datafaces with NA varaibles
+datafaces<-na.omit(datafaces)
+
+datafaces$VideoValence= datafaces$AU12 - datafaces$AU15
 
 #dataframe with the norms for the stimuli (IAPs images)
 norms$IAPS <-round(norms$IAPS)
@@ -1390,28 +1396,32 @@ shinyApp(ui=ui, server=server,options= list(height=1000))
 
 ## Videos
 
-TO DO
+**TO DO**
 
-uit de allPMSdata.csv:
+- er komt een kolom 'confidence' en bv only use facial data when >.95
 
-- plot van AU12 (happy) en AU15(sad) voor elke stimulus
-- plot een 'valentie'tabel door happ-sad te doen
-- correleer Valence met ValenceVideo. om dit te doen: zorg dat er geen lege plekken zijn in allPMSdata.csv ignore NA
-- belangrijk! voeg toe n= voor length databestand want sommige data mist en dus minder lang als die van Valence. mss verwijderen? 
+- change videovalence to happy
+
+- emoties 2x2 plotten: emoties op time *group
+
+- ArousalVideo plotten en correlatie met Arousal
 
 ### Action Units
 
 #### These Action units were used for the coding of the emotional expressions:
 
 
-**AU12** Lip Corner Puller, Zygomatic Major
+| emotion | Description  | Examples |
+|:----|:----|----|
+| **AU12** | Lip Corner Puller, Zygomatic Major  | ![image link: https://imotions.com/blog/facial-action-coding-system/](https://media.imotions.com/images/20190411123347/AU12.gif){width=20%} |
+| **AU15** | Lip Corner Depressor, Depressor anguli oris (Triangularis)  | ![](https://media.imotions.com/images/20190411123345/AU15.gif){width=20%} |
+|  **happy** | Cheek Raiser, Lip Corner Puller  | ![](https://media.imotions.com/images/20190411123351/AU6-cheek-raiser.gif){width=20%} ![](https://media.imotions.com/images/20190411123347/AU12.gif){width=20%}  |
+| **sad** | Inner Brow Raiser, Brow Lowerer, Lip Corner Depressor  | ![](https://media.imotions.com/images/20190411123323/AU1-inner-brow-raiser.gif){width=20%} ![](https://media.imotions.com/images/20190411123352/AU4-brow-lowerer.gif){width=20%}![](https://media.imotions.com/images/20190411123323/AU15-lip-corner-depressor.gif){width=20%}|
+| **disgust** | Nose Wrinkler, Lip Corner Depressor, Lower Lip Depressor | ![](https://media.imotions.com/images/20190411123320/AU9-nose-wrinkler.gif){width=20%}![](https://media.imotions.com/images/20190411123323/AU15-lip-corner-depressor.gif){width=20%}![](https://media.imotions.com/images/20190411123319/AU16-lower-lip-depressor.gif){width=20%} |
+| **anger** | Brow Lowerer, Upper LId Raiser, Lid Tightener, Lip Tigheter | ![](https://media.imotions.com/images/20190411123352/AU4-brow-lowerer.gif){width=20%}![](https://media.imotions.com/images/20190411123322/AU5-upper-lid-raiser.gif){width=20%}![](https://media.imotions.com/images/20190411123350/AU7-lid-tightener.gif){width=20%}![](https://media.imotions.com/images/20190411123341/AU23-lip-tightener.gif){width=20%} |
+| **scared** |  Inner Brow Raiser, Outer Brow Raiser, Brow Lowerer, Upper Lid Raiser, Lid Tightener, Lip Stretcher, Jaw Drop | ![](https://media.imotions.com/images/20190411123323/AU1-inner-brow-raiser.gif){width=20%}![](https://media.imotions.com/images/20190411123322/AU2-outer-brow-raiser.gif){width=20%}![](https://media.imotions.com/images/20190411123352/AU4-brow-lowerer.gif){width=20%}![](https://media.imotions.com/images/20190411123322/AU5-upper-lid-raiser.gif){width=20%}![](https://media.imotions.com/images/20190411123350/AU7-lid-tightener.gif){width=20%}![](https://media.imotions.com/images/20190411123343/AU20-lip-stretcher.gif){width=20%}![](https://media.imotions.com/images/20190411123321/AU26-jaw-drop.gif){width=20%} |
 
-![image link: https://imotions.com/blog/facial-action-coding-system/](https://media.imotions.com/images/20190411123347/AU12.gif)
-
-**AU15** Lip Corner Depressor, Depressor anguli oris (Triangularis)
-
-![](https://media.imotions.com/images/20190411123345/AU15.gif)
-
+**ValenceVideo= AU12-AU15!**
 
 ```{r echo=FALSE}
 ui<- fluidPage( 
@@ -1422,6 +1432,8 @@ ui<- fluidPage(
       tabPanel("plot", plotOutput("plot")),
       tabPanel("ValenceVideo", plotOutput("ValenceVideo")),
       tabPanel("ValenceCorrelation", plotOutput("ValenceCorrelation")),
+      tabPanel("ArousalVideo", plotOutput("ArousalVideo")),
+      tabPanel("ArousalCorrelation", plotOutput("ArousalCorrelation")),
       tabPanel("photo", plotOutput("photo"))
     )
 )
@@ -1429,37 +1441,116 @@ ui<- fluidPage(
 server <- function (input, output){ 
   #we make a density plot of valence/arousal per stimulus.
     output$plot<- renderPlot({
-      d<-melt(data.frame(AU12=c(data$AU12[data$Stimulus==input$stimulus]),
-                         AU15=c(data$AU15[data$Stimulus==input$stimulus])))
+      d<-melt(data.frame(AU12=c(datafaces$AU12[datafaces$Stimulus==input$stimulus]),
+                         AU15=c(datafaces$AU15[datafaces$Stimulus==input$stimulus]),
+                         happy=c(datafaces$happy[datafaces$Stimulus==input$stimulus]),
+                         sad=c(datafaces$sad[datafaces$Stimulus==input$stimulus]),
+                         disgust=c(datafaces$disgust[datafaces$Stimulus==input$stimulus]),
+                         anger=c(datafaces$anger[datafaces$Stimulus==input$stimulus]),
+                         scared=c(datafaces$scared[datafaces$Stimulus==input$stimulus])
+                         ))
+      
+            d<-melt(data.frame(AU12=c(datafaces$AU12[datafaces$Stimulus==1440])
+                         ))
+      
+
       pirateplot(formula=value~variable,
         data=d,
-        main= input$stimulus, pal='xmen',)
-      }, height=700, width= 1000)
+        # main= input$stimulus, 
+        pal='xmen')
+      }, height=1000, width=1500)
   
     output$ValenceVideo<- renderPlot({
-    d<-melt(data.frame(Valence=c((data$AU12[data$Stimulus==input$stimulus])-data$AU15[data$Stimulus==input$stimulus])))
+    d<-melt(data.frame(Valence=c((datafaces$AU12[datafaces$Stimulus==input$stimulus])-datafaces$AU15[datafaces$Stimulus==input$stimulus])))
     pirateplot(formula=value~variable,
       data=d,
       main= input$stimulus, pal='xmen',)
     }, height=700, width= 1000)
     
-    output$correlations<- renderPlot({
-      NAs<-sum(is.na(data$AU12))
-        ggscatter(data, x='Valence', y='VideoValence', 
-                        add='reg.line', fullrange=TRUE,
-                    conf.int=TRUE,
-                    cor.coef=TRUE, cor.method='pearson',
-                  title=sprintf("\nNAs: %s\n", NAs),# NAs in AU12 & AU15
-                    xlab='Valence', ylab='Valence Video', 
-                    xlim=c(0,10))+
-          geom_segment(aes(x = 0, y = 0, xend = 10, yend = 10), size= 1, colour='red')
-    }, height=700, width= 1000)
+    output$ValenceCorrelation<- renderPlot({
+      NAs<-sum(is.na(datafaces$AU12))
+      n<-length(datafaces$AU12-length(NAs))
+      ggscatter(datafaces, x = "Valence", y = "VideoValence", 
+      add = "reg.line", conf.int = TRUE, 
+      cor.coef = TRUE, cor.method = "pearson",
+      title=sprintf("\ndatapoints: %s\n", n))# NAs in AU12 & AU15
+      # geom_segment(aes(x = 0, y = 0, xend = 100, yend = 2), size= 1, colour='red')
+      # library('ggpubr')
+      # ggqqplot(datafaces$AU12)
+    }, height=1000, width=1500)
   
   output$photo <- renderImage({
     list(src=str_glue("Z:/shares/ghep_lab/ImageDatabases/IAPS/{input$stimulus}.jpg"),
-         filetype="image/jpeg",width=800,height=600)})}
+         filetype="image/jpeg",width=800,height=600)})
+  }
 
-shinyApp(ui=ui, server=server, options= list(height=1000))
+shinyApp(ui=ui, server=server, options= list(height=1200))
+```
+```{r, echo=FALSE}
+ui<- fluidPage( 
+    selectInput("Emotion", label="Choose an Emotion:",
+            choices= c('happy', 'sad', 'disgust', 'anger', 'scared'),
+            selected='happy'),
+      # "Emotion", label="Choose an Emotion:",
+      #       choices= c('happy', 'sad', 'disgust', 'anger', 'scared'), inline=TRUE,
+      #       selected='happy'),
+    tabsetPanel(type = "tab",
+      tabPanel("plot", plotOutput("plot"))
+    )
+)
+server <- function (input, output){ 
+  
+    Y_VAR <- reactive({
+if ( "happy" %in% input$Emotion) return(datafaces$happy)
+if ( "sad" %in% input$Emotion) return(datafaces$sad)
+if ( "disgust" %in% input$Emotion) return(datafaces$disgust)
+if ( "anger" %in% input$Emotion) return(datafaces$anger)
+if ( "scared" %in% input$Emotion) return(datafaces$scared)
+  })
+    
+  dmean<-reactive({
+    summarySE(datafaces, measurevar=input$Emotion, groupvars=c('PMS', 'Moment'))
+  })
+
+  Y_MEAN<- reactive({
+    if ( "happy" %in% input$Emotion) return(dmean()$happy)
+    if ( "sad" %in% input$Emotion) return(dmean()$sad)
+    if ( "disgust" %in% input$Emotion) return(dmean()$disgust)
+    if ( "anger" %in% input$Emotion) return(dmean()$anger)
+    if ( "scared" %in% input$Emotion) return(dmean()$scared)
+      })
+
+  
+  output$plot <-renderPlot({
+    # dmean<-summarySE(datafaces, measurevar='happy', groupvars=c('PMS', 'Moment'))
+    #     ggplot(datafaces, aes(x=Moment, y=Y_VAR(), fill=PMS))+
+    #       geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
+    #       geom_boxplot(aes(x=Moment, y=Y_VAR(), fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
+    #       stat_summary(fun.y=mean) +
+    # theme(legend.position="none") +
+    #       geom_point(data = dmean(), aes(x = as.numeric(Moment)+.1, y = Y_MEAN(), group = PMS, fill=PMS), shape = 21, size=6)+
+    #       scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+    #       ggtitle(sprintf("\n%s ~PMS*TestMoment\n", input$Emotion))
+
+    
+    
+    dmean<-summarySE(datafaces, measurevar='sad', groupvars=c('PMS', 'Moment'))
+    ggplot(datafaces, aes(x=Moment, y=sad, fill=PMS))+
+          geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
+          geom_boxplot(aes(x=Moment, y=sad, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
+          # geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = sad, group = PMS, fill= PMS), shape = 21, size=6)+
+          scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))
+    
+  }, height=800)
+  
+#   plot1 <- ggplot(data= linegraphdata, aes(x=Year, y=E_coli)) + geom_line() + theme_bw()
+# plot2 <- ggplot(data = linegraphdata, aes(x=Year, y=data())) + geom_line() + theme_bw()
+# output$graph3 <- renderPlot({grid.arrange(plot1, plot2, ncol=1)})
+  
+  }
+
+
+shinyApp(ui=ui, server=server, options= list(height=1200))
 ```
 
 ## Descriptives
