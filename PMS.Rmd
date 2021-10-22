@@ -75,11 +75,15 @@ vpn = 1 # Set to 1 if using VPN
 # setwd(work_dir)
 #setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 if (vpn == 1){Dir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\" #data from VPN folder
-} else {Dir = "C:\\Users\\ASUSTeK\\OneDrive\\DocumentenGitHub\\internship_sofie\\" #data from github dir
+} else {"ERROR" #data from github dir
 }
+
 setwd(Dir)
 data <- read.csv(paste0(Dir,"06102021\\allPMSData.csv"), header=TRUE, sep=) #upload data
 norms <-read.table(paste0(Dir,"\\RMarkdown\\Data\\FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE) #upload norms IAPs images
+
+#put 'NA' into empty spaces
+# data = lapply(data, function(x) {x[x == ""] <- NA})
 
 #we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
 #These moments were counterbalanced. when the order was B-A and the moment is B, this means it is the first test moment, and vice versa for A-B and moment A. 
@@ -88,6 +92,8 @@ data$TestMoment[data$Order == "B-A" & data$Moment == "A"] = 2# TestMoment 2 == L
 data$TestMoment[data$Order == "A-B" & data$Moment == "B"] = 2
 data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
 #sum(is.na(data$TestMoment))#check if there are still values missing (NA)
+
+
 
 # new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1, 
 data$PMS[data$PMSScore==0] = 'noPMS'
@@ -119,7 +125,7 @@ data <- subset(data, rt < 30)#Dit zijn de data waar de rt outliers uitgehaald zi
 data$VideoValence = data$AU12 - data$AU15
 
 # data <- data[which(data$Contraception!="Pill"& data$Contraception!="other" & data$Contraception!="Cop. Coil" & data$Contraception!="Hor. Coil" & data$Contraception!='Hor.Coil')]
-data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor. Coil" & Contraception!='Hor.Coil')
+data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor. Coil" & Contraception!='Hor.Coil', na.rm=TRUE)
 
 #dataframe with the norms for the stimuli (IAPs images)
 norms$IAPS <-round(norms$IAPS)
@@ -1390,12 +1396,22 @@ uit de allPMSdata.csv:
 
 - plot van AU12 (happy) en AU15(sad) voor elke stimulus
 - plot een 'valentie'tabel door happ-sad te doen
-- correleer Valence met ValenceVideo 
+- correleer Valence met ValenceVideo. om dit te doen: zorg dat er geen lege plekken zijn in allPMSdata.csv ignore NA
 - belangrijk! voeg toe n= voor length databestand want sommige data mist en dus minder lang als die van Valence. mss verwijderen? 
 
+### Action Units
 
-<!-- knitr::include_graphics(path="./Animations/Animation.gif") -->
-<!-- htmltools::tags$iframe(title = "Embedded HTML", src = "./Animations/Animation.html", height=800, width=800) -->
+#### These Action units were used for the coding of the emotional expressions:
+
+
+**AU12** Lip Corner Puller, Zygomatic Major
+
+![image link: https://imotions.com/blog/facial-action-coding-system/](https://media.imotions.com/images/20190411123347/AU12.gif)
+
+**AU15** Lip Corner Depressor, Depressor anguli oris (Triangularis)
+
+![](https://media.imotions.com/images/20190411123345/AU15.gif)
+
 
 ```{r echo=FALSE}
 ui<- fluidPage( 
@@ -1428,10 +1444,12 @@ server <- function (input, output){
     }, height=700, width= 1000)
     
     output$correlations<- renderPlot({
+      NAs<-sum(is.na(data$AU12))
         ggscatter(data, x='Valence', y='VideoValence', 
                         add='reg.line', fullrange=TRUE,
                     conf.int=TRUE,
-                    cor.coef=TRUE, cor.method='pearson', 
+                    cor.coef=TRUE, cor.method='pearson',
+                  title=sprintf("\nNAs: %s\n", NAs),# NAs in AU12 & AU15
                     xlab='Valence', ylab='Valence Video', 
                     xlim=c(0,10))+
           geom_segment(aes(x = 0, y = 0, xend = 10, yend = 10), size= 1, colour='red')
