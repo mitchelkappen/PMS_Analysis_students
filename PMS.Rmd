@@ -93,7 +93,7 @@ https://www.gheplab.ugent.be/projects/menstrual-cycle-info/
 # setwd(work_dir)
 #setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 if (vpn == 1){Dir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\" #data from VPN folder
-} else {Dir="C:\\Users\\ASUSTeK\\OneDrive\\Documenten\\GitHub" #data from github dir
+} else {Dir="Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\" #data from github dir
 }
 
 setwd(Dir)
@@ -258,9 +258,9 @@ PMS is a clinical disorder exclusive to people who menstruate.
 - lower serotonin levels
 - etiology & symptoms of PMS and depression have been linked
 
-![](figures/PMS_Symptoms.jpg){width=50%}
+![](figures/PMS_Symptoms.jpg){width=40%}
 
-!["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](figures/MC.jpg){width=50%}
+!["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](Z:/shares/ghepmk_data/2020_Kappen_PMS/RMarkdown/figures/MC.jpg){width=50%}
 
 
 - 'pre-menstrual': during luteal phase, symptoms disappear 1-2 days into menstruation
@@ -269,12 +269,12 @@ PMS is a clinical disorder exclusive to people who menstruate.
 
 PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this is a more severe version of PMS.
 
- <font size="1">1 Landén, M., & Eriksson, E. (2003). How does premenstrual dysphoric disorder relate to depression and anxiety disorders? Depression and Anxiety, 17(3),
+ <font size="1">1 Landén, M., & Eriksson, E. (2003). How does premenstrual dysphoric disorder relate to depression and anxiety disorders?. Depression and Anxiety, 17(3),
  122–129. https://doi.org/10.1002/da.10089.
 
-2 Grady-Weliky, T. A. (2003). Premenstrual Dysphoric Disorder. New England Journal of Medicine, 348(5), 433–438. https://doi.org/10.1056/NEJMcp012067
+2 Grady-Weliky, T. A. (2003). Premenstrual Dysphoric Disorder. New England Journal of Medicine, 348(5), 433–438. https://doi.org/10.1056/NEJMcp012067
 
-3 Ussher, J. M. (2014). Premenstrual syndrome. Cambridge Handbook of Psychology, Health and Medicine, 830–832. https://doi.org/10.1017/CBO9780511543579.217 </font> 
+3 Ussher, J. M. (2014). Premenstrual syndrome. Cambridge Handbook of Psychology, Health and Medicine, 830–832. https://doi.org/10.1017/CBO9780511543579.217 </font> 
 
 
 ##### Prevalence
@@ -320,17 +320,17 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 - **Intake/screening:**: social demographics, menstrual cycle, contraception methods, PSST + trait questionnaires (DASS)
 
 - **testmoment 1 + 2** (follicular & luteal/premenstrual): 
-+ participants tested twice, based on cycle
-+ invitation via e-mail + 24 h reminder
-+ execution via LimeSurvey
-+ counterbalanced across participants
-+ fill in questionnaires: PSS(stress), BSRI(rumination)
-+ judge pictures on valence & arousal
-+ filmed through webcam: analysis of emotional expressions
+    + participants tested twice, based on cycle
+    + invitation via e-mail + 24 h reminder
+    + execution via LimeSurvey
+    + counterbalanced across participants
+    + fill in questionnaires: PSS(stress), BSRI(rumination)
+    + judge pictures on valence & arousal
+    + filmed through webcam: analysis of emotional expressions
 
 #### SCREENING
 
-![](figures/screening.png){width=40%}
+![](Z:/shares/ghepmk_data/2020_Kappen_PMS/RMarkdown/figures/screening.png){width=40%}
 
 ##### PSST
 
@@ -342,6 +342,7 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 
  <font size="1">Steiner et al., 2003b https://pubmed.ncbi.nlm.nih.gov/12920618/ </font>
  
+ 
  ##### GROUPS
  
  Using PSST, three groups: no PMS, PMS and 'PMDD'
@@ -351,6 +352,7 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 * PMDD can only be diagnosed by psychiatrist! 
 
 => 2 groups: 
+
     + no/mild symptoms: **noPMS**
     + medium-severe symptoms: **PMS**
     
@@ -359,6 +361,44 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 
 ***
 
+### reaction times
+
+we plot the reaction times to find the outliers and filter the data
+
+```{r RTs, echo=FALSE}
+#plot reaction times with raincloudplot
+d<-melt(data.frame(rt=c(data_out$rt))) # we melt to wide format 
+ggplot(d, aes(x = variable, y = value, fill=variable))+
+  geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
+  ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
+  geom_point(position=position_jitter(width=.15), size=2)+
+  geom_boxplot(width= .10, outlier.shape = NA)+
+  theme(legend.position="none")+
+  ggtitle("reaction times with outliers")
+
+summary(data_out$rt)
+
+print('upper 99.85% bound')
+quantile (data_out$rt, 0.9985)
+
+data_out <- subset(data_out, rt < 30)
+d<-melt(data.frame(rt=c(data_out$rt)))
+ggplot(d, aes(x = variable, y = value, fill=variable))+
+  geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
+  geom_point(position=position_jitter(width=.15), size=0.25)+
+  ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
+  geom_boxplot(width= .10, outlier.shape = NA)+
+  theme(legend.position="none")+
+  guides(fill=FALSE)+
+  ggtitle("reaction times < 30 sec")
+
+summary(data_out$rt)
+
+out<-boxplot.stats(data_out$rt)$out#outliers
+out_ind<-which(data_out$rt %in% c(out))#row numbers that contain outliers
+boxplot(data_out$rt, ylab='rt') #boxplot
+mtext(paste('boxplot with outliers')) #boxplot with outliers
+```
 
 
 ***
@@ -367,7 +407,11 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 
 ### PSS: Perceived Stress Scale 
 
+![](Z:/shares/ghepmk_data/2020_Kappen_PMS/RMarkdown/figures/PSS_quest.png){width=40%}
+
 ### BSRI: Brief State Rumination Index
+
+![](Z:/shares/ghepmk_data/2020_Kappen_PMS/RMarkdown/figures/BSRI.png){width=40%}
 
 measured at two time points
 
@@ -377,9 +421,11 @@ measured at two time points
 
 we first fitted several GLM (Generalized Linear Mixed) models with PSS/ BSRI as dependent variable and PMS(2 levels) x TestMoment (2 levels) and took the one with the lowest AIC (Akaike Information Criterion)
 
-Then we did Anova and contrasts of means. 
+Then we did Anova chisq and contrasts of means. 
 
 Boxplots contain the medians, circles represent the means
+
+N= 279!
 
 ```{r PSS&BSRI, echo=FALSE, cache=FALSE}
 ui<- fluidPage( # makes the User Interface
@@ -727,234 +773,6 @@ https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7680058/
 
 Our BSRI scores were also higher than during non-covid times.
 
-## DASS
-
-### DASS-21_R
-
-#### Depression Anxiety Stress Scale
-
-* DASS: 3 subscales
- + DASS_Total, DASS_Stress, DASS_Anxiety, DASS_Depression
-
-#### onderzoeksvraag: PMS vs noPMS voor:
-- DASS_alle subschalen
-
-Trait, not State: we didn't look for interaction TestMoment
-
-```{r DASS, echo=FALSE}
-ui<- fluidPage( # makes the User Interface
-    selectInput("formula_choice", label="Choose a Subscale:",
-            choices= c('DASS_Stress ~ PMS', 'DASS_Anxiety ~ PMS', 'DASS_Depression ~ PMS'),
-            selected='DASS_Stress ~ PMS'), # puts the choices in the first element which is accessed via input$formula_choice
-     tabsetPanel(type = "tab",
-                  tabPanel("overlap", plotOutput("overlap")),
-                 tabPanel("splitviolin", plotOutput("splitviolin")),
-                 tabPanel("pirateplot", plotOutput("pirateplot")),
-                 tabPanel("AIC table", tableOutput("table")),
-                 tabPanel("Anova", verbatimTextOutput("Anova")),
-                 tabPanel("emmeans",verbatimTextOutput("emmeans"))
-         ))
-
-server <- function (input, output){ #we have to add this to the server
-
-  output$pirateplot<- renderPlot({
-    par(mfcol = c(1, 1))
-      pirateplot(formula= input$formula_choice,data=data,
-      theme= 1,pal= "xmen",main= input$formula_choice)
-  }, height=800, width=1000)
-
-    output$overlap <- renderPlot({
-      if ((grepl("Stress", input$formula_choice))){
-            max_y<-max(as.integer(data$DASS_Stress))
-            dmean<-summarySE(data, measurevar="DASS_Stress", groupvars=c('PMS'))
-          ggplot(data, aes(x = PMS, y = DASS_Stress)) +
-            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
-            geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
-            geom_boxplot(aes(x = PMS, y = DASS_Stress, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
-            geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Stress, group=PMS, fill=PMS), shape = 21, size=6)+
-            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/150), xend = 2, yend=max_y+(max_y/10)+(max_y/150)), size= 1.7)+
-          annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
-            scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-            ggtitle('DASS_Stress~PMS')
-      }else if ((grepl("Anxiety", input$formula_choice))){
-            max_y<-max(as.integer(data$DASS_Anxiety))
-            dmean<-summarySE(data, measurevar="DASS_Anxiety", groupvars=c('PMS'))
-          ggplot(data, aes(x = PMS, y = DASS_Anxiety)) +
-            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
-            geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
-            geom_boxplot(aes(x = PMS, y = DASS_Anxiety, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
-            geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Anxiety, group=PMS, fill=PMS), shape = 21, size=6)+
-            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/200), xend = 2, yend=max_y+(max_y/10)+(max_y/200)), size= 1.7)+
-          annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
-            scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-            ggtitle('DASS_Anxiety~PMS')
-      }else {
-            max_y<-max(as.integer(data$DASS_Depression))
-            dmean<-summarySE(data, measurevar="DASS_Depression", groupvars=c('PMS'))
-          ggplot(data, aes(x = PMS, y = DASS_Depression)) +
-            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
-            geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
-            geom_boxplot(aes(x = PMS, y = DASS_Depression, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
-            geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Depression, group=PMS, fill=PMS), shape = 21, size=6)+
-            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/200), xend = 2, yend=max_y+(max_y/10)+(max_y/200)), size= 1.7)+
-          annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
-            scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-            ggtitle('DASS_Depression~PMS')
-      }
-    }, height=700, width=1100)
-    
-  p_pms <-reactive({
-    p<-(p()[[3]][1]) # this gets the p-value of the first row, for PMS
-    if (p> 0.05) {star=''
-    }else if (p<0.0005){'***'
-    }else if (p<0.005){'**'
-    }else if (p<0.05) {'*'}
-  })
-  
-  p<-reactive({
-        tabel<-c()
-    for (i in 1:length(models())){
-        AIC<- AIC(models()[[i]])
-        tabel <- c(tabel,round(AIC))}
-    chosenModel<-models()[which(tabel == min(tabel))]
-       cat(sprintf("\nAnova\n"))
-       Anova(chosenModel[[1]])
-  })
-  
-    output$splitviolin <- renderPlot({
-      if ((grepl("Stress", input$formula_choice))){
-        max_y<-max(as.integer(data$DASS_Stress))
-        dmean<-summarySE(data, measurevar="DASS_Stress", groupvars=c('PMS'))
-         ggplot(data, aes(x=1, y=DASS_Stress, fill=PMS))+
-            geom_split_violin(adjust =1.5, alpha=.5, colour=NA)+
-            geom_boxplot(aes(x = 1, y = DASS_Stress, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
-            geom_point(data = dmean, aes(x = 1, y = DASS_Stress, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
-            annotate('text', x=0.9, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
-           # annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='3', size=10)+
-            geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
-            ggtitle('DASS_Stress ~ PMS')
-      }  else if ((grepl("Anxiety", input$formula_choice))) {
-        max_y<-max(as.integer(data$DASS_Anxiety))
-        dmean<-summarySE(data, measurevar="DASS_Anxiety", groupvars=c('PMS'))
-         ggplot(data, aes(x=1, y=DASS_Anxiety, fill=PMS))+
-            geom_split_violin(adjust =1.5, alpha=.5, colour=NA)+
-            geom_boxplot(aes(x = 1, y = DASS_Anxiety, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
-            geom_point(data = dmean, aes(x = 1, y = DASS_Anxiety, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
-            annotate('text', x=0.9, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
-            geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
-           ggtitle('DASS_Anxiety ~ PMS')
-      } else {max_y<-max(as.integer(data$DASS_Depression))
-        dmean<-summarySE(data, measurevar="DASS_Depression", groupvars=c('PMS'))
-         ggplot(data, aes(x=1, y=DASS_Depression, fill=PMS))+
-            geom_split_violin(adjust =1.5, alpha=.5, colour=NA)+
-            geom_boxplot(aes(x = 1, y = DASS_Depression, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
-            geom_point(data = dmean, aes(x = 1, y = DASS_Depression, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
-            annotate('text', x=0.9, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
-            geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
-            ggtitle('DASS_Depression ~ PMS')
-      }
-    }, height=700, width=1100)
-    
-    
-     models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
-        m <- c()
-        Formula <- paste0(input$formula_choice, '+ (1|Subject)')
-        tryCatch({ d0.1 <- lmer(Formula,data=data); 
-          m <- c(m, d1=d0.1)}, error=function(e){})
-        tryCatch( { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d1=d0.2)},  error=function(e){})
-        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d3=d0.3)},  error=function(e){})
-        tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d4=d0.4)}, error=function(e){})
-        tryCatch( { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d5=d0.5) },  error=function(e){})
-        tryCatch(  { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d6=d0.6) },  error=function(e){})
-        tryCatch( { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-          models <- c(models, d7=d0.7) },   error=function(e){})
-        tryCatch( { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d8=d0.8) },   error=function(e){})
-        tryCatch( { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d9=d0.9) },  error=function(e){})
-        m
-     })
-  output$table <-renderTable({
-    modelNames<-c()
-    tabel<-c()
-    for (i in 1:length(models())){
-      modelNames<-c(modelNames, names(models()[i]))
-      AIC<-AIC(models()[[i]])
-      tabel <- c (tabel, round(AIC))}
-      chosenModel = modelNames[which(tabel == min(tabel))]
-      data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
-  })
-
-  output$Anova <- renderPrint({
-       cat(sprintf("\nAnova\n"))
-       p()})
-  
-  output$emmeans <- renderPrint({
-  tabel<-c()
-  for (i in 1:length(models())){
-      AIC<- AIC(models()[[i]])
-      tabel <- c(tabel,round(AIC))}
-  chosenModel<-models()[which(tabel == min(tabel))]
-    cat(sprintf("\n emmeans of formula: %s\n", input$formula_choice))
-      Emm <- emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type="response")
-      print(Emm)
-  })
-
-}
-shinyApp(ui=ui, server=server, options=list(height=1000))
-```
-
-### Conclusions
-* people with PMS scored higher on all 3 subscales
-
-### Interpretation of DASS
-
-!["de Beurs et al., 'De DASS', 2001"](figures/DASS.png){width=50%}
-
-## reaction times
-
-we plot the reaction times to find the outliers and filter the data
-
-```{r RTs, echo=FALSE}
-#plot reaction times with raincloudplot
-d<-melt(data.frame(rt=c(data_out$rt))) # we melt to wide format 
-ggplot(d, aes(x = variable, y = value, fill=variable))+
-  geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
-  ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
-  geom_point(position=position_jitter(width=.15), size=2)+
-  geom_boxplot(width= .10, outlier.shape = NA)+
-  theme(legend.position="none")+
-  ggtitle("reaction times with outliers")
-
-summary(data_out$rt)
-
-print('upper 99.85% bound')
-quantile (data_out$rt, 0.9985)
-
-data_out <- subset(data_out, rt < 30)
-d<-melt(data.frame(rt=c(data_out$rt)))
-ggplot(d, aes(x = variable, y = value, fill=variable))+
-  geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
-  geom_point(position=position_jitter(width=.15), size=0.25)+
-  ylab('rt')+xlab('amount')+coord_flip()+theme_cowplot()+
-  geom_boxplot(width= .10, outlier.shape = NA)+
-  theme(legend.position="none")+
-  guides(fill=FALSE)+
-  ggtitle("reaction times < 30 sec")
-
-summary(data_out$rt)
-
-out<-boxplot.stats(data_out$rt)$out#outliers
-out_ind<-which(data_out$rt %in% c(out))#row numbers that contain outliers
-boxplot(data_out$rt, ylab='rt') #boxplot
-mtext(paste('boxplot with outliers')) #boxplot with outliers
-```
-
 
 
 ## IAPs Images
@@ -968,10 +786,19 @@ These were images from the IAPs dataset which is already been thoroughly tested 
 *  two image groups (A and B), counterbalanced across TestMoment
   + e.g. during Moment 1 a puppy + a scary image, during moment 2 a different puppy, different scary image.
   + some participants got imagegroup A on first TestMoment, others got B. 
+  
+![](Z:/shares/ghepmk_data/2020_Kappen_PMS/RMarkdown/figures/counterbalance.png){width=50%}
 
-- participants could indicate how the images scored for them on valence and arousal (first two rows)
 
-![](figures/Stimuli.png){width=40%}
+**trial:**
+- fixation cross, 3,000 ms
+- picture for 6,000 ms
+- continuous Valence and Arousal Scales
+
+![](Z:/shares/ghepmk_data/2020_Kappen_PMS/RMarkdown/figures/trial.png){width=50%}
+
+ <font size="1">Linthout, T. (2021). Emotion regulation during different phases of menstual cycle in healthy women and women with premenstrual suffering.
+ </font>
 
 these already have the rt data filtered under 30 sec (outliers removed)
 
@@ -1461,7 +1288,10 @@ shinyApp(ui=ui, server=server,options= list(height=1000))
 
 ## Videos
 
-
+- webcam would record participants as they judged the pictures
+- with OpenFace toolbox
+- decode facial expressions based on facial action units
+- lelss data: only confidence >.95 + some video's excluded: bad quality(/unconvertable)
 
 ### Action Units
 
@@ -1798,6 +1628,195 @@ we took out all non-natural contraception methods. these are the descriptives:
 | **Cop.Coil:** `r cop` |
 | **Pill:**  `r pill` |
 | **other:** `r oth` |
+
+## DASS
+
+### DASS-21_R
+
+#### Depression Anxiety Stress Scale
+
+* DASS: 3 subscales
+ + DASS_Total, DASS_Stress, DASS_Anxiety, DASS_Depression
+
+#### onderzoeksvraag: PMS vs noPMS voor:
+- DASS_alle subschalen
+
+**Trait, not State:** we didn't look for interaction TestMoment
+
+```{r DASS, echo=FALSE}
+ui<- fluidPage( # makes the User Interface
+    selectInput("formula_choice", label="Choose a Subscale:",
+            choices= c('DASS_Stress ~ PMS', 'DASS_Anxiety ~ PMS', 'DASS_Depression ~ PMS'),
+            selected='DASS_Stress ~ PMS'), # puts the choices in the first element which is accessed via input$formula_choice
+     tabsetPanel(type = "tab",
+                  tabPanel("overlap", plotOutput("overlap")),
+                 tabPanel("splitviolin", plotOutput("splitviolin")),
+                 tabPanel("pirateplot", plotOutput("pirateplot")),
+                 tabPanel("AIC table", tableOutput("table")),
+                 tabPanel("Anova", verbatimTextOutput("Anova")),
+                 tabPanel("emmeans",verbatimTextOutput("emmeans"))
+         ))
+
+server <- function (input, output){ #we have to add this to the server
+
+  output$pirateplot<- renderPlot({
+    par(mfcol = c(1, 1))
+      pirateplot(formula= input$formula_choice,data=data,
+      theme= 1,pal= "xmen",main= input$formula_choice)
+  }, height=800, width=1000)
+
+    output$overlap <- renderPlot({
+      if ((grepl("Stress", input$formula_choice))){
+            max_y<-max(as.integer(data$DASS_Stress))
+            dmean<-summarySE(data, measurevar="DASS_Stress", groupvars=c('PMS'))
+          ggplot(data, aes(x = PMS, y = DASS_Stress)) +
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
+            geom_boxplot(aes(x = PMS, y = DASS_Stress, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Stress, group=PMS, fill=PMS), shape = 21, size=6)+
+            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/150), xend = 2, yend=max_y+(max_y/10)+(max_y/150)), size= 1.7)+
+          annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+            scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+            ggtitle('DASS_Stress~PMS')
+      }else if ((grepl("Anxiety", input$formula_choice))){
+            max_y<-max(as.integer(data$DASS_Anxiety))
+            dmean<-summarySE(data, measurevar="DASS_Anxiety", groupvars=c('PMS'))
+          ggplot(data, aes(x = PMS, y = DASS_Anxiety)) +
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
+            geom_boxplot(aes(x = PMS, y = DASS_Anxiety, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Anxiety, group=PMS, fill=PMS), shape = 21, size=6)+
+            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/200), xend = 2, yend=max_y+(max_y/10)+(max_y/200)), size= 1.7)+
+          annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+            scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+            ggtitle('DASS_Anxiety~PMS')
+      }else {
+            max_y<-max(as.integer(data$DASS_Depression))
+            dmean<-summarySE(data, measurevar="DASS_Depression", groupvars=c('PMS'))
+          ggplot(data, aes(x = PMS, y = DASS_Depression)) +
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
+            geom_boxplot(aes(x = PMS, y = DASS_Depression, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Depression, group=PMS, fill=PMS), shape = 21, size=6)+
+            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/200), xend = 2, yend=max_y+(max_y/10)+(max_y/200)), size= 1.7)+
+          annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+            scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+            ggtitle('DASS_Depression~PMS')
+      }
+    }, height=700, width=1100)
+    
+  p_pms <-reactive({
+    p<-(p()[[3]][1]) # this gets the p-value of the first row, for PMS
+    if (p> 0.05) {star=''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}
+  })
+  
+  p<-reactive({
+        tabel<-c()
+    for (i in 1:length(models())){
+        AIC<- AIC(models()[[i]])
+        tabel <- c(tabel,round(AIC))}
+    chosenModel<-models()[which(tabel == min(tabel))]
+       cat(sprintf("\nAnova\n"))
+       Anova(chosenModel[[1]])
+  })
+  
+    output$splitviolin <- renderPlot({
+      if ((grepl("Stress", input$formula_choice))){
+        max_y<-max(as.integer(data$DASS_Stress))
+        dmean<-summarySE(data, measurevar="DASS_Stress", groupvars=c('PMS'))
+         ggplot(data, aes(x=1, y=DASS_Stress, fill=PMS))+
+            geom_split_violin(adjust =1.5, alpha=.5, colour=NA)+
+            geom_boxplot(aes(x = 1, y = DASS_Stress, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = 1, y = DASS_Stress, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
+            annotate('text', x=0.9, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+           # annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='3', size=10)+
+            geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+            ggtitle('DASS_Stress ~ PMS')
+      }  else if ((grepl("Anxiety", input$formula_choice))) {
+        max_y<-max(as.integer(data$DASS_Anxiety))
+        dmean<-summarySE(data, measurevar="DASS_Anxiety", groupvars=c('PMS'))
+         ggplot(data, aes(x=1, y=DASS_Anxiety, fill=PMS))+
+            geom_split_violin(adjust =1.5, alpha=.5, colour=NA)+
+            geom_boxplot(aes(x = 1, y = DASS_Anxiety, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = 1, y = DASS_Anxiety, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
+            annotate('text', x=0.9, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+            geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+           ggtitle('DASS_Anxiety ~ PMS')
+      } else {max_y<-max(as.integer(data$DASS_Depression))
+        dmean<-summarySE(data, measurevar="DASS_Depression", groupvars=c('PMS'))
+         ggplot(data, aes(x=1, y=DASS_Depression, fill=PMS))+
+            geom_split_violin(adjust =1.5, alpha=.5, colour=NA)+
+            geom_boxplot(aes(x = 1, y = DASS_Depression, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = 1, y = DASS_Depression, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
+            annotate('text', x=0.9, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+            geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
+            ggtitle('DASS_Depression ~ PMS')
+      }
+    }, height=700, width=1100)
+    
+    
+     models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
+        m <- c()
+        Formula <- paste0(input$formula_choice, '+ (1|Subject)')
+        tryCatch({ d0.1 <- lmer(Formula,data=data); 
+          m <- c(m, d1=d0.1)}, error=function(e){})
+        tryCatch( { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d1=d0.2)},  error=function(e){})
+        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d3=d0.3)},  error=function(e){})
+        tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d4=d0.4)}, error=function(e){})
+        tryCatch( { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d5=d0.5) },  error=function(e){})
+        tryCatch(  { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d6=d0.6) },  error=function(e){})
+        tryCatch( { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          models <- c(models, d7=d0.7) },   error=function(e){})
+        tryCatch( { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d8=d0.8) },   error=function(e){})
+        tryCatch( { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d9=d0.9) },  error=function(e){})
+        m
+     })
+  output$table <-renderTable({
+    modelNames<-c()
+    tabel<-c()
+    for (i in 1:length(models())){
+      modelNames<-c(modelNames, names(models()[i]))
+      AIC<-AIC(models()[[i]])
+      tabel <- c (tabel, round(AIC))}
+      chosenModel = modelNames[which(tabel == min(tabel))]
+      data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
+  })
+
+  output$Anova <- renderPrint({
+       cat(sprintf("\nAnova\n"))
+       p()})
+  
+  output$emmeans <- renderPrint({
+  tabel<-c()
+  for (i in 1:length(models())){
+      AIC<- AIC(models()[[i]])
+      tabel <- c(tabel,round(AIC))}
+  chosenModel<-models()[which(tabel == min(tabel))]
+    cat(sprintf("\n emmeans of formula: %s\n", input$formula_choice))
+      Emm <- emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type="response")
+      print(Emm)
+  })
+
+}
+shinyApp(ui=ui, server=server, options=list(height=1000))
+```
+
+### Conclusions
+* people with PMS scored higher on all 3 subscales
+
+### Interpretation of DASS
+
+!["de Beurs et al., 'De DASS', 2001"](figures/DASS.png){width=50%}
 
 **TO DO**
 
