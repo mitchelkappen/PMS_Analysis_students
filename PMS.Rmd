@@ -70,6 +70,19 @@ nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1ù
 vpn = 1 # Set to 1 if using VPN
 ```
 
+Mitchel Kappen, Tilia Linthout, Liese Opsomer, Sofie Raeymakers, Steven Weyers, prof. Marie-Anne Vanderhasselt
+
+ISALA
+
+https://isala.be/
+
+(gheplab icoon)
+
+https://www.gheplab.ugent.be/projects/menstrual-cycle-info/
+
+***
+
+
 
 
 
@@ -132,12 +145,12 @@ datafaces<-data
 datafaces<- subset(datafaces,  select= -c(PD_Mean, PD_Std, PD_Max, Exclusie))
 
 # REMOVE CONFIDENCE UNDER 95
-# datafaces<-subset(data, confidence >.95)#only take data where confidence is bigger than 95
+datafaces<-subset(data, confidence >.95, na.rm=TRUE)#only take data where confidence is bigger than 95
 
 #remove datafaces with NA varaibles
 # datafaces<-na.omit(datafaces)
 
-datafaces$VideoValence <-data$happy
+datafaces$VideoValence <-datafaces$happy
 
 
 #dataframe with the norms for the stimuli (IAPs images)
@@ -245,9 +258,9 @@ PMS is a clinical disorder exclusive to people who menstruate.
 - lower serotonin levels
 - etiology & symptoms of PMS and depression have been linked
 
-![](figures/PMS_Symptoms.png){width=50%}
+![](figures/PMS_Symptoms.jpg){width=50%}
 
-!["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](figures/MC.png){width=50%}
+!["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](figures/MC.jpg){width=50%}
 
 
 - 'pre-menstrual': during luteal phase, symptoms disappear 1-2 days into menstruation
@@ -255,6 +268,14 @@ PMS is a clinical disorder exclusive to people who menstruate.
 #### PMDD
 
 PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this is a more severe version of PMS.
+
+ <font size="1">1 Landén, M., & Eriksson, E. (2003). How does premenstrual dysphoric disorder relate to depression and anxiety disorders? Depression and Anxiety, 17(3),
+ 122–129. https://doi.org/10.1002/da.10089.
+
+2 Grady-Weliky, T. A. (2003). Premenstrual Dysphoric Disorder. New England Journal of Medicine, 348(5), 433–438. https://doi.org/10.1056/NEJMcp012067
+
+3 Ussher, J. M. (2014). Premenstrual syndrome. Cambridge Handbook of Psychology, Health and Medicine, 830–832. https://doi.org/10.1017/CBO9780511543579.217 </font> 
+
 
 ##### Prevalence
 
@@ -265,39 +286,76 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 ***
 ### Hypotheses
 
-#### PMS/ no PMS:
+#### PMS/ no PMS: 
 
-- higher stress?
-- more rumination? 
-- more negative responses? explicit: ratings, implicit: video emotion expressions
+#### during follicular and luteal/premenstrual phase cycle:
 
-#### follicular or premenstrual: same
+- higher stress/rumination? 
+- emotion:
+  +  **explicit:** self-report
+  +  **implicit:** emotional expressions
+
 
 *** 
 
-### Screening
+
+
+### METHODS
+
+#### PARTICIPANTS
+
+- 398 recruited
+- Invitation via email, execution on LimeSurvey + 24 h reminder
+- Healthy, 18-45 yo
+- Menstruating with regular cycle
+- Exclusion: 
+    + pregnant/ breastfeeding
+    + hormones/ hormonal intrauterine device: (118 ppt)
+    + BSRI = 0 (2 ppt)
+    
+=> 279 ppt
+
+#### 3 TESTMOMENTS
+
+- **Intake/screening:**: social demographics, menstrual cycle, contraception methods, PSST + trait questionnaires (DASS)
+
+- **testmoment 1 + 2** (follicular & luteal/premenstrual): 
++ participants tested twice, based on cycle
++ invitation via e-mail + 24 h reminder
++ execution via LimeSurvey
++ counterbalanced across participants
++ fill in questionnaires: PSS(stress), BSRI(rumination)
++ judge pictures on valence & arousal
++ filmed through webcam: analysis of emotional expressions
+
+#### SCREENING
 
 ![](figures/screening.png){width=40%}
 
-* screening tool for premenstrual symptoms: 
-    + no/mild
-    + medium-severe
+##### PSST
+
+* Premenstrual Symptoms Screening Tool
+
+* currently most reliable
+
+![](figures/PSST.png){width=40%}
+
+ <font size="1">Steiner et al., 2003b https://pubmed.ncbi.nlm.nih.gov/12920618/ </font>
+ 
+ ##### GROUPS
+ 
+ Using PSST, three groups: no PMS, PMS and 'PMDD'
+
+* Prevalence study matched taht of general population
+
+* PMDD can only be diagnosed by psychiatrist! 
+
+=> 2 groups: 
+    + no/mild symptoms: **noPMS**
+    + medium-severe symptoms: **PMS**
     
-### 2 groups
-
-* three groups: low and high PMS and PMDD.
-* but, because PMDD no official diagnosis, taken together to form the 'noPMS' and 'PMS' group
-
-### TestMoment
 
 
-* participants tested twice, based on cycle
-* invitation via e-mail + 24 h reminder
-* execution via LimeSurvey
-* counterbalanced across participants
-* fill in questionnaires
-* judge pictures on valence & arousal
-* filmed through webcam: analysis of emotional expressions
 
 ***
 
@@ -1403,55 +1461,7 @@ shinyApp(ui=ui, server=server,options= list(height=1000))
 
 ## Videos
 
-**TO DO**
 
-- zet tilia liese marie-anne en steven weyers op de pp! 
-
-- 3 testmomenten: intake/screening, tesmoment 1 en 2 (herlees Tilias masterproef: methode en stappen). tijdens screening sociaal demografische gegevens+ trait questionnairs DASS 
-
-- tussenhoofdstukje: methode. meer ingaan op bv ruminatie. overzichtje van alle vragenlijsten en mss voorbeeld v hoe trial eruit ziet: afbeelding, reactie. technische info: hoeveel seconden, welke dingen allemaal beoordelen, (valence arousal)
-
--EINDIG met DASS: trait stress anxiety depression is higher: universal PMS vs noPMS
--plots op slides over heen typen titels moment etc
-
--maak aparte slides van de correlaties want nu te klein!
-
-- zet statistieken erbij: grootte p (zoek op laatste publicatie Mitchel/jens wat gerapporteerd en uitlezen uit emmeans/anovatabellen)
-
--opslaan Rmd files png automatisch! 
-
-hoofdstukjes: stress, vragenlijsten voor stress/ resultaten stress
-
-slide voor de plots met descriptives: hoeveel data , n participanten, alpha
-bij gezichtenn: meld dat minder data! 
- 
-- oefen presentatie: welke info nodig om resultaten te begrijpen
-
-- betere bronvermelding PSST (v pp Mitchel/tilia masterproef/liese)
-
-- deze tool is gematched met diagnose die doktoren wel kunen geven en prevalenties in die groepen kwamen overeen: meest betrouwb screeningstool die er op deze moment is. 
-
-- ondersch: geen tot weinig, mild tot sterk en ernstige klachten. laatste twee samen. PMDD kan enkel psychiater vaststellen. 
-
--bij testmoments: zet afb nog eens bij 
--pp emotiµes: im^plicit= sliders explicit= emotional expressions
-
-- maak PMDD minder centraal!! das psychiatrische aandoening, niet noemen. enkel noemen ifv dat het meer aandacht krijgt nu sinds opgenomen in DSM: meer erkenning voor PMS klachten ; zoals bij veel dingen DSM versie prevalentie vrij laag  maar veel vrouwen hebben evengoed symptomen, 20-30 sprake van PMS (geen officiele diagnose moeilijk af te kaderen)
-
-- gebruik andere afbeelding v helloclue
-
-- zet N op de corr
-
-- doe valence en arousal!  plot? per groep? 
-
-
-- er komt een kolom 'confidence' en bv only use facial data when >.95
-
-- change videovalence to happy
-
-- emoties 2x2 plotten: emoties op time *group
-
-- ArousalVideo plotten en correlatie met Arousal
 
 ### Action Units
 
@@ -1522,14 +1532,10 @@ server <- function (input, output){
       NAs<-sum(is.na(datafaces$AU12))
       datapoints<-length(datafaces$AU12-length(NAs))
       n<- length(unique(datafaces$ID))
-      ggscatter(datafaces, x = "Valence", y = "happy", 
-      add = "reg.line", conf.int = TRUE, 
-      xlab='Valence', ylab='VideoValence',
-      cor.coef = TRUE, cor.method = "pearson",
-      title=sprintf("\ndatapoints: %s, n: %s\n", datapoints, n))# NAs in AU12 & AU15
-      # geom_segment(aes(x = 0, y = 0, xend = 100, yend = 2), size= 1, colour='red')
-      # library('ggpubr')
-      # ggqqplot(datafaces$AU12)
+      plot(datafaces$Valence, datafaces$VideoValence, pch = 19, col = "lightblue",
+           main= sprintf("\ndatapoints: %s, n: %s\n", datapoints, n))
+      abline(lm(datafaces$Valence~ datafaces$VideoValence), col = "red", lwd = 3)
+      text(paste("Pearson Correlation:", round(cor(datafaces$VideoValence, datafaces$Valence), 2)), x=50, y=2)
     }, height=1000, width=1500)
     
     output$ArousalVideo<- renderPlot({
@@ -1543,14 +1549,10 @@ server <- function (input, output){
       NAs<-sum(is.na(datafaces$AU12))
       datapoints<-length(datafaces$AU12-length(NAs))
       n<- length(unique(datafaces$ID))
-      ggscatter(datafaces, x = "Arousal", y = "arousal", 
-      add = "reg.line", conf.int = TRUE, 
-      xlab='Arousal', ylab='VideoArousal',
-      cor.coef = TRUE, cor.method = "pearson",
-      title=sprintf("\ndatapoints: %s, n: %s\n", datapoints, n))# NAs in AU12 & AU15
-      # geom_segment(aes(x = 0, y = 0, xend = 100, yend = 2), size= 1, colour='red')
-      # library('ggpubr')
-      # ggqqplot(datafaces$AU12)
+      plot(datafaces$Arousal, datafaces$arousal, pch = 19, col = "lightblue",
+           main= sprintf("\ndatapoints: %s, n: %s\n", datapoints, n))
+      abline(lm(datafaces$Arousal~ datafaces$arousal), col = "red", lwd = 3)
+      text(paste("Pearson Correlation:", round(cor(datafaces$Arousal, datafaces$arousal), 2)), x=50, y=0.5)
     }, height=1000, width=1500)
 }
 shinyApp(ui=ui, server=server, options= list(height=1200))
@@ -1601,9 +1603,9 @@ server <- function (input, output){
           geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = arousal, group = PMS, fill= PMS), shape = 21, size=6)+
           xlim(-1, 2)+
           scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-          # annotate('text', x=1, y=105, label='*', size=8)+
+          annotate('text', x=2, y=0.75, label='*', size=8)+
           # annotate('text', x=2, y=105, label='*', size=8)+
-          # geom_segment(aes(x = 0.97, y = 103, xend = 1.03, yend = 103), size= 2)+
+          geom_segment(aes(x = 1.97, y = 0.65, xend = 2.03, yend = 0.65), size= 2)+
           # geom_segment(aes(x = 1.97, y = 103, xend = 2.03, yend = 103), size= 2)+
           ggtitle('arousal ~ PMS * TestMoment')
         }else if (grepl('VideoValence', input$formula_choice) & grepl('TestMoment', input$formula_choice)){
@@ -1645,16 +1647,16 @@ server <- function (input, output){
      models <- reactive({
         m <- c()
         Formula <- paste0(input$formula_choice, '+ (1|Subject)')
-        tryCatch({ d0.1 <- lmer(Formula,data=data); m <- c(m, d1=d0.1)}, error=function(e){})
-        tryCatch({ d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d1=d0.2)}, error=function(e){})
-        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d3=d0.3)}, error=function(e){})
-        tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d4=d0.4)},error=function(e){})
-        tryCatch({ d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d5=d0.5) }, error=function(e){})
-        tryCatch({ d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d6=d0.6) }, error=function(e){})
-        tryCatch({ d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);models <- c(models, d7=d0.7) }, error=function(e){})
-        tryCatch({ d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d8=d0.8) }, 
+        tryCatch({ d0.1 <- lmer(Formula,data=datafaces); m <- c(m, d1=d0.1)}, error=function(e){})
+        tryCatch({ d0.2 <- glmer(Formula,data=datafaces, family = gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d1=d0.2)}, error=function(e){})
+        tryCatch({ d0.3 <- glmer(Formula,data=datafaces, family = gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d3=d0.3)}, error=function(e){})
+        tryCatch({ d0.4 <- glmer(Formula,data=datafaces, family = Gamma(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d4=d0.4)},error=function(e){})
+        tryCatch({ d0.5 <- glmer(Formula,data=datafaces, family = Gamma(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d5=d0.5) }, error=function(e){})
+        tryCatch({ d0.6 <- glmer(Formula,data=datafaces, family = Gamma(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d6=d0.6) }, error=function(e){})
+        tryCatch({ d0.7 <- glmer(Formula,data=datafaces, family = inverse.gaussian(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);models <- c(models, d7=d0.7) }, error=function(e){})
+        tryCatch({ d0.8 <- glmer(Formula,data=datafaces, family = inverse.gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d8=d0.8) }, 
           error=function(e){})
-        tryCatch(+{ d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);  m <- c(m, d9=d0.9) }, 
+        tryCatch(+{ d0.9 <- glmer(Formula,data=datafaces, family = inverse.gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);  m <- c(m, d9=d0.9) }, 
           error=function(e){})
         m
      })
@@ -1737,7 +1739,6 @@ if ( "scared" %in% input$Emotion) return(datafaces$scared)
         ggplot(datafaces, aes(x=Moment, y=Y_VAR(), fill=PMS))+
           geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
           geom_boxplot(aes(x=Moment, y=Y_VAR(), fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
-          stat_summary(fun.y=mean) +
     theme(legend.position="none") +
           geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Y_MEAN(), group = PMS, fill=PMS), shape = 21, size=6)+
           scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
@@ -1797,3 +1798,24 @@ we took out all non-natural contraception methods. these are the descriptives:
 | **Cop.Coil:** `r cop` |
 | **Pill:**  `r pill` |
 | **other:** `r oth` |
+
+**TO DO**
+
+- betere bronvermelding PSST (v pp Mitchel/tilia masterproef/liese)
+
+- lees tilia en liese, vermeld
+
+- BSRI voorbeeld quest toevoegen
+-IAPS voeg toe bronvermelding! 
+-voeg toe bronvermelding Steiner et al
+-notities kopieren en plakken nr nieuwe pp
+
+-plots op slides over heen typen titels moment etc
+
+- zet statistieken erbij: b, SE, t,  p-value
+ 
+- oefen presentatie: welke info nodig om resultaten te begrijpen
+
+
+
+- na presentatie: maak Rmd file meer zoals presentatie (voeg alle relevante info toe uit PP, PP Mitchel, master Tilia en master Liese)
