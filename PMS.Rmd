@@ -137,7 +137,6 @@ data_allcontraception <-data
 data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contraception=="Cop.Coil"|data$Contraception=="Hor. Coil"|data$Contraception=="Hor.Coil"),]
 # data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor. Coil" & Contraception!='Hor.Coil', na.rm=TRUE)
 
-data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
 data_out<-data #the data with the rt outliers
 data <- subset(data, rt < 30)#Dit zijn de data waar de rt outliers uitgehaald zijn! 
 
@@ -1431,12 +1430,10 @@ server <- function (input, output){
           geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
           geom_boxplot(aes(x=Moment, y=arousal, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
           geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = arousal, group = PMS, fill= PMS), shape = 21, size=6)+
-          xlim(-1, 2)+
+          xlim(-0.5, 2)+ ylim(0, 0.65)+
           scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-          annotate('text', x=2, y=0.75, label='*', size=8)+
-          # annotate('text', x=2, y=105, label='*', size=8)+
-          geom_segment(aes(x = 1.97, y = 0.65, xend = 2.03, yend = 0.65), size= 2)+
-          # geom_segment(aes(x = 1.97, y = 103, xend = 2.03, yend = 103), size= 2)+
+          annotate('text', x=1.5, y=0.63, label='*', size=8)+
+          geom_segment(aes(x = 1.03, y = 0.6, xend = 2.03, yend = 0.6), size= 2)+
           ggtitle('arousal ~ PMS * TestMoment')
         }else if (grepl('VideoValence', input$formula_choice) & grepl('TestMoment', input$formula_choice)){
       dmean<-summarySE(datafaces, measurevar='VideoValence', groupvars=c('Moment', 'PMS'), na.rm=TRUE)
@@ -1444,6 +1441,7 @@ server <- function (input, output){
           geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
           geom_boxplot(aes(x=Moment, y=VideoValence, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
           geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = VideoValence, group = PMS, fill=PMS), shape = 21, size=6)+
+          xlim(-0.15, 1.8)+ ylim(-0.2, 0.75)+
           scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
           ggtitle('VideoValence~PMS * TestMoment')
     }
@@ -1570,15 +1568,17 @@ if ( "scared" %in% input$Emotion) return(datafaces$scared)
           geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
           geom_boxplot(aes(x=Moment, y=Y_VAR(), fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
     theme(legend.position="none") +
+          xlim(-0.3, 1.8)+ ylim(-0.3, 1.5)+
           geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Y_MEAN(), group = PMS, fill=PMS), shape = 21, size=6)+
           scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
           ggtitle(sprintf("\n%s ~PMS*TestMoment\n", input$Emotion))
 
-    # dmean<-summarySE(datafaces, measurevar='sad', groupvars=c('Moment', 'PMS'), na.rm=TRUE)
-    # ggplot(datafaces, aes(x=Moment, y=sad, fill=PMS))+
+    # dmean<-summarySE(datafaces, measurevar='happy', groupvars=c('Moment', 'PMS'), na.rm=TRUE)
+    # ggplot(datafaces, aes(x=Moment, y=happy, fill=PMS))+
     #       geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
-    #       geom_boxplot(aes(x=Moment, y=sad, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
-    #       geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = sad, group = PMS, fill= PMS), shape = 21, size=6)+
+    #       geom_boxplot(aes(x=Moment, y=happy, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
+    #       geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = happy, group = PMS, fill= PMS), shape = 21, size=6)+
+    #       xlim(-0.1, 1.8)+ ylim(-0.1, 1.2)+
     #       scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))
     
   }, height=800)
@@ -1818,7 +1818,141 @@ shinyApp(ui=ui, server=server, options=list(height=1000))
 
 !["de Beurs et al., 'De DASS', 2001"](figures/DASS.png){width=50%}
 
+
+## RRS-10
+
+### Ruminative Response Scale
+
+assesses depressive rumination
+
+
+
+#### onderzoeksvraag: PMS vs noPMS voor:
+- RRS
+
+**Trait, not State:** we didn't look for interaction TestMoment
+
+```{r RRS, echo=FALSE}
+ui<- fluidPage( # makes the User Interface
+    selectInput("formula_choice", label="Choose a formula:",
+            choices= c('allRRS ~ PMS', 'allRRS ~ PMS * TestMoment'),
+            selected='allRRS ~ PMS'), # puts the choices in the first element which is accessed via input$formula_choice
+     tabsetPanel(type = "tab",
+                  tabPanel("overlap", plotOutput("overlap")),
+                 tabPanel("AIC table", tableOutput("table")),
+                 tabPanel("Anova", verbatimTextOutput("Anova")),
+                 tabPanel("emmeans",verbatimTextOutput("emmeans"))
+         ))
+
+server <- function (input, output){ #we have to add this to the server
+
+    Y_VAR <- reactive({
+  if ( "allRRS" %in% input$Emotion) return(data$allRRS)
+  })
+
+  Y_MEAN<- reactive({
+    dmean<-dmean<-summarySE(datafaces, measurevar=input$Emotion, groupvars=c('Moment', 'PMS'), na.rm=TRUE)
+    if ( "allRRS" %in% input$Emotion) return(dmean$allRRS)
+      })
+
+  
+  output$plot <-renderPlot({
+    dmean<-dmean<-summarySE(datafaces, measurevar=Y_VAR(), groupvars=c('Moment', 'PMS'), na.rm=TRUE)
+        ggplot(datafaces, aes(x=Moment, y=Y_VAR(), fill=PMS))+
+          geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
+          geom_boxplot(aes(x=Moment, y=Y_VAR(), fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
+    theme(legend.position="none") +
+          xlim(-0.3, 1.8)+ ylim(-0.3, 1.5)+
+          geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Y_MEAN(), group = PMS, fill=PMS), shape = 21, size=6)+
+          scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+          ggtitle(sprintf("\n%s ~PMS*TestMoment\n", Y_VAR()))
+    }, height=700, width=1100)
+    
+  p_pms <-reactive({
+    p<-(p()[[3]][1]) # this gets the p-value of the first row, for PMS
+    if (p> 0.05) {star=''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}
+  })
+  
+  p<-reactive({
+        tabel<-c()
+    for (i in 1:length(models())){
+        AIC<- AIC(models()[[i]])
+        tabel <- c(tabel,round(AIC))}
+    chosenModel<-models()[which(tabel == min(tabel))]
+       cat(sprintf("\nAnova\n"))
+       Anova(chosenModel[[1]])
+  })
+    
+     models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
+        m <- c()
+        Formula <- paste0(input$formula_choice, '+ (1|Subject)')
+        tryCatch({ d0.1 <- lmer(Formula,data=data); 
+          m <- c(m, d1=d0.1)}, error=function(e){})
+        tryCatch( { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d1=d0.2)},  error=function(e){})
+        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d3=d0.3)},  error=function(e){})
+        tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d4=d0.4)}, error=function(e){})
+        tryCatch( { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d5=d0.5) },  error=function(e){})
+        tryCatch(  { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d6=d0.6) },  error=function(e){})
+        tryCatch( { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          models <- c(models, d7=d0.7) },   error=function(e){})
+        tryCatch( { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d8=d0.8) },   error=function(e){})
+        tryCatch( { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d9=d0.9) },  error=function(e){})
+        m
+     })
+  output$table <-renderTable({
+    modelNames<-c()
+    tabel<-c()
+    for (i in 1:length(models())){
+      modelNames<-c(modelNames, names(models()[i]))
+      AIC<-AIC(models()[[i]])
+      tabel <- c (tabel, round(AIC))}
+      chosenModel = modelNames[which(tabel == min(tabel))]
+      data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, tabel))
+  })
+
+  output$Anova <- renderPrint({
+       cat(sprintf("\nAnova\n"))
+       p()})
+  
+  output$emmeans <- renderPrint({
+  tabel<-c()
+  for (i in 1:length(models())){
+      AIC<- AIC(models()[[i]])
+      tabel <- c(tabel,round(AIC))}
+  chosenModel<-models()[which(tabel == min(tabel))]
+    cat(sprintf("\n emmeans of formula: %s\n", input$formula_choice))
+      Emm <- emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type="response")
+      print(Emm)
+  })
+
+}
+shinyApp(ui=ui, server=server, options=list(height=1000))
+```
+
+### Conclusions
+
+### Interpretation of RRS
+
+
 **TO DO**
+
+
+- pp mitchel doorlopen
+- voeg comments toe
+- zet facial stuff nr achter, focus op AU12 en AU15 en valnece en arousal
+
+
+
 
 - betere bronvermelding PSST (v pp Mitchel/tilia masterproef/liese)
 
@@ -1837,4 +1971,7 @@ shinyApp(ui=ui, server=server, options=list(height=1000))
 
 
 
+
 - na presentatie: maak Rmd file meer zoals presentatie (voeg alle relevante info toe uit PP, PP Mitchel, master Tilia en master Liese)
+
+- control for traits? 
