@@ -1835,7 +1835,7 @@ assesses depressive rumination
 ```{r RRS, echo=FALSE}
 ui<- fluidPage( # makes the User Interface
     selectInput("formula_choice", label="Choose a formula:",
-            choices= c('allRRS ~ PMS', 'allRRS ~ PMS * TestMoment'),
+            choices= c('allRRS ~ PMS'),
             selected='allRRS ~ PMS'), # puts the choices in the first element which is accessed via input$formula_choice
      tabsetPanel(type = "tab",
                   tabPanel("overlap", plotOutput("overlap")),
@@ -1844,28 +1844,24 @@ ui<- fluidPage( # makes the User Interface
                  tabPanel("emmeans",verbatimTextOutput("emmeans"))
          ))
 
+
 server <- function (input, output){ #we have to add this to the server
 
-    Y_VAR <- reactive({
-  if ( "allRRS" %in% input$Emotion) return(data$allRRS)
-  })
-
-  Y_MEAN<- reactive({
-    dmean<-dmean<-summarySE(datafaces, measurevar=input$Emotion, groupvars=c('Moment', 'PMS'), na.rm=TRUE)
-    if ( "allRRS" %in% input$Emotion) return(dmean$allRRS)
-      })
-
-  
-  output$plot <-renderPlot({
-    dmean<-dmean<-summarySE(datafaces, measurevar=Y_VAR(), groupvars=c('Moment', 'PMS'), na.rm=TRUE)
-        ggplot(datafaces, aes(x=Moment, y=Y_VAR(), fill=PMS))+
-          geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
-          geom_boxplot(aes(x=Moment, y=Y_VAR(), fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
-    theme(legend.position="none") +
-          xlim(-0.3, 1.8)+ ylim(-0.3, 1.5)+
-          geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Y_MEAN(), group = PMS, fill=PMS), shape = 21, size=6)+
-          scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-          ggtitle(sprintf("\n%s ~PMS*TestMoment\n", Y_VAR()))
+  output$overlap <-renderPlot({
+    
+          max_y<-max(as.integer(data$allRRS))
+          dmean<-summarySE(data, measurevar="allRRS", groupvars=c('PMS'))
+          ggplot(data, aes(x = PMS, y = allRRS)) +
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
+            geom_boxplot(aes(x = PMS, y = allRRS, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
+            geom_point(data = dmean, aes(x = as.numeric(PMS), y = allRRS, group=PMS, fill=PMS), shape = 21, size=6)+
+            geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/200), xend = 2, yend=max_y+(max_y/10)+(max_y/200)), size= 1.7)+
+          annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+            scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+            ggtitle('allRRS~PMS')
+        
+        
     }, height=700, width=1100)
     
   p_pms <-reactive({
