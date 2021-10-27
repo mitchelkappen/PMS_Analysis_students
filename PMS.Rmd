@@ -1857,7 +1857,8 @@ server <- function (input, output){ #we have to add this to the server
             geom_boxplot(aes(x = PMS, y = allRRS, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = allRRS, group=PMS, fill=PMS), shape = 21, size=6)+
             geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/200), xend = 2, yend=max_y+(max_y/10)+(max_y/200)), size= 1.7)+
-          annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+          # annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+            annotate('text', x=1.6, y=max_y+(max_y/10)+(max_y/100), label="***", size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             ggtitle('allRRS~PMS')
         
@@ -1942,32 +1943,26 @@ shinyApp(ui=ui, server=server, options=list(height=1000))
 
 **TO DO**
 
+bedankmail checken? Tilia
 
-- pp mitchel doorlopen
-- voeg comments toe
-- zet facial stuff nr achter, focus op AU12 en AU15 en valnece en arousal
+10001 en 10002 inputs, bij 20602021 results10001 output vd limesurvey
 
-
-
-
-- betere bronvermelding PSST (v pp Mitchel/tilia masterproef/liese)
-
-- lees tilia en liese, vermeld
-
-- BSRI voorbeeld quest toevoegen
--IAPS voeg toe bronvermelding! 
--voeg toe bronvermelding Steiner et al
--notities kopieren en plakken nr nieuwe pp
-
--plots op slides over heen typen titels moment etc
-
-- zet statistieken erbij: b, SE, t,  p-value
- 
-- oefen presentatie: welke info nodig om resultaten te begrijpen
+-helloclue: via app? bv raten foto's enzo. emoties ingeven. app https://helloclue.com/articles/about-clue/scientific-research-at-clue
 
 
 
+exploratory: contraception 
 
-- na presentatie: maak Rmd file meer zoals presentatie (voeg alle relevante info toe uit PP, PP Mitchel, master Tilia en master Liese)
+
+R MARKDOWN
+
+-datapoints ooit toevoegen valence/arousal plots
+
 
 - control for traits? 
+
+
+bekijk associatie ruminatie en stress? 
+hoe relateerd BSRI aan de stress? wss veel, wss zelfde participanten
+
+symptomen plotten over tijd en controleren traits
