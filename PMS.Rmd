@@ -15,10 +15,10 @@ output:
 }
 </style>
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(dev = "png",
-                      fig.path='Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\figures\\',
-                      dpi = 300,
-                      cache = FALSE)
+# knitr::opts_chunk$set(dev = "png",
+#                       fig.path='Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\figures\\',
+#                       dpi = 300,
+#                       cache = FALSE)
 ```
 # A Data Analysis Report {.tabset}
 
@@ -255,14 +255,15 @@ PMS is a clinical disorder exclusive to people who menstruate.
 - headaches
 - changes in appetite and sex drive
 - lower serotonin levels
-- etiology & symptoms of PMS and depression have been linked
+
 
 ![](figures/PMS_Symptoms.jpg){width=40%}
 
-!["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](Z:/shares/ghepmk_data/2020_Kappen_PMS/RMarkdown/figures/MC.jpg){width=50%}
 
+As the name suggests, These symptoms happen during the premenstrual or luteal phase, and fade about 2 days into menstruation 
 
-- 'pre-menstrual': during luteal phase, symptoms disappear 1-2 days into menstruation
+!["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](figures/cycle.png){width=50%}
+
 
 #### PMDD
 
@@ -282,17 +283,28 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 - 20-30%: moderate to severe symptoms
 - 5-8% PMDD levels of symptoms
 
+
+It has been argued that the etiology of PMS and Depression are linked. 
+Therefore, we decided to focus on certain concepts that are central in mood disorders:
+stress, rumination, and the experience and expression of emotions. 
+
+The central PMS symtoms occur in the premenstrual phase, but there exists some discussion about whether or not PMS symptoms are only present in the premenstrual phase or if they might also affect different aspects of life throughout the cycle. 
+
+Therefore, we will study them throughout the cycle to isolate the added symptoms. 
+
 ***
-### Hypotheses
+### Question
 
 #### PMS/ no PMS: 
 
-#### during follicular and luteal/premenstrual phase cycle:
+
 
 - higher stress/rumination? 
 - emotion:
   +  **explicit:** self-report
   +  **implicit:** emotional expressions
+
+and how o they differ between different cycle phases?
 
 
 *** 
@@ -329,7 +341,7 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 
 #### SCREENING
 
-![](Z:/shares/ghepmk_data/2020_Kappen_PMS/RMarkdown/figures/screening.png){width=40%}
+![](figures/screening.png){width=40%}
 
 ##### PSST
 
@@ -352,8 +364,8 @@ PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this 
 
 => 2 groups: 
 
-    + no/mild symptoms: **noPMS**
-    + medium-severe symptoms: **PMS**
+  + no/mild symptoms: **noPMS**
+  + medium-severe symptoms: **PMS**
     
 
 
@@ -380,7 +392,7 @@ summary(data_out$rt)
 print('upper 99.85% bound')
 quantile (data_out$rt, 0.9985)
 
-data_out <- subset(data_out, rt < 30)
+# data_out <- subset(data_out, rt < 30)
 d<-melt(data.frame(rt=c(data_out$rt)))
 ggplot(d, aes(x = variable, y = value, fill=variable))+
   geom_flat_violin(position = position_nudge(x = .2, y = 0),adjust =2)+
@@ -406,11 +418,11 @@ mtext(paste('boxplot with outliers')) #boxplot with outliers
 
 ### PSS: Perceived Stress Scale 
 
-![](Z:/shares/ghepmk_data/2020_Kappen_PMS/RMarkdown/figures/PSS_quest.png){width=40%}
+![](figures/PSS_quest.png){width=40%}
 
 ### BSRI: Brief State Rumination Index
 
-![](Z:/shares/ghepmk_data/2020_Kappen_PMS/RMarkdown/figures/BSRI.png){width=40%}
+![](figures/BSRI.png){width=40%}
 
 measured at two time points
 
@@ -1959,10 +1971,10 @@ R MARKDOWN
 -datapoints ooit toevoegen valence/arousal plots
 
 
-- control for traits? 
-
-
 bekijk associatie ruminatie en stress? 
 hoe relateerd BSRI aan de stress? wss veel, wss zelfde participanten
 
 symptomen plotten over tijd en controleren traits
+
+- meer interactieve code maken 
+- meer commenten
