@@ -117,7 +117,9 @@ data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
 # new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1, 
 data$PMS[data$PMSScore==0] = 'noPMS'
 data$PMS[data$PMSScore==1] = 'PMS'
-data$PMS[data$PMSScore==2] = 'PMS' #PMDD, mr niet officiële diagnose dus gewoon PMS
+data$PMS[data$PMSScore==2] = 'PMDD' #PMDD, mr niet officiële diagnose dus gewoon PMS
+
+data$PMS<-ordered(data$PMS, levels=c('noPMS', 'PMS', 'PMDD'))
 
 data$rt = data$rt/1000 #put rt in sec instead of ms
 
@@ -353,6 +355,51 @@ and how o they differ between different cycle phases?
 
  <font size="1">Steiner et al., 2003b https://pubmed.ncbi.nlm.nih.gov/12920618/ </font>
  
+ Questions:
+Do you experience some/any of the following premenstrual symtptoms which start before your period and stop within a few days of bleeding?
+
+1.  anger/irritability: woede/prikkelbaarheid
+2. anxiety/tension: angst/spanning
+3. tearful/increased sensitivity to rejection: verdriet/ verhoogd gevoel voor afwijzing
+4. depressedmood/hopelessness: depressieve stemming/hopeloosheid
+5. decreased interest in work activities: verminderde interesse in werk gerelateerde activiteiten
+6. decreased interest in home activities: verminderde interesse in huishoudelijke activiteiten
+7. decreased interest in social activities: verminderde interesse in sociale activiteiten
+8. difficulty concentrating: concentratiemoeilijkheden
+9. fatigue/lack of energy: vermoeid/gebrek aan energie
+10. overeating/food craving: overeten/ verlangen naar eten
+11. insomnia: slapeloosheid
+12. hypersomnia: overmatige slaperigheid
+13. feeling overwhelmed or out of control: overweldigd voelen of controle verliezen
+14. physical symtpoms: fysieke symptomen (gevoelige borsten, hoofdpijjn, gewricht-spierpijn, opgeblazen gevoel, gewichtstoename)
+
+not at all
+mild
+moderate: 'gemiddeld'
+severe
+
+1-4 point scale!
+
+DSM-IV:
+min 5, of which 
+min 1 has to be: 1, 2, 4, 3
+rest: 5-7 (is one), 8-14
+
+
+Steiner et al. 2003: 
+PMDD (5.1%): DSM-IV criteria for PMDD
+minimum 1/4 of first 4 questions as severe (meaning score=4): 
++ at least 4 additional symptoms as moderate to severe (3-4)
+
+PMS: min 1/4 core symptoms(meaning first 4) as moderate to severe (score 3-4)
++min 4 additional symptoms score 3-4
+about 20.7%
+
+noPMS: the rest, about 65%
+
+score [1-4 == 4 & 5-14 >= 3] = PMDD
+etc.
+ 
  
  ##### GROUPS
  
@@ -439,6 +486,17 @@ Boxplots contain the medians, circles represent the means
 N= 279!
 
 ```{r PSS&BSRI, echo=FALSE, cache=FALSE}
+nPMDD<- round((sum(data$PMS=='PMDD')/length(data$PMS))*100,2)
+
+nPMS<-round(sum(data$PMS=='PMS')/length(data$PMS)*100,2)
+
+nnoPMS<-round(sum(data$PMS=='noPMS')/length(data$PMS)*100,2)
+
+
+nTotal<-length(unique(data$ID))
+
+sum(data$PMS=='noPMS')/length(data$PMS)
+
 ui<- fluidPage( # makes the User Interface
     selectInput("formula_choice", label="Choose a Formula:",
             choices= c('PSS ~ PMS', 'BSRI ~ PMS', 'PSS~ PMS*TestMoment', 'BSRI ~PMS*TestMoment'),
@@ -726,6 +784,13 @@ server <- function (input, output){
 shinyApp(ui=ui, server=server, options=list(height=1200, width=1200))
 ```
 
+participants with PMS: `r nPMS` %
+
+participants with no PMS: `r nnoPMS` %
+
+participants with PMDD: `r nPMDD` %
+
+ 
  
 ### conclusions
 
@@ -738,6 +803,11 @@ shinyApp(ui=ui, server=server, options=list(height=1200, width=1200))
   + same
  
 => we can conclude that participants with PMS have more stress and ruminate more.
+
+voor PSS: 
+noPMS1-2: not sign
+PMS1-2: 0.001
+PMDD1-2: 0.01
 
 ***
 
@@ -1605,41 +1675,7 @@ if ( "scared" %in% input$Emotion) return(datafaces$scared)
 shinyApp(ui=ui, server=server, options= list(height=1200))
 ```
 
-## Descriptives
-```{r descriptives, echo=FALSE}
-#dataframe with the means of descriptives
-knitr::kable(data.frame(
-  PMS=c('cyclus duration:', round(mean(data$MenstrualDuration[data$PMS=='PMS']), digits=1),
-        'Age:', round(mean(data$Age[data$PMS=='PMS']), digits=1),
-        'first menstrual:', round(mean(data$FirstMenstrual[data$PMS=='PMS']), digits=1)
-        ), 
-  noPMS= c('cyclus duration:', round(mean(data$MenstrualDuration[data$PMS=='noPMS']), digits=1),
-           'Age:', round(mean(data$Age[data$PMS=='noPMS']), digits=1),
-           'first menstrual:', round(mean(data$FirstMenstrual[data$PMS=='noPMS']), digits=1)
-           )
-  ))
 
-kable(table(data$Order))
-
-nat<- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Natural']))
-hor <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Hor.Coil'|data_allcontraception$Contraception=='Hor. Coil']))
-cop <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Cop.Coil']))
-pill <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Pill']))
-oth <-length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='other']))
-```
-
-A-B contained 237 participants,
-B-A contained 182 participant
-
-we took out all non-natural contraception methods. these are the descriptives:
-
-|  |
-|:---|
-|  **Natural:** `r nat`  |
-| **Hor.Coil:** `r hor` |
-| **Cop.Coil:** `r cop` |
-| **Pill:**  `r pill` |
-| **other:** `r oth` |
 
 ## DASS
 
@@ -1953,9 +1989,45 @@ shinyApp(ui=ui, server=server, options=list(height=1000))
 ### Interpretation of RRS
 
 
+## Descriptives
+```{r descriptives, echo=FALSE}
+#dataframe with the means of descriptives
+knitr::kable(data.frame(
+  PMS=c('cyclus duration:', round(mean(data$MenstrualDuration[data$PMS=='PMS']), digits=1),
+        'Age:', round(mean(data$Age[data$PMS=='PMS']), digits=1),
+        'first menstrual:', round(mean(data$FirstMenstrual[data$PMS=='PMS']), digits=1)
+        ), 
+  noPMS= c('cyclus duration:', round(mean(data$MenstrualDuration[data$PMS=='noPMS']), digits=1),
+           'Age:', round(mean(data$Age[data$PMS=='noPMS']), digits=1),
+           'first menstrual:', round(mean(data$FirstMenstrual[data$PMS=='noPMS']), digits=1)
+           )
+  ))
+
+kable(table(data$Order))
+
+nat<- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Natural']))
+hor <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Hor.Coil'|data_allcontraception$Contraception=='Hor. Coil']))
+cop <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Cop.Coil']))
+pill <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Pill']))
+oth <-length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='other']))
+```
+
+A-B contained 237 participants,
+B-A contained 182 participant
+
+we took out all non-natural contraception methods. these are the descriptives:
+
+|  |
+|:---|
+|  **Natural:** `r nat`  |
+| **Hor.Coil:** `r hor` |
+| **Cop.Coil:** `r cop` |
+| **Pill:**  `r pill` |
+| **other:** `r oth` |
+
 **TO DO**
 
-bedankmail checken? Tilia
+
 
 10001 en 10002 inputs, bij 20602021 results10001 output vd limesurvey
 
@@ -1963,10 +2035,26 @@ bedankmail checken? Tilia
 
 
 
-exploratory: contraception 
+exploratory: contraception ²
 
 
 R MARKDOWN
+
+question: is the translation to dutch valid? this study could attest to that!
+
+=> heropen python bestand! (github?)
+rauwe data bekijken
+
+herbekijk PSST paper: hoe onderverdeeld obv vragen? (kijk tilia en liese)
+verdeel in noPMS, PMS en PMDD, en geef descriptives voor elke groep 
+plot deze drie over tijd (voeg de formules toe)
+
+
+
+
+------------
+
+***
 
 -datapoints ooit toevoegen valence/arousal plots
 
@@ -1978,3 +2066,11 @@ symptomen plotten over tijd en controleren traits
 
 - meer interactieve code maken 
 - meer commenten
+
+
+https://www.sciencedirect.com/science/article/pii/S0165032721006030
+
+analyse draaien met PMDD groep. goed PSST doornemen!
+
+ook: verschil tussen noPMS en PMS groep op 2 momenten te vergelijken ipv enkel noPMS luteaal vs folliculair. om echt toegevoegde symptomen v PMS te zien (omdat noPMS groep ook nog milde symptomen heeft)
+ Bij visuele inspectie verwacht ik dat de significantie dan wel weg valt, maar dat is ook prima!
