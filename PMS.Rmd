@@ -19,11 +19,20 @@ This is an interactive, Shiny Rmd file for the PMS study
 rm(list = ls())
 
 #install packages
+<<<<<<< Updated upstream
 list.of.packages <- c("lme4",'lmerTest','effects','dplyr', 'car', 'Rmisc', 'emmeans','fitdistrplus','ggplot2', 'ggstatsplot','ggsignif', 'ggformula','ggdist','ggpubr','ggeffects', 'gplots', 'gridExtra','tidyverse','pander','stringr','cowplot','lavaan','readr','jpeg','shiny','reshape2', 'yarrr','knitr' )
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
 library(Rmisc)
+=======
+# list.of.packages <- c("lme4",'lmerTest','effects','dplyr', 'car', 'Rmisc', 'emmeans','fitdistrplus','ggplot2', 'ggstatsplot','ggsignif', 'ggformula','ggdist','ggpubr','ggeffects', 'gplots', 'gridExtra','tidyverse','pander','stringr','cowplot','lavaan','readr','jpeg','shiny','reshape2', 'yarrr','knitr', 'remotes', 'raincloudplots')
+# new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+# if(length(new.packages)) install.packages(new.packages)
+
+library(Rmisc)
+# library(raincloudplots)
+>>>>>>> Stashed changes
 library(lme4)
 library(lmerTest)
 library(effects)
