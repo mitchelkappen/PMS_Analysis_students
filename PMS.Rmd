@@ -614,10 +614,11 @@ server <- function (input, output){
             geom_split_violin(adjust =1.5, alpha=.5, colour= NA)+
             geom_boxplot(aes(x = 1, y = PSS, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = 1, y = PSS, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
-            annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+            # annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
            # annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='3', size=10)+
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
-            ggtitle('PSS ~ PMS')
+            ggtitle('PSS ~ PMS')+
+          scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))
       }else if (grepl('PSS', input$formula_choice)&(grepl("TestMoment", input$formula_choice))){
         max_y<- max(as.integer(data$PSS))
         dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS', 'Moment'))
@@ -632,7 +633,8 @@ server <- function (input, output){
             geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
           geom_segment(aes(x = 1.05, y = (max_y+(max_y/10)-(max_y/15)), xend = 2.05, yend = (max_y+(max_y/10)-(max_y/15))), size= 2)+
           annotate('text', x=1.5, y=(max_y+(max_y/10)-(max_y/20)), label='***', size=8)+
-            ggtitle('PSS ~ PMS * TestMoment')
+            ggtitle('PSS ~ PMS * TestMoment')+
+          scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))
     } else if (grepl('BSRI', input$formula_choice)&(grepl("TestMoment", input$formula_choice))){
       max_y<-max(as.integer(data$BSRI))
     dmean<-summarySE(data, measurevar="BSRI", groupvars=c('PMS', 'Moment'))
@@ -647,7 +649,8 @@ server <- function (input, output){
         geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
           geom_segment(aes(x = 1.05, y = (max_y+(max_y/10)-(max_y/15)), xend = 2.05, yend = (max_y+(max_y/10)-(max_y/15))), size= 2)+
           annotate('text', x=1.5, y=(max_y+(max_y/10)-(max_y/20)), label='***', size=8)+
-        ggtitle('BSRI ~ PMS * TestMoment')
+        ggtitle('BSRI ~ PMS * TestMoment')+
+        scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))
     } else {
       max_y<-max(as.integer(data$BSRI))
       dmean<-summarySE(data, measurevar="BSRI", groupvars=c('PMS'))
@@ -655,10 +658,11 @@ server <- function (input, output){
           geom_split_violin(adjust =1.5, alpha=.5, colour= NA)+
           geom_boxplot(aes(x = 1, y = BSRI, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
           geom_point(data = dmean, aes(x = 1, y = BSRI, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
-          annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
+          # annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label=sprintf("\n%s\n", p_pms()), size=10)+
          # annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='3', size=10)+
           geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
-          ggtitle('BSRI ~ PMS')
+          ggtitle('BSRI ~ PMS')+
+        scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))
     }
   }, height=900)
     
@@ -678,7 +682,9 @@ server <- function (input, output){
           geom_segment(aes(x = 1.04, y = (max_y+(max_y/10)-(max_y/15)), xend = 2.04, yend = (max_y+(max_y/10)-(max_y/15))), size= 2)+
           annotate('text', x=1.5, y=(max_y+(max_y/10)-(max_y/20)), label='***', size=8)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-            ggtitle('PSS ~ PMS * TestMoment')
+            ggtitle('PSS ~ PMS * TestMoment')+
+        scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))
+          
     }else if (grepl('PSS', input$formula_choice) & !grepl('TestMoment', input$formula_choice)){
       max_y<-max(as.integer(data$PSS))
             dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS'))
@@ -688,9 +694,11 @@ server <- function (input, output){
             geom_boxplot(aes(x = PMS, y = PSS, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = PSS, group=PMS, fill=PMS), shape = 21, size=6)+
             geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/150), xend = 2, yend=max_y+(max_y/10)+(max_y/150)), size= 1.7)+
-          annotate('text', x=1.5, y=max_y+(max_y/10)+(max_y/50), label=sprintf("\n%s\n", p_pms()), size=10)+
+          # annotate('text', x=1.5, y=max_y+(max_y/10)+(max_y/50), label=sprintf("\n%s\n", p_pms()), size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-            ggtitle('PSS~PMS')
+            ggtitle('PSS~PMS')+
+        scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))+
+            scale_colour_manual(values = c("red1", "#49A4B9", "#2C5985"))
     }
     else if (grepl('BSRI', input$formula_choice) & grepl('TestMoment', input$formula_choice)){
         max_y<-max(as.integer(data$BSRI))
@@ -708,7 +716,8 @@ server <- function (input, output){
           geom_segment(aes(x = 1.04, y = (max_y+(max_y/10)-(max_y/15)), xend = 2.04, yend = (max_y+(max_y/10)-(max_y/15))), size= 2)+
           annotate('text', x=1.5, y=(max_y+(max_y/10)-(max_y/20)), label='***', size=8)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-            ggtitle('BSRI ~ PMS * TestMoment')
+            ggtitle('BSRI ~ PMS * TestMoment')+
+        scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))
     }else {max_y<-max(as.integer(data$BSRI))
             dmean<-summarySE(data, measurevar="BSRI", groupvars=c('PMS'))
           ggplot(data, aes(x = PMS, y = BSRI)) +
@@ -719,7 +728,8 @@ server <- function (input, output){
             geom_segment(aes(x = 1, y=max_y+(max_y/10)+(max_y/150), xend = 2, yend=max_y+(max_y/10)+(max_y/150)), size= 1.7)+
           annotate('text', x=1.5, y=max_y+(max_y/10)+(max_y/60), label=sprintf("\n%s\n", p_pms()), size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-            ggtitle('BSRI~PMS')
+            ggtitle('BSRI~PMS')+
+        scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))
         }
     }, height=900)
       
@@ -1028,7 +1038,8 @@ server <- function (input, output){
           annotate('text', x=2, y=105, label='*', size=8)+
           geom_segment(aes(x = 0.97, y = 103, xend = 1.03, yend = 103), size= 2)+
           geom_segment(aes(x = 1.97, y = 103, xend = 2.03, yend = 103), size= 2)+
-          ggtitle('Arousal ~ PMS * TestMoment')
+          ggtitle('Arousal ~ PMS * TestMoment')+
+          scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))
         }else if (grepl('Valence', input$formula_choice) & grepl('TestMoment', input$formula_choice)){
       dmean<-summarySE(data, measurevar="Valence", groupvars=c('PMS', 'Moment'))
         ggplot(data, aes(x=Moment, y=Valence, fill=PMS))+
@@ -1036,7 +1047,8 @@ server <- function (input, output){
           geom_boxplot(aes(x=Moment, y=Valence, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
           geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = Valence, group = PMS, fill=PMS), shape = 21, size=6)+
           scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-          ggtitle('Valence~PMS * TestMoment')
+          ggtitle('Valence~PMS * TestMoment')+
+          scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))
     }
     else if (grepl('Arousal', input$formula_choice) & !grepl('TestMoment', input$formula_choice)){
       dmean<-summarySE(data, measurevar="Arousal", groupvars=c('PMS'))
@@ -1049,7 +1061,8 @@ server <- function (input, output){
           # annotate('text', x=1.6, y=105, label=sprintf("\n%s\n", p_pms()), size=10)+
             annotate('text', x=1.6, y=105, label='*', size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
-            ggtitle('Arousal~PMS')
+            ggtitle('Arousal~PMS')+
+            scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))
     }else {
       dmean<-summarySE(data, measurevar="Valence", groupvars=c('PMS'))
           ggplot(data, aes(x = PMS, y = Valence)) +
@@ -1057,7 +1070,8 @@ server <- function (input, output){
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = Valence, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = Valence, fill=PMS), shape = 21, size=6)+
-            ggtitle('Valence~PMS')
+            ggtitle('Valence~PMS')+
+            scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))
     }
   }, height=700, width=1100)
           
@@ -2074,3 +2088,12 @@ analyse draaien met PMDD groep. goed PSST doornemen!
 
 ook: verschil tussen noPMS en PMS groep op 2 momenten te vergelijken ipv enkel noPMS luteaal vs folliculair. om echt toegevoegde symptomen v PMS te zien (omdat noPMS groep ook nog milde symptomen heeft)
  Bij visuele inspectie verwacht ik dat de significantie dan wel weg valt, maar dat is ook prima!
+ 
+ 
+ 
+ Bij de universiteit van Groningen gebruikten ze een nederlandse versie van de PSST welke ze binnen het kader van een masterproef hebben vertaald. Deze is niet geverifieerd, maar wel door meerdere mensen inclusief native speaker gedaan. Dit is het onderzoek: https://www.ncbi.nlm.nih.gov/pubmed/28646784
+
+Nadat ik deze ontvangen heb, heb ik ook Liese het van EN naar NL laten vertalen zonder dat ze de NL versie gezien had. Vervolgens hebben we dit vergeleken met de al vertaalde versie en de verschillen besproken. Hierna hebben we de al vertaalde versie gekozen omdat deze in meerdere studies in deze vorm al gebruikt is. Maar de vertaling is dus niet per se geverifieerd.
+
+Als jij twijfels hebt bij de vertaling, zou je dan kort op kunnen schrijven 1) welke vertalingen je niet goed vindt en 2) hoe jij denkt dat dit een verschil maakt in de gemeten constructen. Dan kunnen we op basis daarvan een goede beslissing maken of we hier wat mee moeten denk ik.
+als het nog niet vertaald was geweest had die vertaling kunnen aangehaald worden om in vraag te stellen of het wel een valide meting is, en dan zou die terugkerende trend dat de PMDD classificaties in dit onderzoek steeds hogere scores hebben dan de PMS groep een argument daartegen kunnen zijn. 
