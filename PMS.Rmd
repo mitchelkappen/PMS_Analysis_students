@@ -788,6 +788,14 @@ server <- function (input, output){
     }else{emmeans(chosenModel[[1]], pairwise ~ PMS*TestMoment, adjust ="fdr", type="response")}
   })
   
+  pairs(em())
+  
+  pwpm(em())
+  
+  eff_size (em(), sigma=sigma(chosenModel[[1]]), edf=Inf)
+  
+  plot(em(), comparisons=TRUE)
+  
   output$emmeans <- renderPrint({em()})
 
 }
@@ -2070,21 +2078,32 @@ plot deze drie over tijd (voeg de formules toe)
 
 ***
 
--datapoints ooit toevoegen valence/arousal plots
+TO DO MARKDOWN:
+
+-standardize the variables to get standardized coefficients with scale ()
+https://stackoverflow.com/questions/24305271/extracting-standardized-coefficients-from-lm-in-r
+
+-number of datapoints toevoegen valence/arousal plots
 
 
-bekijk associatie ruminatie en stress? 
+bekijk associatie ruminatie en stress? correlations?
 hoe relateerd BSRI aan de stress? wss veel, wss zelfde participanten
 
+link traits e.g. DASS and PSS? 
+
 symptomen plotten over tijd en controleren traits
+
+corona measures
 
 - meer interactieve code maken 
 - meer commenten
 
 
+
+
+
 https://www.sciencedirect.com/science/article/pii/S0165032721006030
 
-analyse draaien met PMDD groep. goed PSST doornemen!
 
 ook: verschil tussen noPMS en PMS groep op 2 momenten te vergelijken ipv enkel noPMS luteaal vs folliculair. om echt toegevoegde symptomen v PMS te zien (omdat noPMS groep ook nog milde symptomen heeft)
  Bij visuele inspectie verwacht ik dat de significantie dan wel weg valt, maar dat is ook prima!
