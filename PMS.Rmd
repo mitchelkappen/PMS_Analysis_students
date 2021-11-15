@@ -2083,20 +2083,34 @@ TO DO MARKDOWN:
 -standardize the variables to get standardized coefficients with scale ()
 https://stackoverflow.com/questions/24305271/extracting-standardized-coefficients-from-lm-in-r
 
+doe het met if standardized = 1 then standardize continue variabelen else doe niet 
+
 -number of datapoints toevoegen valence/arousal plots
+
 
 
 bekijk associatie ruminatie en stress? correlations?
 hoe relateerd BSRI aan de stress? wss veel, wss zelfde participanten
 
-link traits e.g. DASS and PSS? 
+ 
 
 symptomen plotten over tijd en controleren traits
 
-corona measures
+corona measures: even extraheren en visualiseren: zit er iets interessant? 
+
+tijdchart en eroverheen lockdown lockdown (per NL en BE)
+- land/nationality
+-PTQ
+
+ook samen met PMS noPMS en testmoment 1 en 2. wordt zowiezo genormaliseerd over de tijd. 
+wss mensen met PMS meer last v corona en meer tijdens moment 2. 
+mss moet tijd/date vervangen door 'lockdown'. oudste datum 1 nieuwste datum 1000 (voor elke dag 1) en dan plotten over tijd. 
+zou ook lockdown 1/0 kunnen zijn. 
+mss negatief effect tijd: na tijdje minder effect v corona op piekergedachten. steeds minder prominente plek in in mensen hun brein. 
+mr als definieren als wel lockdown geen lockdown: als blocks? welke variabelen daar afkaderen? 
 
 - meer interactieve code maken 
-- meer commenten
+- meer commenten 
 
 
 
