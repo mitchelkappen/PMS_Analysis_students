@@ -104,8 +104,10 @@ norms <-read.table(paste0(Dir,"\\RMarkdown\\Data\\FemaleSubjects_1-20.txt"), hea
 #put 'NA' into empty spaces
 # data = lapply(data, function(x) {x[x == " "] <- NA})
 
+
+
 #we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
-#These moments were counterbalanced. when the order was B-A and the moment is B, this means it is the first test moment, and vice versa for A-B and moment A. 
+#These moments were counterbalanced. when the order was B-A and the moment is B, this meanheas it is the first test moment, and vice versa for A-B and moment A. 
 data$TestMoment[data$Order == "A-B" & data$Moment == "A"] = 1# TestMoment 1 == Follicular phase
 data$TestMoment[data$Order == "B-A" & data$Moment == "A"] = 2# TestMoment 2 == Luteal phase
 data$TestMoment[data$Order == "A-B" & data$Moment == "B"] = 2
@@ -127,9 +129,19 @@ data$rt = data$rt/1000 #put rt in sec instead of ms
 data$Subject <- factor(data$ID)
 levs<-union(data$ID, data$ID)
 data$newid <- factor(data$ID, levels=levs, labels=seq_along(levs)) #this code replaces the '627, 534 IDs with 1, 2, 3, )
+
+# make PMS and Moment factors
 data$PMSScore <- factor(data$PMSScore)
 data$PMS <- factor(data$PMS)
 data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 now
+
+# normalize PSS, BSRI, RRS, DASS
+data$PSS<- (data$PSS - mean(data$PSS, na.rm=TRUE))/sd(data$PSS, na.rm=TRUE)
+data$BSRI <-(data$BSRI - mean(data$BSRI, na.rm=TRUE))/sd(data$BSRI, na.rm=TRUE) 
+data$allRRS <- (data$allRRS - mean(data$allRRS, na.rm=TRUE))/sd(data$allRRS, na.rm=TRUE) 
+data$DASS_Depression <- (data$DASS_Depression - mean(data$DASS_Depression, na.rm=TRUE))/sd(data$DASS_Depression, na.rm=TRUE) 
+data$DASS_Anxiety <- (data$DASS_Anxiety - mean(data$DASS_Anxiety, na.rm=TRUE))/sd(data$DASS_Anxiety, na.rm=TRUE) 
+data$DASS_Stress <- (data$DASS_Stress - mean(data$DASS_Stress, na.rm=TRUE))/sd(data$DASS_Stress, na.rm=TRUE) 
 
 # Exclude data?
 data_allcontraception <-data
@@ -151,7 +163,6 @@ datafaces<-subset(data, confidence >.95, na.rm=TRUE)#only take data where confid
 #remove datafaces with NA varaibles
 # datafaces<-na.omit(datafaces)
 
-datafaces$VideoValence <-datafaces$happy
 
 
 #dataframe with the norms for the stimuli (IAPs images)
@@ -178,6 +189,7 @@ A<-unique(data$Stimulus[data$Order=='A-B' & data$Moment==1])# two groups of stim
 B <-unique(data$Stimulus[data$Order=='B-A' & data$Moment==1])
 norms$group[norms$IAPS %in% A]='A'# add this to the 'norms' dataset
 norms$group[norms$IAPS %in% B]='B'
+
 ```
 
 ```{r functions, echo=FALSE, results='asis'}
@@ -741,7 +753,7 @@ server <- function (input, output){
       
      models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
         m <- c()
-        Formula <- scale(paste0(input$formula_choice), '+ scale((1|Subject))')
+        Formula <- paste0(input$formula_choice, '+ (1|Subject)')
         # Formula <- PSS ~ PMS * TestMoment+ (1|Subject)
         tryCatch({ d0.1 <- lmer(Formula,data=data); # if this formula works
           m <- c(m, d1=d0.1)}, #we add this
