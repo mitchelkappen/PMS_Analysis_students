@@ -136,33 +136,31 @@ data$PMS <- factor(data$PMS)
 data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 now
 data$TestMoment <- factor(data$TestMoment)
 
-# # normalize PSS, BSRI, RRS, DASS
-# data$PSS<- (data$PSS - mean(data$PSS, na.rm=TRUE))/sd(data$PSS, na.rm=TRUE)
-# data$BSRI <-(data$BSRI - mean(data$BSRI, na.rm=TRUE))/sd(data$BSRI, na.rm=TRUE) 
-# data$allRRS <- (data$allRRS - mean(data$allRRS, na.rm=TRUE))/sd(data$allRRS, na.rm=TRUE) 
-# data$DASS_Depression <- (data$DASS_Depression - mean(data$DASS_Depression, na.rm=TRUE))/sd(data$DASS_Depression, na.rm=TRUE) 
-# data$DASS_Anxiety <- (data$DASS_Anxiety - mean(data$DASS_Anxiety, na.rm=TRUE))/sd(data$DASS_Anxiety, na.rm=TRUE) 
-# data$DASS_Stress <- (data$DASS_Stress - mean(data$DASS_Stress, na.rm=TRUE))/sd(data$DASS_Stress, na.rm=TRUE) 
+# # normalize PSS, BSRI, RRS, DASS: z-transform
+data$PSS<- (data$PSS - mean(data$PSS, na.rm=TRUE))/sd(data$PSS, na.rm=TRUE)
+data$BSRI <-(data$BSRI - mean(data$BSRI, na.rm=TRUE))/sd(data$BSRI, na.rm=TRUE)
+data$allRRS <- (data$allRRS - mean(data$allRRS, na.rm=TRUE))/sd(data$allRRS, na.rm=TRUE)
+data$DASS_Depression <- (data$DASS_Depression - mean(data$DASS_Depression, na.rm=TRUE))/sd(data$DASS_Depression, na.rm=TRUE)
+data$DASS_Anxiety <- (data$DASS_Anxiety - mean(data$DASS_Anxiety, na.rm=TRUE))/sd(data$DASS_Anxiety, na.rm=TRUE)
+data$DASS_Stress <- (data$DASS_Stress - mean(data$DASS_Stress, na.rm=TRUE))/sd(data$DASS_Stress, na.rm=TRUE)
 
 
-#define Min-Max normalization function
-data$PSS<-(data$PSS- min(data$PSS, na.rm=TRUE))/(max(data$PSS, na.rm=TRUE)-min(data$PSS, na.rm=TRUE))
-data$BSRI<-(data$BSRI- min(data$BSRI, na.rm=TRUE))/(max(data$BSRI, na.rm=TRUE)-min(data$BSRI, na.rm=TRUE))
-data$allRRS<-(data$allRRS- min(data$allRRS, na.rm=TRUE))/(max(data$allRRS, na.rm=TRUE)-min(data$allRRS, na.rm=TRUE))
-data$DASS_Depression<-(data$DASS_Depression- min(data$DASS_Depression, na.rm=TRUE))/(max(data$DASS_Depression, na.rm=TRUE)-min(data$DASS_Depression, na.rm=TRUE))
-data$DASS_Anxiety<-(data$DASS_Anxiety- min(data$DASS_Anxiety, na.rm=TRUE))/(max(data$DASS_Anxiety, na.rm=TRUE)-min(data$DASS_Anxiety, na.rm=TRUE))
-data$DASS_Stress<-(data$DASS_Stress- min(data$DASS_Stress, na.rm=TRUE))/(max(data$DASS_Stress, na.rm=TRUE)-min(data$DASS_Stress, na.rm=TRUE))
+# define Min-Max normalization function
+# data$PSS<-(data$PSS- min(data$PSS, na.rm=TRUE))/(max(data$PSS, na.rm=TRUE)-min(data$PSS, na.rm=TRUE))+0.000000001
+# data$BSRI<-(data$BSRI- min(data$BSRI, na.rm=TRUE))/(max(data$BSRI, na.rm=TRUE)-min(data$BSRI, na.rm=TRUE))+0.000000001
+# data$allRRS<-(data$allRRS- min(data$allRRS, na.rm=TRUE))/(max(data$allRRS, na.rm=TRUE)-min(data$allRRS, na.rm=TRUE))+0.000000001
+# data$DASS_Depression<-(data$DASS_Depression- min(data$DASS_Depression, na.rm=TRUE))/(max(data$DASS_Depression, na.rm=TRUE)-min(data$DASS_Depression, na.rm=TRUE))+0.000000001
+# data$DASS_Anxiety<-(data$DASS_Anxiety- min(data$DASS_Anxiety, na.rm=TRUE))/(max(data$DASS_Anxiety, na.rm=TRUE)-min(data$DASS_Anxiety, na.rm=TRUE))+0.000000001
+# data$DASS_Stress<-(data$DASS_Stress- min(data$DASS_Stress, na.rm=TRUE))/(max(data$DASS_Stress, na.rm=TRUE)-min(data$DASS_Stress, na.rm=TRUE))+0.000000001
 
 
-min_max_norm <- function(x) {
-    (x - min(x)) / (max(x) - min(x))
-  }
-
-data$PSS1 <- (lapply(data$PSS, min_max_norm))
-
-
-
-
+# 
+# data$PSS<-data$PSS + 0.0000000000001
+# data$BSRI <- data$BSRI  + 0.0000000000001
+# data$allRRS<-data$allRRS  + 0.0000000000001
+# data$DASS_Anxiety<-data$DASS_Anxiety + 0.0000000000001
+# data$DASS_Stress<- data$DASS_Stress + 0.0000000000001
+# data$DASS_Depression<- data$DASS_Depression + 0.0000000000001
 
 
 
@@ -537,8 +535,8 @@ sum(data$PMS=='noPMS')/length(data$PMS)
 
 ui<- fluidPage( # makes the User Interface
     selectInput("formula_choice", label="Choose a Formula:",
-            choices= c('PSS ~ PMS', 'BSRI ~ PMS', 'PSS~ PMS*TestMoment', 'BSRI ~PMS*TestMoment'),
-            selected='PSS ~ TestMoment'), # puts the choices in the first element which is accessed via input$formula_choice
+            choices= c('PSS ~ PMS', 'BSRI ~ PMS', 'PSS ~ PMS * TestMoment', 'BSRI ~ PMS * TestMoment'),
+            selected='PSS ~ PMS'), # puts the choices in the first element which is accessed via input$formula_choice
      tabsetPanel(type = "tab",
                  tabPanel("pirateplot", plotOutput("pirateplot")),
                  tabPanel("TestMoment_variance", plotOutput("raincloud2")),
@@ -776,20 +774,27 @@ server <- function (input, output){
           
         }
     }, height=900)
+    
+    dependant <- reactive({
+      if (grepl('PSS', input$formula_choice)){
+        data$PSS} else if (grepl('BSRI', input$formula_choice)){data$BSRI}
+    })
       
      models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
         m <- c()
         Formula <- paste0(input$formula_choice, '+ (1|Subject)')
+        
         # Formula <- PSS ~ PMS * TestMoment+ (1|Subject)
         tryCatch({ d0.1 <- lmer(Formula,data=data); # if this formula works
           m <- c(m, d1=d0.1)}, #we add this
           error=function(e){})
-        tryCatch({ d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d1=d0.2)}, error=function(e){})
-        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          tryCatch({ d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),mustart=pmax(data$PSS, 1e-3),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d2=d0.2)}, error=function(e){})
+        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),mustart=pmax(data$PSS, 1e-3),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d3=d0.3)}, error=function(e){})
         tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d4=d0.4)}, error=function(e){})
+        
         tryCatch({ d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d5=d0.5) }, error=function(e){})
         tryCatch({ d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
@@ -807,6 +812,15 @@ server <- function (input, output){
   modelNames<-c()
   tabel<-c()
   chosenModel<-c()
+  
+  # for (i in 1:length(m)){
+  #   modelNames<-c(modelNames, names(m[i]))
+  #   AIC<-AIC(m[[i]])
+  #   tabel <- c (tabel, AIC)}
+  #   chosenModel = modelNames[which(tabel == min(tabel))]
+  #   tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, round(tabel)))
+  #   tabel
+  
   for (i in 1:length(models())){
     modelNames<-c(modelNames, names(models()[i]))
     AIC<-AIC(models()[[i]])
@@ -1266,7 +1280,9 @@ server <- function (input, output){
           m <- c(m, d1=d0.1)}, #we add this
           error=function(e){})
         tryCatch({ d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d1=d0.2)}, error=function(e){})
+          m <- c(m, d2=d0.2)}, error=function(e){})
+        
+        
         tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d3=d0.3)}, error=function(e){})
         tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
@@ -1637,7 +1653,7 @@ server <- function (input, output){
         m <- c()
         Formula <- paste0(input$formula_choice, '+ (1|Subject)')
         tryCatch({ d0.1 <- lmer(Formula,data=datafaces); m <- c(m, d1=d0.1)}, error=function(e){})
-        tryCatch({ d0.2 <- glmer(Formula,data=datafaces, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d1=d0.2)}, error=function(e){})
+        tryCatch({ d0.2 <- glmer(Formula,data=datafaces, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d2=d0.2)}, error=function(e){})
         tryCatch({ d0.3 <- glmer(Formula,data=datafaces, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d3=d0.3)}, error=function(e){})
         tryCatch({ d0.4 <- glmer(Formula,data=datafaces, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d4=d0.4)},error=function(e){})
         tryCatch({ d0.5 <- glmer(Formula,data=datafaces, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d5=d0.5) }, error=function(e){})
@@ -1905,7 +1921,7 @@ server <- function (input, output){ #we have to add this to the server
           m <- c(m, d1=d0.1)}, #we add this
           error=function(e){})
         tryCatch({ d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d1=d0.2)}, error=function(e){})
+          m <- c(m, d2=d0.2)}, error=function(e){})
         tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d3=d0.3)}, error=function(e){})
         tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
@@ -2034,7 +2050,7 @@ server <- function (input, output){ #we have to add this to the server
           m <- c(m, d1=d0.1)}, #we add this
           error=function(e){})
         tryCatch({ d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d1=d0.2)}, error=function(e){})
+          m <- c(m, d2=d0.2)}, error=function(e){})
         tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d3=d0.3)}, error=function(e){})
         tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
