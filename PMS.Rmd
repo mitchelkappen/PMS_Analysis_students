@@ -134,14 +134,40 @@ data$newid <- factor(data$ID, levels=levs, labels=seq_along(levs)) #this code re
 data$PMSScore <- factor(data$PMSScore)
 data$PMS <- factor(data$PMS)
 data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 now
+data$TestMoment <- factor(data$TestMoment)
 
-# normalize PSS, BSRI, RRS, DASS
-data$PSS<- (data$PSS - mean(data$PSS, na.rm=TRUE))/sd(data$PSS, na.rm=TRUE)
-data$BSRI <-(data$BSRI - mean(data$BSRI, na.rm=TRUE))/sd(data$BSRI, na.rm=TRUE) 
-data$allRRS <- (data$allRRS - mean(data$allRRS, na.rm=TRUE))/sd(data$allRRS, na.rm=TRUE) 
-data$DASS_Depression <- (data$DASS_Depression - mean(data$DASS_Depression, na.rm=TRUE))/sd(data$DASS_Depression, na.rm=TRUE) 
-data$DASS_Anxiety <- (data$DASS_Anxiety - mean(data$DASS_Anxiety, na.rm=TRUE))/sd(data$DASS_Anxiety, na.rm=TRUE) 
-data$DASS_Stress <- (data$DASS_Stress - mean(data$DASS_Stress, na.rm=TRUE))/sd(data$DASS_Stress, na.rm=TRUE) 
+# # normalize PSS, BSRI, RRS, DASS
+# data$PSS<- (data$PSS - mean(data$PSS, na.rm=TRUE))/sd(data$PSS, na.rm=TRUE)
+# data$BSRI <-(data$BSRI - mean(data$BSRI, na.rm=TRUE))/sd(data$BSRI, na.rm=TRUE) 
+# data$allRRS <- (data$allRRS - mean(data$allRRS, na.rm=TRUE))/sd(data$allRRS, na.rm=TRUE) 
+# data$DASS_Depression <- (data$DASS_Depression - mean(data$DASS_Depression, na.rm=TRUE))/sd(data$DASS_Depression, na.rm=TRUE) 
+# data$DASS_Anxiety <- (data$DASS_Anxiety - mean(data$DASS_Anxiety, na.rm=TRUE))/sd(data$DASS_Anxiety, na.rm=TRUE) 
+# data$DASS_Stress <- (data$DASS_Stress - mean(data$DASS_Stress, na.rm=TRUE))/sd(data$DASS_Stress, na.rm=TRUE) 
+
+
+#define Min-Max normalization function
+data$PSS<-(data$PSS- min(data$PSS, na.rm=TRUE))/(max(data$PSS, na.rm=TRUE)-min(data$PSS, na.rm=TRUE))
+data$BSRI<-(data$BSRI- min(data$BSRI, na.rm=TRUE))/(max(data$BSRI, na.rm=TRUE)-min(data$BSRI, na.rm=TRUE))
+data$allRRS<-(data$allRRS- min(data$allRRS, na.rm=TRUE))/(max(data$allRRS, na.rm=TRUE)-min(data$allRRS, na.rm=TRUE))
+data$DASS_Depression<-(data$DASS_Depression- min(data$DASS_Depression, na.rm=TRUE))/(max(data$DASS_Depression, na.rm=TRUE)-min(data$DASS_Depression, na.rm=TRUE))
+data$DASS_Anxiety<-(data$DASS_Anxiety- min(data$DASS_Anxiety, na.rm=TRUE))/(max(data$DASS_Anxiety, na.rm=TRUE)-min(data$DASS_Anxiety, na.rm=TRUE))
+data$DASS_Stress<-(data$DASS_Stress- min(data$DASS_Stress, na.rm=TRUE))/(max(data$DASS_Stress, na.rm=TRUE)-min(data$DASS_Stress, na.rm=TRUE))
+
+
+min_max_norm <- function(x) {
+    (x - min(x)) / (max(x) - min(x))
+  }
+
+data$PSS1 <- (lapply(data$PSS, min_max_norm))
+
+
+
+
+
+
+
+
+
 
 # Exclude data?
 data_allcontraception <-data
@@ -702,7 +728,7 @@ server <- function (input, output){
       max_y<-max(as.integer(data$PSS))
             dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS'), na.rm=TRUE)
           ggplot(data, aes(x = PMS, y = PSS)) +
-            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = PSS, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = PSS, group=PMS, fill=PMS), shape = 21, size=6)+
@@ -736,7 +762,7 @@ server <- function (input, output){
     }else {max_y<-max(as.integer(data$BSRI))
             dmean<-summarySE(data, measurevar="BSRI", groupvars=c('PMS'), na.rm=TRUE)
           ggplot(data, aes(x = PMS, y = BSRI)) +
-            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = BSRI, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = BSRI, group=PMS, fill=PMS), shape = 21, size=6)+
@@ -758,21 +784,21 @@ server <- function (input, output){
         tryCatch({ d0.1 <- lmer(Formula,data=data); # if this formula works
           m <- c(m, d1=d0.1)}, #we add this
           error=function(e){})
-        tryCatch({ d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+        tryCatch({ d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d1=d0.2)}, error=function(e){})
-        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d3=d0.3)}, error=function(e){})
-        tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+        tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d4=d0.4)}, error=function(e){})
-        tryCatch({ d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+        tryCatch({ d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d5=d0.5) }, error=function(e){})
-        tryCatch({ d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+        tryCatch({ d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d6=d0.6) }, error=function(e){})
-        tryCatch({ d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-          models <- c(models, d7=d0.7) }, error=function(e){})
-        tryCatch({ d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+        tryCatch({ d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d7=d0.7) }, error=function(e){})
+        tryCatch({ d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d8=d0.8) }, error=function(e){})
-        tryCatch({ d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+        tryCatch({ d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d9=d0.9) }, error=function(e){})
         m
      })
@@ -1078,7 +1104,7 @@ server <- function (input, output){
       max_y<-max(as.integer(data$Arousal))
             dmean<-summarySE(data, measurevar="Arousal", groupvars=c('PMS'), na.rm=TRUE)
           ggplot(data, aes(x = PMS, y = Arousal)) +
-            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = Arousal, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = Arousal, group=PMS, fill=PMS), shape = 21, size=6)+
@@ -1092,7 +1118,7 @@ server <- function (input, output){
     }else {
       dmean<-summarySE(data, measurevar="Valence", groupvars=c('PMS'), na.rm=TRUE)
           ggplot(data, aes(x = PMS, y = Valence)) +
-            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = Valence, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = Valence, group=PMS, fill=PMS), shape = 21, size=6)+
@@ -1236,17 +1262,25 @@ server <- function (input, output){
      models <- reactive({
         m <- c()
         Formula <- paste0(input$formula_choice, '+ (1|Subject)')
-        tryCatch({ d0.1 <- lmer(Formula,data=data); m <- c(m, d1=d0.1)}, error=function(e){})
-        tryCatch({ d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d1=d0.2)}, error=function(e){})
-        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d3=d0.3)}, error=function(e){})
-        tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d4=d0.4)},error=function(e){})
-        tryCatch({ d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d5=d0.5) }, error=function(e){})
-        tryCatch({ d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d6=d0.6) }, error=function(e){})
-        tryCatch({ d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);models <- c(models, d7=d0.7) }, error=function(e){})
-        tryCatch({ d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d8=d0.8) }, 
+       tryCatch({ d0.1 <- lmer(Formula,data=data); # if this formula works
+          m <- c(m, d1=d0.1)}, #we add this
           error=function(e){})
-        tryCatch(+{ d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);  m <- c(m, d9=d0.9) }, 
-          error=function(e){})
+        tryCatch({ d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d1=d0.2)}, error=function(e){})
+        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d3=d0.3)}, error=function(e){})
+        tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d4=d0.4)}, error=function(e){})
+        tryCatch({ d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d5=d0.5) }, error=function(e){})
+        tryCatch({ d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d6=d0.6) }, error=function(e){})
+        tryCatch({ d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d7=d0.7) }, error=function(e){})
+        tryCatch({ d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d8=d0.8) }, error=function(e){})
+        tryCatch({ d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d9=d0.9) }, error=function(e){})
         m
      })
   
@@ -1603,15 +1637,15 @@ server <- function (input, output){
         m <- c()
         Formula <- paste0(input$formula_choice, '+ (1|Subject)')
         tryCatch({ d0.1 <- lmer(Formula,data=datafaces); m <- c(m, d1=d0.1)}, error=function(e){})
-        tryCatch({ d0.2 <- glmer(Formula,data=datafaces, family = gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d1=d0.2)}, error=function(e){})
-        tryCatch({ d0.3 <- glmer(Formula,data=datafaces, family = gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d3=d0.3)}, error=function(e){})
-        tryCatch({ d0.4 <- glmer(Formula,data=datafaces, family = Gamma(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d4=d0.4)},error=function(e){})
-        tryCatch({ d0.5 <- glmer(Formula,data=datafaces, family = Gamma(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d5=d0.5) }, error=function(e){})
-        tryCatch({ d0.6 <- glmer(Formula,data=datafaces, family = Gamma(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d6=d0.6) }, error=function(e){})
-        tryCatch({ d0.7 <- glmer(Formula,data=datafaces, family = inverse.gaussian(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);models <- c(models, d7=d0.7) }, error=function(e){})
-        tryCatch({ d0.8 <- glmer(Formula,data=datafaces, family = inverse.gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d8=d0.8) }, 
+        tryCatch({ d0.2 <- glmer(Formula,data=datafaces, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d1=d0.2)}, error=function(e){})
+        tryCatch({ d0.3 <- glmer(Formula,data=datafaces, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d3=d0.3)}, error=function(e){})
+        tryCatch({ d0.4 <- glmer(Formula,data=datafaces, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d4=d0.4)},error=function(e){})
+        tryCatch({ d0.5 <- glmer(Formula,data=datafaces, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d5=d0.5) }, error=function(e){})
+        tryCatch({ d0.6 <- glmer(Formula,data=datafaces, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d6=d0.6) }, error=function(e){})
+        tryCatch({ d0.7 <- glmer(Formula,data=datafaces, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);models <- c(models, d7=d0.7) }, error=function(e){})
+        tryCatch({ d0.8 <- glmer(Formula,data=datafaces, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); m <- c(m, d8=d0.8) }, 
           error=function(e){})
-        tryCatch(+{ d0.9 <- glmer(Formula,data=datafaces, family = inverse.gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);  m <- c(m, d9=d0.9) }, 
+        tryCatch(+{ d0.9 <- glmer(Formula,data=datafaces, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);  m <- c(m, d9=d0.9) }, 
           error=function(e){})
         m
      })
@@ -1764,7 +1798,7 @@ server <- function (input, output){ #we have to add this to the server
             max_y<-max(as.integer(data$DASS_Stress))
             dmean<-summarySE(data, measurevar="DASS_Stress", groupvars=c('PMS'))
           ggplot(data, aes(x = PMS, y = DASS_Stress)) +
-            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25, alpha= .5)+
             geom_boxplot(aes(x = PMS, y = DASS_Stress, fill = PMS),outlier.shape= NA, width = .1, colour = "black", alpha= .5)+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Stress, group=PMS, fill=PMS), shape = 21, size=6)+
@@ -1782,7 +1816,7 @@ server <- function (input, output){ #we have to add this to the server
             max_y<-max(as.integer(data$DASS_Anxiety))
             dmean<-summarySE(data, measurevar="DASS_Anxiety", groupvars=c('PMS'))
           ggplot(data, aes(x = PMS, y = DASS_Anxiety)) +
-            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = DASS_Anxiety, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Anxiety, group=PMS, fill=PMS), shape = 21, size=6)+
@@ -1797,7 +1831,7 @@ server <- function (input, output){ #we have to add this to the server
             max_y<-max(as.integer(data$DASS_Depression))
             dmean<-summarySE(data, measurevar="DASS_Depression", groupvars=c('PMS'))
           ggplot(data, aes(x = PMS, y = DASS_Depression)) +
-            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = -1), adjust = 1.5, alpha = .5, colour = NA)+
+            geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = DASS_Depression, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Depression, group=PMS, fill=PMS), shape = 21, size=6)+
@@ -1867,24 +1901,25 @@ server <- function (input, output){ #we have to add this to the server
      models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
         m <- c()
         Formula <- paste0(input$formula_choice, '+ (1|Subject)')
-        tryCatch({ d0.1 <- lmer(Formula,data=data); 
-          m <- c(m, d1=d0.1)}, error=function(e){})
-        tryCatch( { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d1=d0.2)},  error=function(e){})
-        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d3=d0.3)},  error=function(e){})
-        tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+        tryCatch({ d0.1 <- lmer(Formula,data=data); # if this formula works
+          m <- c(m, d1=d0.1)}, #we add this
+          error=function(e){})
+        tryCatch({ d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d1=d0.2)}, error=function(e){})
+        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d3=d0.3)}, error=function(e){})
+        tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d4=d0.4)}, error=function(e){})
-        tryCatch( { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d5=d0.5) },  error=function(e){})
-        tryCatch(  { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d6=d0.6) },  error=function(e){})
-        tryCatch( { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-          models <- c(models, d7=d0.7) },   error=function(e){})
-        tryCatch( { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d8=d0.8) },   error=function(e){})
-        tryCatch( { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d9=d0.9) },  error=function(e){})
+        tryCatch({ d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d5=d0.5) }, error=function(e){})
+        tryCatch({ d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d6=d0.6) }, error=function(e){})
+        tryCatch({ d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d7=d0.7) }, error=function(e){})
+        tryCatch({ d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d8=d0.8) }, error=function(e){})
+        tryCatch({ d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d9=d0.9) }, error=function(e){})
         m
      })
   output$table <-renderTable({
@@ -1995,24 +2030,25 @@ server <- function (input, output){ #we have to add this to the server
      models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
         m <- c()
         Formula <- paste0(input$formula_choice, '+ (1|Subject)')
-        tryCatch({ d0.1 <- lmer(Formula,data=data); 
-          m <- c(m, d1=d0.1)}, error=function(e){})
-        tryCatch( { d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d1=d0.2)},  error=function(e){})
-        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d3=d0.3)},  error=function(e){})
-        tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+        tryCatch({ d0.1 <- lmer(Formula,data=data); # if this formula works
+          m <- c(m, d1=d0.1)}, #we add this
+          error=function(e){})
+        tryCatch({ d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d1=d0.2)}, error=function(e){})
+        tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d3=d0.3)}, error=function(e){})
+        tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
           m <- c(m, d4=d0.4)}, error=function(e){})
-        tryCatch( { d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d5=d0.5) },  error=function(e){})
-        tryCatch(  { d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d6=d0.6) },  error=function(e){})
-        tryCatch( { d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-          models <- c(models, d7=d0.7) },   error=function(e){})
-        tryCatch( { d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d8=d0.8) },   error=function(e){})
-        tryCatch( { d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerfollicular(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-          m <- c(m, d9=d0.9) },  error=function(e){})
+        tryCatch({ d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d5=d0.5) }, error=function(e){})
+        tryCatch({ d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d6=d0.6) }, error=function(e){})
+        tryCatch({ d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
+          m <- c(m, d7=d0.7) }, error=function(e){})
+        tryCatch({ d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d8=d0.8) }, error=function(e){})
+        tryCatch({ d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
+          m <- c(m, d9=d0.9) }, error=function(e){})
         m
      })
   output$table <-renderTable({
