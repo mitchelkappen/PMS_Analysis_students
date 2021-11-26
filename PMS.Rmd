@@ -627,6 +627,7 @@ server <- function (input, output){
   output$emmeans <- renderPrint({em()})
   
   emtable <- reactive({
+    tabel<-c()
     for (i in 1:length(models())){
       AIC<- AIC(models()[[i]])
       tabel <- c(tabel,round(AIC))}
@@ -641,9 +642,24 @@ server <- function (input, output){
     #em[1,6] gives the first p-value, em[2,6] the second and so on.
   })
 
-  noPMS_PMS <- reactive ({emtable()[1,6]})
-  noPMS_PMDD <- reactive ({emtable()[2,6]})
-  PMS_PMDD <- reactive ({emtable()[3,6]})
+  noPMS_PMS <- reactive ({
+    p<- emtable()[1,6]
+    if (p> 0.05) {''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}})
+  noPMS_PMDD <- reactive ({
+    p<- emtable()[2,6]
+    if (p> 0.05) {''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}})
+  PMS_PMDD <- reactive ({
+    p<- emtable()[3,6]
+    if (p> 0.05) {''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}})
 
   noPMS1_noPMS2 <- reactive ({emtable()[3,6]})
   PMS1_PMS2 <- reactive ({emtable()[7,6]})
@@ -691,8 +707,8 @@ server <- function (input, output){
         ggplot(data, aes(x=Moment, y=PSS, fill=PMS))+
             geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
             geom_boxplot(aes(x=Moment, y=PSS, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
-            # geom_point(data = dmean, aes(x = as.numeric(Moment)+.1, y = PSS, group = PMS, fill= PMS), shape = 21, size=6)+
           geom_point(data = dmean, aes(x = as.numeric(Moment)+0.1, y = PSS, fill= PMS), shape = 21, size=6)+
+          geom_line(data = dmean, aes(x = as.numeric(Moment)+.1, y = PSS, group = PMS), linetype = 1)+
       #           annotate('text', x=1, y=max_y+(max_y/10)+(max_y/130), label='***', size=8)+
       # annotate('text', x=2, y=max_y+(max_y/10)+(max_y/130), label='***', size=8)+
       # geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
@@ -710,11 +726,13 @@ server <- function (input, output){
           ggplot(data, aes(x = PMS, y = PSS)) +
             geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
 
-            geom_segment(aes(x = 1, y=3, xend= 2, yend=3), size= 1.7)+
-            geom_segment(aes(x = 2, y=2.5, xend= 3, yend=2.5), size= 1.7)+
-            # annotate('text', x=1.5, y=3.4, label="**", size=10)+
-            annotate('text', x=1.5, y=3.5, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
-            annotate('text', x=2.5, y=2.9, label=sprintf("\n%s\n", PMS_PMDD()), size=10)
+            # geom_segment(aes(x = 1, y=3, xend= 2, yend=3), size= 1.7)+
+            # geom_segment(aes(x = 2, y=2.5, xend= 3, yend=2.5), size= 1.7)+
+            # geom_segment(aes(x = 1, y=4, xend= 3, yend=4), size= 1.7)+
+            # # annotate('text', x=1.5, y=3.4, label="**", size=10)+
+            # annotate('text', x=1.5, y=3.4, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
+            # annotate('text', x=2.5, y=2.9, label=sprintf("\n%s\n", PMS_PMDD()), size=10)+
+            # annotate('text', x=2, y=4.4, label=sprintf("\n%s\n", noPMS_PMDD()), size=10)+
             geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
             geom_boxplot(aes(x = PMS, y = PSS, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
             geom_point(data = dmean, aes(x = as.numeric(PMS), y = PSS, group=PMS, fill=PMS), shape = 21, size=6)+
@@ -722,10 +740,10 @@ server <- function (input, output){
             ggtitle('PSS~PMS')+
         scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))+
             scale_colour_manual(values = c("red1", "#49A4B9", "#2C5985"))+
-          theme_bw()
-            # geom_signif(
-            #   comparisons=list(c('noPMS', 'PMS'), c('PMS', 'PMDD')),
-            #   map_signif_level=TRUE, textsize=6)
+          theme_bw()+
+            geom_signif(
+              comparisons=list(c('noPMS', 'PMS'), c('PMS', 'PMDD')),
+              map_signif_level=TRUE, textsize=6)
     }
     else if (grepl('BSRI', input$formula_choice) & grepl('TestMoment', input$formula_choice)){
         max_y<-max(as.integer(data$BSRI))
