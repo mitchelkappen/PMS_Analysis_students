@@ -867,12 +867,14 @@ server <- function (input, output){
           scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))
       }else if (grepl('PSS', input$formula_choice)&(grepl("TestMoment", input$formula_choice))){
         max_y<- max(as.integer(data$PSS))
-        dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS', 'Moment'))
+        dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS', 'Moment'), na.rm=TRUE)
         ggplot(data, aes(x=Moment, y=PSS, fill=PMS))+
             geom_split_violin(adjust =1.5, alpha=.5, colour= NA)+
             geom_boxplot(aes(x = Moment, y = PSS, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
+            geom_line(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS), position=position_dodge(0.2), linetype = 1)+
             geom_point(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
-          scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+            # geom_point(data = dmean, aes(x = as.numeric(Moment), y = PSS, fill= PMS), shape = 21, size=6)+
+            scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='***', size=8)+
             annotate('text', x=2, y=max_y+(max_y/10)+(max_y/100), label='***', size=8)+
             geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
