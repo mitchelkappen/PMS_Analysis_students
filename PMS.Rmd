@@ -705,11 +705,12 @@ server <- function (input, output){
         max_y<-max(as.integer(data$PSS))
         dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS', 'Moment'), na.rm=TRUE)
         ggplot(data, aes(x=Moment, y=PSS, fill=PMS))+
-            geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.1, y=0), adjust=1.5, alpha= .5, colour=NA)+
-            geom_boxplot(aes(x=Moment, y=PSS, fill=PMS), outlier.shape=NA, alpha=.5, width=.1, colour='black')+
-          geom_point(data = dmean, aes(x = as.numeric(Moment)+0.1, y = PSS, fill= PMS), shape = 21, size=6)+
-          geom_line(data = dmean, aes(x = as.numeric(Moment)+.1, y = PSS, group = PMS), linetype = 1)+
-      #           annotate('text', x=1, y=max_y+(max_y/10)+(max_y/130), label='***', size=8)+
+            geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.3, y=0), adjust=1.5, alpha= .5, colour=NA)+
+            geom_boxplot(aes(x=Moment, y=PSS, fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+
+          geom_line(data = dmean, aes(x = as.numeric(Moment)+.3, y = PSS, group = PMS), linetype = 1)+
+          geom_point(data = dmean, aes(x = as.numeric(Moment)+0.3, y = PSS, fill= PMS), shape = 21, size=6)+
+          geom_segment(aes(x =0.9, y = 2.5, xend = 1, yend = 2.5), size= 2)+
+          geom_segment(aes(x =1, y = 2.7, xend = 1.1, yend = 2.7), size= 2)+
       # annotate('text', x=2, y=max_y+(max_y/10)+(max_y/130), label='***', size=8)+
       # geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
       # geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
