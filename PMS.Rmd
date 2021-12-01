@@ -551,7 +551,8 @@ ui<- fluidPage( # makes the User Interface
                  tabPanel("splitviolin", plotOutput("splitviolin"))
          ))
 
-server <- function (input, output){ 
+
+server <- function (input, output, session){ 
   
    models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
         m <- c()
@@ -644,77 +645,29 @@ server <- function (input, output){
     # as.data.frame(em()$contrasts)
     #em[1,6] gives the first p-value, em[2,6] the second and so on.
   })
+  
+  p_function <- function (nr){
+    p<-emtable()[nr, 6]
+    if (p> 0.05) {x<-''}
+    else if (p<0.0005){x<-'***'}
+    else if (p<0.005){x<-'**'}
+    else if (p<0.05) {x<-'*'}
+    return (x)}
+  
+  noPMS_PMS <- reactive({p_function(1)})
+  noPMS_PMDD <- reactive ({p_function(2)})
+  PMS_PMDD <- reactive ({p_function(3)})
 
-  noPMS_PMS <- reactive ({
-    p<- emtable()[1,6]
-    if (p> 0.05) {''
-    }else if (p<0.0005){'***'
-    }else if (p<0.005){'**'
-    }else if (p<0.05) {'*'}})
-  noPMS_PMDD <- reactive ({
-    p<- emtable()[2,6]
-    if (p> 0.05) {''
-    }else if (p<0.0005){'***'
-    }else if (p<0.005){'**'
-    }else if (p<0.05) {'*'}})
-  PMS_PMDD <- reactive ({
-    p<- emtable()[3,6]
-    if (p> 0.05) {''
-    }else if (p<0.0005){'***'
-    }else if (p<0.005){'**'
-    }else if (p<0.05) {'*'}})
   
-  
-  
-  noPMS1_PMS1 <- reactive ({
-    p<- emtable()[1,6]
-    if (p> 0.05) {''
-    }else if (p<0.0005){'***'
-    }else if (p<0.005){'**'
-    }else if (p<0.05) {'*'}})
-  
-  PMS1_PMDD1 <- reactive({
-    p<- emtable()[6,6]
-    if (p> 0.05) {''
-    }else if (p<0.0005){'***'
-    }else if (p<0.005){'**'
-    }else if (p<0.05) {'*'}})
-  
-  noPMS2_PMS2 <- reactive ({
-    p<- emtable()[13,6]
-    if (p> 0.05) {''
-    }else if (p<0.0005){'***'
-    }else if (p<0.005){'**'
-    }else if (p<0.05) {'*'}})
-  
-  PMS2_PMDD2 <- reactive ({
-    p<- emtable()[15,6]
-    if (p> 0.05) {''
-    }else if (p<0.0005){'***'
-    }else if (p<0.005){'**'
-    }else if (p<0.05) {'*'}})
+  noPMS1_PMS1 <- reactive ({p_function(1)})
+  PMS1_PMDD1 <- reactive({p_function(6)})
+  noPMS2_PMS2 <- reactive ({p_function(13)})
 
-  noPMS1_noPMS2 <- reactive ({
-    p<- emtable()[3,6]
-    if (p> 0.05) {''
-    }else if (p<0.0005){'***'
-    }else if (p<0.005){'**'
-    }else if (p<0.05) {'*'}})
   
-  PMS1_PMS2 <- reactive ({
-    p<- emtable()[7,6]
-    if (p> 0.05) {''
-    }else if (p<0.0005){'***'
-    }else if (p<0.005){'**'
-    }else if (p<0.05) {'*'}})
-  
-  PMDD1_PMDD2 <- reactive ({
-    p<- emtable()[11,6]
-    if (p> 0.05) {''
-    }else if (p<0.0005){'***'
-    }else if (p<0.005){'**'
-    }else if (p<0.05) {'*'}})
-  
+  PMS2_PMDD2 <- reactive ({p_function(15)})
+  noPMS1_noPMS2 <- reactive ({p_function(3)})
+  PMS1_PMS2 <- reactive ({p_function(7)})
+  PMDD1_PMDD2 <- reactive ({p_function(11)})
 
 
   output$Anova <- renderPrint({
@@ -750,6 +703,8 @@ server <- function (input, output){
       main= 'PSS~ PMS*TestMoment',
       xlab=" TestMoment" )
     }, height= 800)
+  
+  
 
   output$overlap <- renderPlot({
       if (grepl('PSS', input$formula_choice) &grepl('TestMoment', input$formula_choice)){
@@ -757,44 +712,63 @@ server <- function (input, output){
         dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS', 'Moment'), na.rm=TRUE)
         ggplot(data, aes(x=Moment, y=PSS, fill=PMS))+
             geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.3, y=0), adjust=1.5, alpha= .5, colour=NA)+
-            geom_boxplot(aes(x=Moment, y=PSS, fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+
-          # geom_line(data = dmean, aes(x = as.numeric(Moment)+.3, y = PSS, group = PMS), linetype = 1)+
+            geom_boxplot(aes(x=Moment, y=PSS, fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+ #fatteNULL removes median line
+          # geom_line(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS), position= position_dodge(0.3), linetype = 1, alpha=.3)+
           # geom_point(data = dmean, aes(x = as.numeric(Moment)+0.3, y = PSS, fill= PMS), shape = 21, size=6)+
-          geom_segment(aes(x =0.9, y = 2.5, xend = 1, yend = 2.5), size= 1)+
-          annotate('text', x=0.95, y=2.6, label=sprintf("\n%s\n", noPMS1_PMS1()), size=10)+
+          
+          {if(noPMS1_PMS1()!='')geom_segment(aes(x =0.9, y = 2.5, xend = 1, yend = 2.5), size= 1)}+
+            # geom_segment(aes(x =0.9, y = 2.5, xend = 1, yend = 2.5), size= 1)+
+            annotate('text', x=0.95, y=2.6, label=sprintf("\n%s\n", noPMS1_PMS1()), size=10)+
           # annotate('text', x=0.95, y=2.6, label='*', size=10)+
-          geom_segment(aes(x =1, y = 2.7, xend = 1.1, yend = 2.7), size= 1)+
+          {if(PMS1_PMDD1()!='')geom_segment(aes(x =1, y = 2.7, xend = 1.1, yend = 2.7), size= 1)}+
+          # geom_segment(aes(x =1, y = 2.7, xend = 1.1, yend = 2.7), size= 1)+
           annotate('text', x=1.05, y=2.8, label=sprintf("\n%s\n", PMS1_PMDD1()), size=10)+
           # annotate('text', x=1.05, y=2.8, label='*', size=10)+
-          
-          geom_segment(aes(x =1.9, y = 2.5, xend = 2, yend = 2.5), size= 1)+
+
+          {if(noPMS2_PMS2()!='')geom_segment(aes(x =1.9, y = 2.5, xend = 2, yend = 2.5), size= 1)}+
+          # geom_segment(aes(x =1.9, y = 2.5, xend = 2, yend = 2.5), size= 1)+
           annotate('text', x=1.95, y=2.6, label=sprintf("\n%s\n", noPMS2_PMS2()), size=10)+
           # annotate('text', x=1.95, y=2.6, label='*', size=10)+
-          geom_segment(aes(x =2, y = 2.7, xend = 2.1, yend = 2.7), size= 1)+
+          {if(PMS2_PMDD2()!='')geom_segment(aes(x =2, y = 2.7, xend = 2.1, yend = 2.7), size= 1)}+
+          # geom_segment(aes(x =2, y = 2.7, xend = 2.1, yend = 2.7), size= 1)+
           annotate('text', x=2.05, y=2.8, label=sprintf("\n%s\n", PMS2_PMDD2()), size=10)+
           # annotate('text', x=2.05, y=2.8, label='*', size=10)+
-          
-          geom_segment(aes(x =0.9, y = 3, xend = 1.9, yend = 3), size= 1, colour= "#2166AC")+
+
+          {if(noPMS1_noPMS2()!='')geom_segment(aes(x =0.9, y = 3, xend = 1.9, yend = 3), size= 1, colour= "#2166AC")}+
+          # geom_segment(aes(x =0.9, y = 3, xend = 1.9, yend = 3), size= 1, colour= "#2166AC")+
           annotate('text', x=1.4, y=3.1, label=sprintf("\n%s\n", noPMS1_noPMS2()), size=10)+
           # annotate('text', x=1.4, y=3.1, label='*', size=10)+
-          geom_segment(aes(x =1, y = 3.5, xend = 2, yend = 3.5), size= 1, colour= "#49A4B9")+
-          annotate('text', x=1.5, y=3.6, label=sprintf("\n%s\n", PMS1_PMS2()), size=10)+
+          {if(PMS1_PMS2()!='')geom_segment(aes(x =1, y = 3.3, xend = 2, yend = 3.3), size= 1, colour= "#49A4B9")}+
+          # geom_segment(aes(x =1, y = 3.3, xend = 2, yend = 3.3), size= 1, colour= "#49A4B9")+
+          annotate('text', x=1.5, y=3.4, label=sprintf("\n%s\n", PMS1_PMS2()), size=10)+
           # annotate('text', x=1.5, y=3.6, label='*', size=10)+
-          geom_segment(aes(x =1.1, y = 4, xend = 2.1, yend = 4), size= 1, colour= "#92C5DE")+
-          annotate('text', x=1.6, y=4.1, label=sprintf("\n%s\n", PMDD1_PMDD2()), size=10)+
+          {if(PMDD1_PMDD2()!='')geom_segment(aes(x =1.1, y = 3.6, xend = 2.1, yend = 3.6), size= 1, colour= "#92C5DE")}+
+          # geom_segment(aes(x =1.1, y = 3.6, xend = 2.1, yend = 3.6), size= 1, colour= "#92C5DE")+
+          annotate('text', x=1.6, y=3.7, label=sprintf("\n%s\n", PMDD1_PMDD2()), size=10)+
           # annotate('text', x=1.6, y=4.1, label='*', size=10)+
           
-          geom_point(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS, fill = PMS), position= position_dodge(0.3), shape = 21, size=5)+
-      # annotate('text', x=2, y=max_y+(max_y/10)+(max_y/130), label='***', size=8)+
-      # geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
-      # geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
-      #     geom_segment(aes(x = 1.04, y = (max_y+(max_y/10)-(max_y/15)), xend = 2.04, yend = (max_y+(max_y/10)-(max_y/15))), size= 2)+
-      #     annotate('text', x=1.5, y=(max_y+(max_y/10)-(max_y/20)), label='***', size=8)+
+          geom_point(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS, fill = PMS), position= position_dodge(0.3), shape = 21, size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             ggtitle('PSS ~ PMS * TestMoment')+
           
-        scale_fill_manual(values = c("#2166AC", "#4393C3","#92C5DE"  ) )+
-          theme_bw()
+        scale_fill_manual(values = c("#2166AC", "#4393C3","#92C5DE"  ) )+ 
+          theme(
+          panel.border = element_blank(),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black"),
+          panel.grid.major.y = element_line( size=.1, color="#dedede" ),
+          axis.text.x=element_text(size=rel(2))
+          )
+          # theme_classic()
+    
+        
+# +
+#   theme(
+#     panel.border = element_blank(), 
+#     panel.grid.major = element_blank(),
+#     panel.grid.minor = element_blank(), 
+#     axis.line = element_line(colour = "black")
+#     )
           
         # "red1", "#2C5985","#49A4B9"
           #2166AC", "#4393C3","#92C5DE"
@@ -860,7 +834,21 @@ server <- function (input, output){
           theme_bw()
 
         }
-    }, height=900)
+    }, height=650, width=900)
+  
+  # output$overlap <- renderPlot({
+  #   overlapplot()
+  # })
+  
+
+  # output$Download <- downloadHandler(
+  #       filename = function(){
+  #           'plot.pdf'
+  #       },
+  #       content = function(file){
+  #           file.copy("plot.pdf", file, overwrite=TRUE)
+  #       }
+  #   )
     
     # dependant <- reactive({
     #   if (grepl('PSS', input$formula_choice)){
@@ -928,7 +916,7 @@ server <- function (input, output){
           theme_classic()+
           ggtitle("distribution PSS in follicular vs premenstrual")
       }
-    }, height=900)
+    }, height=700)
 
   
     output$splitviolin <-renderPlot({
