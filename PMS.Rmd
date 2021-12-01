@@ -70,7 +70,7 @@ count <- dplyr::count
 # create folder to save figures
 if (!dir.exists("figures")) dir.create("figures")
 # General settings
-nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1ù
+nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1ù
 vpn = 1 # Set to 1 if using VPN
 ```
 
@@ -664,28 +664,56 @@ server <- function (input, output){
     }else if (p<0.005){'**'
     }else if (p<0.05) {'*'}})
   
+  
+  
   noPMS1_PMS1 <- reactive ({
-    
-  })
+    p<- emtable()[1,6]
+    if (p> 0.05) {''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}})
   
   PMS1_PMDD1 <- reactive({
-    
-  })
+    p<- emtable()[6,6]
+    if (p> 0.05) {''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}})
   
   noPMS2_PMS2 <- reactive ({
-    
-  })
+    p<- emtable()[13,6]
+    if (p> 0.05) {''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}})
   
   PMS2_PMDD2 <- reactive ({
-    
-  })
+    p<- emtable()[15,6]
+    if (p> 0.05) {''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}})
 
   noPMS1_noPMS2 <- reactive ({
-    emtable()[3,6]})
+    p<- emtable()[3,6]
+    if (p> 0.05) {''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}})
+  
   PMS1_PMS2 <- reactive ({
-    emtable()[7,6]})
+    p<- emtable()[7,6]
+    if (p> 0.05) {''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}})
+  
   PMDD1_PMDD2 <- reactive ({
-    emtable()[12,6]})
+    p<- emtable()[11,6]
+    if (p> 0.05) {''
+    }else if (p<0.0005){'***'
+    }else if (p<0.005){'**'
+    }else if (p<0.05) {'*'}})
   
 
 
@@ -733,18 +761,21 @@ server <- function (input, output){
           # geom_line(data = dmean, aes(x = as.numeric(Moment)+.3, y = PSS, group = PMS), linetype = 1)+
           # geom_point(data = dmean, aes(x = as.numeric(Moment)+0.3, y = PSS, fill= PMS), shape = 21, size=6)+
           geom_segment(aes(x =0.9, y = 2.5, xend = 1, yend = 2.5), size= 1)+
-          annotate('text', x=0.95, y=2.6, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
+          annotate('text', x=0.95, y=2.6, label=sprintf("\n%s\n", noPMS1_PMS1()), size=10)+
           geom_segment(aes(x =1, y = 2.7, xend = 1.1, yend = 2.7), size= 1)+
-          annotate('text', x=1.05, y=2.8, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
+          annotate('text', x=1.05, y=2.8, label=sprintf("\n%s\n", PMS1_PMDD1()), size=10)+
           
           geom_segment(aes(x =1.9, y = 2.5, xend = 2, yend = 2.5), size= 1)+
-          annotate('text', x=1.95, y=2.6, label='sprintf("\n%s\n", noPMS_PMS())', size=10)+
+          annotate('text', x=1.95, y=2.6, label=sprintf("\n%s\n", noPMS2_PMS2()), size=10)+
           geom_segment(aes(x =2, y = 2.7, xend = 2.1, yend = 2.7), size= 1)+
-          annotate('text', x=2.05, y=2.8, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
+          annotate('text', x=2.05, y=2.8, label=sprintf("\n%s\n", PMS2_PMDD2()), size=10)+
           
           geom_segment(aes(x =0.9, y = 3, xend = 1.9, yend = 3), size= 1, colour= "#2166AC")+
+          annotate('text', x=1.4, y=2.8, label=sprintf("\n%s\n", noPMS1_noPMS2()), size=10)+
           geom_segment(aes(x =1, y = 3.5, xend = 2, yend = 3.5), size= 1, colour= "#49A4B9")+
+          annotate('text', x=1.5, y=2.8, label=sprintf("\n%s\n", PMS1_PMS2()), size=10)+
           geom_segment(aes(x =1.1, y = 4, xend = 2.1, yend = 4), size= 1, colour= "#92C5DE")+
+          annotate('text', x=1.6, y=2.8, label=sprintf("\n%s\n", PMDD1_PMDD2()), size=10)+
           
           geom_point(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS, fill = PMS), position= position_dodge(0.3), shape = 21, size=5)+
       # annotate('text', x=2, y=max_y+(max_y/10)+(max_y/130), label='***', size=8)+
