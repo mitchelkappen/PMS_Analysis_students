@@ -762,20 +762,27 @@ server <- function (input, output){
           # geom_point(data = dmean, aes(x = as.numeric(Moment)+0.3, y = PSS, fill= PMS), shape = 21, size=6)+
           geom_segment(aes(x =0.9, y = 2.5, xend = 1, yend = 2.5), size= 1)+
           annotate('text', x=0.95, y=2.6, label=sprintf("\n%s\n", noPMS1_PMS1()), size=10)+
+          # annotate('text', x=0.95, y=2.6, label='*', size=10)+
           geom_segment(aes(x =1, y = 2.7, xend = 1.1, yend = 2.7), size= 1)+
           annotate('text', x=1.05, y=2.8, label=sprintf("\n%s\n", PMS1_PMDD1()), size=10)+
+          # annotate('text', x=1.05, y=2.8, label='*', size=10)+
           
           geom_segment(aes(x =1.9, y = 2.5, xend = 2, yend = 2.5), size= 1)+
           annotate('text', x=1.95, y=2.6, label=sprintf("\n%s\n", noPMS2_PMS2()), size=10)+
+          # annotate('text', x=1.95, y=2.6, label='*', size=10)+
           geom_segment(aes(x =2, y = 2.7, xend = 2.1, yend = 2.7), size= 1)+
           annotate('text', x=2.05, y=2.8, label=sprintf("\n%s\n", PMS2_PMDD2()), size=10)+
+          # annotate('text', x=2.05, y=2.8, label='*', size=10)+
           
           geom_segment(aes(x =0.9, y = 3, xend = 1.9, yend = 3), size= 1, colour= "#2166AC")+
-          annotate('text', x=1.4, y=2.8, label=sprintf("\n%s\n", noPMS1_noPMS2()), size=10)+
+          annotate('text', x=1.4, y=3.1, label=sprintf("\n%s\n", noPMS1_noPMS2()), size=10)+
+          # annotate('text', x=1.4, y=3.1, label='*', size=10)+
           geom_segment(aes(x =1, y = 3.5, xend = 2, yend = 3.5), size= 1, colour= "#49A4B9")+
-          annotate('text', x=1.5, y=2.8, label=sprintf("\n%s\n", PMS1_PMS2()), size=10)+
+          annotate('text', x=1.5, y=3.6, label=sprintf("\n%s\n", PMS1_PMS2()), size=10)+
+          # annotate('text', x=1.5, y=3.6, label='*', size=10)+
           geom_segment(aes(x =1.1, y = 4, xend = 2.1, yend = 4), size= 1, colour= "#92C5DE")+
-          annotate('text', x=1.6, y=2.8, label=sprintf("\n%s\n", PMDD1_PMDD2()), size=10)+
+          annotate('text', x=1.6, y=4.1, label=sprintf("\n%s\n", PMDD1_PMDD2()), size=10)+
+          # annotate('text', x=1.6, y=4.1, label='*', size=10)+
           
           geom_point(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS, fill = PMS), position= position_dodge(0.3), shape = 21, size=5)+
       # annotate('text', x=2, y=max_y+(max_y/10)+(max_y/130), label='***', size=8)+
