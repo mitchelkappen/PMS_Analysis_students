@@ -14,7 +14,10 @@ output:
   margin-right: auto;
 }
 </style>
+
 ```{r setup, include=FALSE}
+knitr::opts_chunk$set(dpi=300,fig.width=7)
+
 # knitr::opts_chunk$set(dev = "png",
 #                       fig.path='Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\figures\\',
 #                       dpi = 300,
@@ -660,10 +663,30 @@ server <- function (input, output){
     }else if (p<0.0005){'***'
     }else if (p<0.005){'**'
     }else if (p<0.05) {'*'}})
+  
+  noPMS1_PMS1 <- reactive ({
+    
+  })
+  
+  PMS1_PMDD1 <- reactive({
+    
+  })
+  
+  noPMS2_PMS2 <- reactive ({
+    
+  })
+  
+  PMS2_PMDD2 <- reactive ({
+    
+  })
 
-  noPMS1_noPMS2 <- reactive ({emtable()[3,6]})
-  PMS1_PMS2 <- reactive ({emtable()[7,6]})
-  PMDD1_PMDD2 <- reactive ({emtable()[12,6]})
+  noPMS1_noPMS2 <- reactive ({
+    emtable()[3,6]})
+  PMS1_PMS2 <- reactive ({
+    emtable()[7,6]})
+  PMDD1_PMDD2 <- reactive ({
+    emtable()[12,6]})
+  
 
 
   output$Anova <- renderPrint({
@@ -707,10 +730,23 @@ server <- function (input, output){
         ggplot(data, aes(x=Moment, y=PSS, fill=PMS))+
             geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.3, y=0), adjust=1.5, alpha= .5, colour=NA)+
             geom_boxplot(aes(x=Moment, y=PSS, fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+
-          geom_line(data = dmean, aes(x = as.numeric(Moment)+.3, y = PSS, group = PMS), linetype = 1)+
-          geom_point(data = dmean, aes(x = as.numeric(Moment)+0.3, y = PSS, fill= PMS), shape = 21, size=6)+
-          geom_segment(aes(x =0.9, y = 2.5, xend = 1, yend = 2.5), size= 2)+
-          geom_segment(aes(x =1, y = 2.7, xend = 1.1, yend = 2.7), size= 2)+
+          # geom_line(data = dmean, aes(x = as.numeric(Moment)+.3, y = PSS, group = PMS), linetype = 1)+
+          # geom_point(data = dmean, aes(x = as.numeric(Moment)+0.3, y = PSS, fill= PMS), shape = 21, size=6)+
+          geom_segment(aes(x =0.9, y = 2.5, xend = 1, yend = 2.5), size= 1)+
+          annotate('text', x=0.95, y=2.6, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
+          geom_segment(aes(x =1, y = 2.7, xend = 1.1, yend = 2.7), size= 1)+
+          annotate('text', x=1.05, y=2.8, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
+          
+          geom_segment(aes(x =1.9, y = 2.5, xend = 2, yend = 2.5), size= 1)+
+          annotate('text', x=1.95, y=2.6, label='sprintf("\n%s\n", noPMS_PMS())', size=10)+
+          geom_segment(aes(x =2, y = 2.7, xend = 2.1, yend = 2.7), size= 1)+
+          annotate('text', x=2.05, y=2.8, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
+          
+          geom_segment(aes(x =0.9, y = 3, xend = 1.9, yend = 3), size= 1, colour= "#2166AC")+
+          geom_segment(aes(x =1, y = 3.5, xend = 2, yend = 3.5), size= 1, colour= "#49A4B9")+
+          geom_segment(aes(x =1.1, y = 4, xend = 2.1, yend = 4), size= 1, colour= "#92C5DE")+
+          
+          geom_point(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS, fill = PMS), position= position_dodge(0.3), shape = 21, size=5)+
       # annotate('text', x=2, y=max_y+(max_y/10)+(max_y/130), label='***', size=8)+
       # geom_segment(aes(x = 0.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 1.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
       # geom_segment(aes(x = 1.955, y = (max_y+(max_y/10)-(max_y/80)), xend = 2.055, yend = (max_y+(max_y/10)-(max_y/80))), size= 2)+
@@ -718,8 +754,13 @@ server <- function (input, output){
       #     annotate('text', x=1.5, y=(max_y+(max_y/10)-(max_y/20)), label='***', size=8)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             ggtitle('PSS ~ PMS * TestMoment')+
-        scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))+
+          
+        scale_fill_manual(values = c("#2166AC", "#4393C3","#92C5DE"  ) )+
           theme_bw()
+          
+        # "red1", "#2C5985","#49A4B9"
+          #2166AC", "#4393C3","#92C5DE"
+          # "#00fffb", "#49A4B9", "#2C5985"
 
     }else if (grepl('PSS', input$formula_choice) & !grepl('TestMoment', input$formula_choice)){
             max_y<-max(as.integer(data$PSS), na.rm=TRUE)
@@ -866,13 +907,16 @@ server <- function (input, output){
             ggtitle('PSS ~ PMS')+
           scale_fill_manual(values = c("red1", "#49A4B9", "#2C5985"))
       }else if (grepl('PSS', input$formula_choice)&(grepl("TestMoment", input$formula_choice))){
+        
         max_y<- max(as.integer(data$PSS))
         dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS', 'Moment'), na.rm=TRUE)
-        ggplot(data, aes(x=Moment, y=PSS, fill=PMS))+
+        ggplot(data, aes(x=Moment, y=PSS, fill=PMS), dpi=1500)+
             geom_split_violin(adjust =1.5, alpha=.5, colour= NA)+
             geom_boxplot(aes(x = Moment, y = PSS, fill = PMS), position= position_dodge(0.2),outlier.shape= NA, alpha = .5, width = .1, colour = "black")+
             geom_line(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS), position=position_dodge(0.2), linetype = 1)+
             geom_point(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS, fill = PMS), position= position_dodge(0.2), shape = 21, size=4)+
+            geom_segment(aes(x =0.93, y = 2.5, xend = 1, yend = 2.5), size= 2)+
+            geom_segment(aes(x =1, y = 2.7, xend = 1.07, yend = 2.7), size= 2)+
             # geom_point(data = dmean, aes(x = as.numeric(Moment), y = PSS, fill= PMS), shape = 21, size=6)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
             annotate('text', x=1, y=max_y+(max_y/10)+(max_y/100), label='***', size=8)+
