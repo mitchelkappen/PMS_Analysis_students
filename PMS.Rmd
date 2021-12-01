@@ -745,7 +745,7 @@ server <- function (input, output, session){
           {if(PMDD1_PMDD2()!='')geom_segment(aes(x =1.1, y = 3.6, xend = 2.1, yend = 3.6), size= 1, colour= "#92C5DE")}+
           # geom_segment(aes(x =1.1, y = 3.6, xend = 2.1, yend = 3.6), size= 1, colour= "#92C5DE")+
           annotate('text', x=1.6, y=3.7, label=sprintf("\n%s\n", PMDD1_PMDD2()), size=10)+
-          # annotate('text', x=1.6, y=4.1, label='*', size=10)+
+          annotate('text', x=1.6, y=4.1, label='*', size=10)+
           
           geom_point(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS, fill = PMS), position= position_dodge(0.3), shape = 21, size=10)+
             scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
@@ -757,7 +757,8 @@ server <- function (input, output, session){
           panel.background = element_blank(),
           axis.line = element_line(colour = "black"),
           panel.grid.major.y = element_line( size=.1, color="#dedede" ),
-          axis.text.x=element_text(size=rel(2))
+          axis.text.x=element_text(size=rel(2)),
+          axis.title.y=element_text(size=rel(1.5))
           )
           # theme_classic()
     
