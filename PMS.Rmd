@@ -219,9 +219,11 @@ B <-unique(data$Stimulus[data$Order=='B-A' & data$Moment==1])
 norms$group[norms$IAPS %in% A]='A'# add this to the 'norms' dataset
 norms$group[norms$IAPS %in% B]='B'
 
-```
 
-```{r functions, echo=FALSE, results='asis'}
+
+#########FUNCTIONS #####################
+###################################
+
   # violin function
     geom_flat_violin <- function(mapping = NULL, data = NULL, stat = "ydensity",
                                  position = "dodge", trim = TRUE, scale = "area",
@@ -500,7 +502,8 @@ mtext(paste('boxplot with outliers')) #boxplot with outliers
 ```
 
 
-***
+
+*******************************************************************************************************************************************
 
 
 
@@ -626,21 +629,57 @@ server <- function (input, output, session){
     output$overlap <- renderPlot({
       if ((grepl("Depression", input$formula_choice))){
         
+        frame <- data.frame(DASS_Depression = data$DASS_Depression[unique(data$ID)], PMS =data$PMS[unique(data$ID)], ID= data$ID[unique(data$ID)])
+         max_y<-max(data$DASS_Depression)
+        dmean<-summarySE(data, measurevar="DASS_Depression", groupvars=c('PMS'))
+        
+        ggplot(data, aes(x=PMS, y=DASS_Depression))+
+              geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), alpha=.5, adjust = 1.5, colour = NA)+
+          
+              # geom_jitter(data=frame,aes(colour=PMS))+
+              
+              geom_point(data=frame, aes(colour=PMS),position=position_jitter(width=.15), alpha=.5, size=1)+
+              geom_boxplot(aes(x = PMS, y = DASS_Depression, fill = PMS), alpha= 0.2, outlier.shape= NA, width = .1, colour = "black")+
+              geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Depression, group=PMS, fill=PMS), shape = 21, size=10)+
+              ggtitle('DASS_Depression~PMS')+
+              
+              # {if(noPMS_PMS()!='')geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)}+
+              #   annotate('text', x=1.5, y=max_y+0.1, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
+              # {if(PMS_PMDD()!='')geom_segment(aes(x = 2, y=max_y+.2, xend= 3, yend=max_y+.2), size= 1)}+
+              #   annotate('text', x=2.5, y=max_y+.3, label=sprintf("\n%s\n", PMS_PMDD()), size=10)+
+              # {if(noPMS_PMDD()!='')geom_segment(aes(x = 1, y=max_y+.6, xend= 3, yend=max_y+.6), size= 1)}+
+              #   annotate('text', x=2, y=max_y+.7, label=sprintf("\n%s\n", noPMS_PMDD()), size=10)+
+
+              scale_fill_manual(values = c("blue", "red", "purple"))+
+              scale_colour_manual(values = c("blue", "red", "purple"))+
+              theme(
+                legend.position = "none",
+                plot.title = element_text(size=rel(2)),
+                panel.border = element_blank(),
+                panel.background = element_blank(),
+                axis.line = element_line(colour = "black"),
+                panel.grid.major.y = element_line( size=.1, color="#dedede" ),
+                axis.text.x=element_text(size=rel(2)),
+                axis.title.y=element_text(size=rel(1.5)),
+                axis.title.x = element_blank())  
+        
+        
             max_y<-max(data$DASS_Depression)
             dmean<-summarySE(data, measurevar="DASS_Depression", groupvars=c('PMS'))
             ggplot(data, aes(x = PMS, y = DASS_Depression)) +
               geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), alpha=.5, adjust = 1.5, colour = NA)+
+              
               geom_point(aes(colour=PMS),position=position_jitter(width=.15), alpha=.5, size=.25)+
               geom_boxplot(aes(x = PMS, y = DASS_Depression, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
               geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Depression, group=PMS, fill=PMS), shape = 21, size=10)+
               ggtitle('DASS_Depression~PMS')+
               
-              {if(noPMS_PMS()!='')geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)}+
-                annotate('text', x=1.5, y=max_y+0.1, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
-              {if(PMS_PMDD()!='')geom_segment(aes(x = 2, y=max_y+.2, xend= 3, yend=max_y+.2), size= 1)}+
-                annotate('text', x=2.5, y=max_y+.3, label=sprintf("\n%s\n", PMS_PMDD()), size=10)+
-              {if(noPMS_PMDD()!='')geom_segment(aes(x = 1, y=max_y+.6, xend= 3, yend=max_y+.6), size= 1)}+
-                annotate('text', x=2, y=max_y+.7, label=sprintf("\n%s\n", noPMS_PMDD()), size=10)+
+              # {if(noPMS_PMS()!='')geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)}+
+              #   annotate('text', x=1.5, y=max_y+0.1, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
+              # {if(PMS_PMDD()!='')geom_segment(aes(x = 2, y=max_y+.2, xend= 3, yend=max_y+.2), size= 1)}+
+              #   annotate('text', x=2.5, y=max_y+.3, label=sprintf("\n%s\n", PMS_PMDD()), size=10)+
+              # {if(noPMS_PMDD()!='')geom_segment(aes(x = 1, y=max_y+.6, xend= 3, yend=max_y+.6), size= 1)}+
+              #   annotate('text', x=2, y=max_y+.7, label=sprintf("\n%s\n", noPMS_PMDD()), size=10)+
 
               scale_fill_manual(values = c("blue", "red", "purple"))+
               scale_colour_manual(values = c("blue", "red", "purple"))+
@@ -655,7 +694,7 @@ server <- function (input, output, session){
                 axis.title.y=element_text(size=rel(1.5)),
                 axis.title.x = element_blank())  
             
-      }else if ((grepl("Anxiety", input$formula_choice))){
+       }else if ((grepl("Anxiety", input$formula_choice))){
             max_y<-max(data$DASS_Anxiety)
             dmean<-summarySE(data, measurevar="DASS_Anxiety", groupvars=c('PMS'))
             ggplot(data, aes(x = PMS, y = DASS_Anxiety)) +
