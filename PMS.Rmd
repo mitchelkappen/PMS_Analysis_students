@@ -1115,28 +1115,41 @@ server <- function (input, output, session){
   noPMS_delta_BSRI <- data$BSRI[data$PMS=='noPMS'&data$Moment==2]-data$PSS[data$PMS=='noPMS'&data$Moment==1]
   
   #PMS overall
-  noPMS_PSS <- data$PSS[data$PMS=='noPMS']
-  noPMS_BSRI <- data$BSRI[data$PMS=='noPMS']
+  PMS_PSS <- data$PSS[data$PMS=='PMS']
+  PMS_BSRI <- data$BSRI[data$PMS=='PMS']
   # PMS moment 1
   PMS_1_PSS<- data$PSS[data$PMS=='PMS'& data$Moment ==1]
   PMS_1_BSRI <- data$BSRI[data$PMS=='PMS'& data$Moment ==1]
-  
+  #  PMS moment 2
   PMS_2_PSS <-data$PSS[data$PMS=='PMS'& data$Moment ==2] 
   PMS_2_BSRI <- data$BSRI[data$PMS=='PMS'& data$Moment ==2]
+  # PMS change
   PMS_delta_PSS <- data$PSS[data$PMS=='PMS'&data$Moment==2]-data$PSS[data$PMS=='PMS'&data$Moment==1]
   PMS_delta_BSRI <- data$BSRI[data$PMS=='PMS'&data$Moment==2]-data$PSS[data$PMS=='PMS'&data$Moment==1]
   
+  #PMDD overall
+  PMDD_PSS <- data$PSS[data$PMS=='PMDD']
+  PMDD_BSRI <- data$BSRI[data$PMS=='PMDD']
+  # PMDD moment 1
   PMDD_1_PSS<- data$PSS[data$PMS=='PMDD'& data$Moment ==1]
   PMDD_1_BSRI <- data$BSRI[data$PMS=='PMDD'& data$Moment ==1]
+  # PMDD moment 2
   PMDD_2_PSS <-data$PSS[data$PMS=='PMDD'& data$Moment ==2] 
   PMDD_2_BSRI <- data$BSRI[data$PMS=='PMDD'& data$Moment ==2]
+  # PMDD change
   PMDD_delta_PSS <- data$PSS[data$PMS=='PMDD'&data$Moment==2]-data$PSS[data$PMS=='PMDD'&data$Moment==1]
   PMDD_delta_BSRI <- data$BSRI[data$PMS=='PMDD'&data$Moment==2]-data$PSS[data$PMS=='PMDD'&data$Moment==1]
   
   # voor corplots: maak dataframe
-  dataframe <- data.frame ()
-  M<- cor(dataframe)
-  corrplot(M, method = 'number')
+  noPMSframe <- data.frame (noPMS_PSS, noPMS_BSRI, noPMS_1_PSS, noPMS_1_BSRI, noPMS_2_PSS, noPMS_2_BSRI, noPMS_delta_PSS, noPMS_delta_BSRI)
+  PMSframe <- data.frame(PMS_PSS, PMS_BSRI, PMS_1_PSS, PMS_1_BSRI, PMS_2_PSS, PMS_2_BSRI, PMS_delta_PSS, PMS_delta_BSRI)
+  PMDDframe <- data.frame(PMDD_PSS, PMDD_BSRI, PMDD_1_PSS, PMDD_1_BSRI, PMDD_2_PSS, PMDD_2_BSRI, PMDD_delta_PSS, PMDD_delta_BSRI)
+  noPMScor<- cor(noPMSframe)
+  corrplot(noPMScor, method = 'number')
+  PMScor <- cor(PMSframe)
+  corrplot(PMScor, method='number')
+  PMDDcor <- cor (PMDDframe)
+  corrplot(PMDDcor, method='number')
   
   # voor ggscatter: maak dataframe, zet per kolom de waarden?
   dataframe <- data.frame(noPMS_1_PSS, noPMS_1_BSRI)
