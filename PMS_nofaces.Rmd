@@ -23,13 +23,14 @@ knitr::opts_chunk$set(dpi=300,fig.width=7)
 #                       dpi = 300,
 #                       cache = FALSE)
 ```
+
 # A Data Analysis Report {.tabset}
 
 ```{r libraries, include = FALSE}
 #### Settings & Packages #### -----------------------------------------------------
 rm(list = ls())
 #install packages
-list.of.packages <- c("lme4",'lmerTest','effects','dplyr', 'car', 'Rmisc', 'emmeans','fitdistrplus','ggplot2', 'ggstatsplot','ggsignif', 'remotes', 'ggformula','ggdist','ggpubr','ggeffects', 'gplots', 'gridExtra','tidyverse','pander','stringr','cowplot','lavaan','readr','jpeg','shiny','reshape2', 'yarrr','knitr', 'remotes', 'raincloudplots')
+list.of.packages <- c("lme4",'lmerTest','effects','dplyr', 'car', 'Rmisc', 'emmeans','fitdistrplus','ggplot2', 'ggstatsplot','ggsignif', 'remotes', 'ggformula','ggdist','ggpubr','ggeffects', 'gplots', 'gridExtra','tidyverse','pander','stringr','cowplot','lavaan','readr','jpeg','shiny','reshape2', 'yarrr','knitr', 'remotes', 'raincloudplots', 'corrplot')
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
@@ -64,13 +65,14 @@ library(reshape2)
 library (yarrr)
 library(knitr)
 library(remotes)
+library(corrplot)
 recode <- dplyr::recode
 count <- dplyr::count 
 
 # create folder to save figures
 if (!dir.exists("figures")) dir.create("figures")
 # General settings
-nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1ù
+nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1ù
 vpn = 1 # Set to 1 if using VPN
 ```
 
@@ -90,7 +92,7 @@ https://www.gheplab.ugent.be/projects/menstrual-cycle-info/
 
 
 
-```{r load-data, echo=FALSE}
+```{r load-data, include=FALSE}
 #### IMPORT data & INSPECTION #### -------------------------------------------------------------
 #data directly from VPN folder
 # work_dir<-"Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\RMarkdown\\Data\\"
@@ -152,16 +154,10 @@ data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contrac
 
 
 #remove rows with all NAs
-        # data[complete.cases(data[])]
-        
-data %>% drop_na()
+ # data %>% drop_na()
 
 
-```
 
-sanity check: wnr je NA's uit data haalt, is statistische analyse...
-
-```{r functions, echo=FALSE, results='asis'}
   # violin function
     geom_flat_violin <- function(mapping = NULL, data = NULL, stat = "ydensity",
                                  position = "dodge", trim = TRUE, scale = "area",
@@ -437,7 +433,7 @@ server <- function (input, output, session){
    models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
         m <- c()
         Formula <- paste0(input$formula_choice, '+ (1|Subject)')
-        # Formula <- PSS ~ PMS * TestMoment+ (1|Subject)
+        Formula <- DASS_Depression ~ PMS + (1|Subject)
         tryCatch({ d0.1 <- lmer(Formula,data=data); # if this formula works
           m <- c(m, d1=d0.1)}, #we add this
           error=function(e){})
@@ -471,8 +467,8 @@ server <- function (input, output, session){
     chosenModel = modelNames[which(tabel == min(tabel))]
     tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, round(tabel)))
     tabel
-  })
- 
+      
+ })
    em <- reactive({
     tabel<-c()
     for (i in 1:length(models())){
@@ -483,6 +479,19 @@ server <- function (input, output, session){
     if ((grepl("TestMoment", input$formula_choice)==FALSE)){
       emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type="response")
     }else{emmeans(chosenModel[[1]], pairwise ~ PMS*TestMoment, adjust ="fdr", type="response")}
+    
+    tabel<-c()
+    for (i in 1:length(m)){
+      AIC<- AIC(m[[i]])
+      tabel <- c(tabel,round(AIC))}
+    chosenModel<-m[which(tabel == min(tabel))]
+    cat(sprintf("\nemmeans of formula: %s\n", input$formula_choice))
+    if ((grepl("TestMoment", input$formula_choice)==FALSE)){
+      emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type="response")
+    }else{emmeans(chosenModel[[1]], pairwise ~ PMS*TestMoment, adjust ="fdr", type="response")}
+
+    
+    
   })
    
   output$emmeans <- renderPrint({em()})
@@ -548,12 +557,12 @@ server <- function (input, output, session){
               geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Depression, group=PMS, fill=PMS), shape = 21, size=10)+
               ggtitle('DASS_Depression~PMS')+
               
-              {if(noPMS_PMS()!='')geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)}+
-                annotate('text', x=1.5, y=max_y+0.1, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
-              {if(PMS_PMDD()!='')geom_segment(aes(x = 2, y=max_y+.2, xend= 3, yend=max_y+.2), size= 1)}+
-                annotate('text', x=2.5, y=max_y+.3, label=sprintf("\n%s\n", PMS_PMDD()), size=10)+
-              {if(noPMS_PMDD()!='')geom_segment(aes(x = 1, y=max_y+.6, xend= 3, yend=max_y+.6), size= 1)}+
-                annotate('text', x=2, y=max_y+.7, label=sprintf("\n%s\n", noPMS_PMDD()), size=10)+
+              # {if(noPMS_PMS()!='')geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)}+
+              #   annotate('text', x=1.5, y=max_y+0.1, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
+              # {if(PMS_PMDD()!='')geom_segment(aes(x = 2, y=max_y+.2, xend= 3, yend=max_y+.2), size= 1)}+
+              #   annotate('text', x=2.5, y=max_y+.3, label=sprintf("\n%s\n", PMS_PMDD()), size=10)+
+              # {if(noPMS_PMDD()!='')geom_segment(aes(x = 1, y=max_y+.6, xend= 3, yend=max_y+.6), size= 1)}+
+                # annotate('text', x=2, y=max_y+.7, label=sprintf("\n%s\n", noPMS_PMDD()), size=10)+
 
               scale_fill_manual(values = c("blue", "red", "purple"))+
               scale_colour_manual(values = c("blue", "red", "purple"))+
@@ -1008,107 +1017,6 @@ server <- function (input, output, session){
        cat(sprintf("\nAnova\n"))
        p()})
 
- 
-  # #Doe correllaties BSRI en PSS per group overall, binnen follicular, binnen luteal, en tusssen luteal en follicular
-  # # correlaties voor dataframe
-  # 
-  # #noPMS overall
-  # noPMS_PSS <- data$PSS[data$PMS=='noPMS']
-  # noPMS_BSRI <- data$BSRI[data$PMS=='noPMS']
-  # #noPMS moment 1
-  # noPMS_1_PSS<- data$PSS[data$PMS=='noPMS'& data$Moment ==1]
-  # noPMS_1_BSRI <- data$BSRI[data$PMS=='noPMS'& data$Moment ==1]
-  # #noPMS moment 2
-  # noPMS_2_PSS <-data$PSS[data$PMS=='noPMS'& data$Moment ==2]
-  # noPMS_2_BSRI <- data$BSRI[data$PMS=='noPMS'& data$Moment ==2]
-  # #noPMS change or 'delta'
-  # noPMS_delta_PSS <- data$PSS[data$PMS=='noPMS'&data$Moment==2]-data$PSS[data$PMS=='noPMS'&data$Moment==1]
-  # noPMS_delta_BSRI <- data$BSRI[data$PMS=='noPMS'&data$Moment==2]-data$PSS[data$PMS=='noPMS'&data$Moment==1]
-  # 
-  # #PMS overall
-  # PMS_PSS <- data$PSS[data$PMS=='PMS']
-  # PMS_BSRI <- data$BSRI[data$PMS=='PMS']
-  # # PMS moment 1
-  # PMS_1_PSS<- data$PSS[data$PMS=='PMS'& data$Moment ==1]
-  # PMS_1_BSRI <- data$BSRI[data$PMS=='PMS'& data$Moment ==1]
-  # #  PMS moment 2
-  # PMS_2_PSS <-data$PSS[data$PMS=='PMS'& data$Moment ==2]
-  # PMS_2_BSRI <- data$BSRI[data$PMS=='PMS'& data$Moment ==2]
-  # # PMS change
-  # PMS_delta_PSS <- data$PSS[data$PMS=='PMS'&data$Moment==2]-data$PSS[data$PMS=='PMS'&data$Moment==1]
-  # PMS_delta_BSRI <- data$BSRI[data$PMS=='PMS'&data$Moment==2]-data$PSS[data$PMS=='PMS'&data$Moment==1]
-  # 
-  # #PMDD overall
-  # PMDD_PSS <- data$PSS[data$PMS=='PMDD']
-  # PMDD_BSRI <- data$BSRI[data$PMS=='PMDD']
-  # # PMDD moment 1
-  # PMDD_1_PSS<- data$PSS[data$PMS=='PMDD'& data$Moment ==1]
-  # PMDD_1_BSRI <- data$BSRI[data$PMS=='PMDD'& data$Moment ==1]
-  # # PMDD moment 2
-  # PMDD_2_PSS <-data$PSS[data$PMS=='PMDD'& data$Moment ==2]
-  # PMDD_2_BSRI <- data$BSRI[data$PMS=='PMDD'& data$Moment ==2]
-  # # PMDD change
-  # PMDD_delta_PSS <- data$PSS[data$PMS=='PMDD'&data$Moment==2]-data$PSS[data$PMS=='PMDD'&data$Moment==1]
-  # PMDD_delta_BSRI <- data$BSRI[data$PMS=='PMDD'&data$Moment==2]-data$PSS[data$PMS=='PMDD'&data$Moment==1]
-  # 
-  # # voor corplots: maak dataframe
-  # noPMSframe <- data.frame (noPMS_PSS, noPMS_BSRI, noPMS_1_PSS, noPMS_1_BSRI, noPMS_2_PSS, noPMS_2_BSRI 
-  #                           # m noPMS_delta_PSS, noPMS_delta_BSRI
-  #                           )
-  # PMSframe <- data.frame(PMS_PSS, PMS_BSRI, PMS_1_PSS, PMS_1_BSRI, PMS_2_PSS, PMS_2_BSRI, PMS_delta_PSS, PMS_delta_BSRI)
-  # PMDDframe <- data.frame(PMDD_PSS, PMDD_BSRI, PMDD_1_PSS, PMDD_1_BSRI, PMDD_2_PSS, PMDD_2_BSRI, PMDD_delta_PSS, PMDD_delta_BSRI)
-  # noPMScor<- cor(noPMSframe)
-  # corrplot(noPMScor, method = 'number')
-  # PMScor <- cor(PMSframe)
-  # corrplot(PMScor, method='number')
-  # PMDDcor <- cor (PMDDframe)
-  # corrplot(PMDDcor, method='number')
-  # 
-  # # voor ggscatter: maak dataframe, zet per kolom de waarden?
-  # dataframe <- data.frame(noPMS_1_PSS, noPMS_1_BSRI)
-  # library(ggpubr)
-  # 
-  #   ggscatter(dataframe, x = "noPMS_1_PSS", y = "noPMS_1_BSRI",
-  #                       add='reg.line', fullrange=TRUE,
-  #                   conf.int=TRUE,
-  #                   cor.coef=TRUE, cor.method='pearson',
-  #                   xlab='noPMS_1_PSS', ylab='noPMS_1_BSRI')+
-  #         geom_segment(aes(x = -4, y = -4, xend = 4, yend = 4), size= 1, colour='red')
-  # 
-  # 
-  #   #corr PSS en BSRI, noPMS group, follicular
-  # dataframe <- data.frame(noPMS_1_PSS, noPMS_1_BSRI, noPMS_2_PSS, noPMS_2_BSRI)
-  # M<- cor(dataframe, method='pearson', use='complete.obs')
-  # corrplot(M, method='color')
-  # 
-  # cor.test(noPMS_1_PSS, noPMS_1_BSRI, method="pearson", use="complete.obs")
-  # 
-  # #corr pSS en BSRI, no PMS group, follicular
-  # 
-  #   #corr PSS en BSRI, noPMS group, luteal/premenstrual
-  #   cor.test(data$PSS[data$PMS=='noPMS'& data$Moment ==2],data$BSRI[data$PMS=='noPMS'& data$Moment ==2], method="pearson",use = "complete.obs")
-  # 
-  #   #corr PSS en BSRI, noPMS group, overall
-  #   dataframe <- data.frame(noPMS_PSS, noPMS_BSRI)
-  #   ggscatter(dataframe, x = "noPMS_PSS", y = "noPMS_BSRI",
-  #                       add='reg.line', fullrange=TRUE,
-  #                   conf.int=TRUE,
-  #                   cor.coef=TRUE, cor.method='pearson',
-  #                   xlab='noPMS_PSS', ylab='noPMS_BSRI')+
-  #         geom_segment(aes(x = -4, y = -4, xend = 4, yend = 4), size= 1, colour='red')
-  # 
-  # 
-  #   #no PMScorrelate change: delta (change in value)BSRI to delta PSS.
-  #   dataframe <- data.frame(noPMS_delta_PSS, noPMS_delta_BSRI)
-  #   ggscatter(dataframe, x = "noPMS_delta_PSS", y = "noPMS_delta_BSRI",
-  #                       add='reg.line', fullrange=TRUE,
-  #                   conf.int=TRUE,
-  #                   cor.coef=TRUE, cor.method='pearson',
-  #                   xlab='noPMS_delta_PSS', ylab='noPMS_delta_BSRI')+
-  #         geom_segment(aes(x = -4, y = -4, xend = 4, yend = 4), size= 1, colour='red')
-  # 
-  #   
-    # PMS follicular
 
 
   # p<-reactive({
@@ -1467,6 +1375,133 @@ server <- function (input, output, session){
     
 
 }
+shinyApp(ui=ui, server=server, options=list(height=1200, width=1200))
+```
+
+```{r correlations, echo=FALSE}
+
+#input with 
+# noPMS, PMS of PMDD group
+#var one is PSS, BSRI, 1_PSS, 1_BSRI, 2_PSS, 2_BSRI, delta_PSS, delta_BSRI, var 2 is ..
+ui<- fluidPage( # makes the User Interface
+    selectInput("group", label="group",
+            choices= c('noPMS', 'PMS', 'PMDD'),
+            selected='noPMS'),
+    selectInput("var1", label = 'var1',
+                choices = c('PSS', 'BSRI', '1_PSS', '1_BSRI', '2_PSS', '2_BSRI', 'delta_PSS', 'delta_BSRI'), selected = 'PSS'),
+    selectInput("var2", label = 'var2',
+                choices = c('PSS', 'BSRI', '1_PSS', '1_BSRI', '2_PSS', '2_BSRI', 'delta_PSS', 'delta_BSRI'), selected = 'PSS'),
+     tabsetPanel(type = "tab",
+                 tabPanel("corrplot",plotOutput("corrplot")),
+                 tabPanel("scatterplot", plotOutput("scatterplot"))
+         ))
+
+ #Doe correllaties BSRI en PSS per group overall, binnen follicular, binnen luteal, en tusssen luteal en follicular
+  # correlaties voor dataframe
+
+  #noPMS overall
+  noPMS_PSS <- data$PSS[data$PMS=='noPMS']
+  noPMS_BSRI <- data$BSRI[data$PMS=='noPMS']
+  #noPMS moment 1
+  noPMS_1_PSS<- data$PSS[data$PMS=='noPMS'& data$Moment ==1]
+  noPMS_1_BSRI <- data$BSRI[data$PMS=='noPMS'& data$Moment ==1]
+  #noPMS moment 2
+  noPMS_2_PSS <-data$PSS[data$PMS=='noPMS'& data$Moment ==2]
+  noPMS_2_BSRI <- data$BSRI[data$PMS=='noPMS'& data$Moment ==2]
+  #noPMS change or 'delta'
+  noPMS_delta_PSS <- data$PSS[data$PMS=='noPMS'&data$Moment==2]-data$PSS[data$PMS=='noPMS'&data$Moment==1]
+  noPMS_delta_BSRI <- data$BSRI[data$PMS=='noPMS'&data$Moment==2]-data$PSS[data$PMS=='noPMS'&data$Moment==1]
+
+  #PMS overall
+  PMS_PSS <- data$PSS[data$PMS=='PMS']
+  PMS_BSRI <- data$BSRI[data$PMS=='PMS']
+  # PMS moment 1
+  PMS_1_PSS<- data$PSS[data$PMS=='PMS'& data$Moment ==1]
+  PMS_1_BSRI <- data$BSRI[data$PMS=='PMS'& data$Moment ==1]
+  #  PMS moment 2
+  PMS_2_PSS <-data$PSS[data$PMS=='PMS'& data$Moment ==2]
+  PMS_2_BSRI <- data$BSRI[data$PMS=='PMS'& data$Moment ==2]
+  # PMS change
+  PMS_delta_PSS <- data$PSS[data$PMS=='PMS'&data$Moment==2]-data$PSS[data$PMS=='PMS'&data$Moment==1]
+  PMS_delta_BSRI <- data$BSRI[data$PMS=='PMS'&data$Moment==2]-data$PSS[data$PMS=='PMS'&data$Moment==1]
+
+  #PMDD overall
+  PMDD_PSS <- data$PSS[data$PMS=='PMDD']
+  PMDD_BSRI <- data$BSRI[data$PMS=='PMDD']
+  # PMDD moment 1
+  PMDD_1_PSS<- data$PSS[data$PMS=='PMDD'& data$Moment ==1]
+  PMDD_1_BSRI <- data$BSRI[data$PMS=='PMDD'& data$Moment ==1]
+  # PMDD moment 2
+  PMDD_2_PSS <-data$PSS[data$PMS=='PMDD'& data$Moment ==2]
+  PMDD_2_BSRI <- data$BSRI[data$PMS=='PMDD'& data$Moment ==2]
+  # PMDD change
+  PMDD_delta_PSS <- data$PSS[data$PMS=='PMDD'&data$Moment==2]-data$PSS[data$PMS=='PMDD'&data$Moment==1]
+  PMDD_delta_BSRI <- data$BSRI[data$PMS=='PMDD'&data$Moment==2]-data$PSS[data$PMS=='PMDD'&data$Moment==1]
+
+  # voor corplots: maak dataframe
+  noPMSframe <- data.frame (noPMS_PSS, noPMS_BSRI, noPMS_1_PSS, noPMS_1_BSRI, noPMS_2_PSS, noPMS_2_BSRI,noPMS_delta_PSS, noPMS_delta_BSRI)
+  PMSframe <- data.frame(PMS_PSS, PMS_BSRI, PMS_1_PSS, PMS_1_BSRI, PMS_2_PSS, PMS_2_BSRI, PMS_delta_PSS, PMS_delta_BSRI)
+  PMDDframe <- data.frame(PMDD_PSS, PMDD_BSRI, PMDD_1_PSS, PMDD_1_BSRI, PMDD_2_PSS, PMDD_2_BSRI, PMDD_delta_PSS, PMDD_delta_BSRI)
+
+  
+server <- function (input, output, session){ 
+
+output$corrplot <- renderPlot({
+  if ((grepl("noPMS", input$group)==TRUE)){
+    noPMScor<- cor(noPMSframe)
+  corrplot(noPMScor, method = 'color')
+  }
+  else if ((grepl("PMS", input$group)==TRUE)){
+    PMScor<- cor(PMSframe)
+  corrplot(PMScor, method = 'color')
+  }
+  else if ((grepl("PMDD", input$group)==TRUE)){
+    PMDDcor<- cor(PMDDframe)
+  corrplot(PMDDcor, method = 'color')
+  }
+}, height=700)
+
+# output$var1 <- renderText({as.character(input$var1)})
+group <- reactive ({as.character(input$group) })
+var1 <- reactive ({ paste(group(), as.character(input$var1), sep="_") })
+var2 <- reactive ({paste(group(), as.character(input$var2), sep="_") })
+# output$var2 <- renderText({as.character(input$var2)})
+  
+output$scatterplot <- renderPlot({
+  library(ggpubr)
+    if ((grepl("noPMS", input$group)==TRUE)){
+        ggscatter(noPMSframe, x = var1(), y = var2(),
+                        add='reg.line', fullrange=TRUE,
+                    conf.int=TRUE,
+                    cor.coef=TRUE, cor.method='pearson',
+                    xlab=var1(), ylab=var2())+
+          geom_segment(aes(x = -4, y = -4, xend = 4, yend = 4), size= 1, colour='red')
+      }
+      else if ((grepl("PMS", input$group)==TRUE)){
+        ggscatter(PMSframe, x = var1(), y = var2(),
+                        add='reg.line', fullrange=TRUE,
+                    conf.int=TRUE,
+                    cor.coef=TRUE, cor.method='pearson',
+                    xlab=var1(), ylab=var2())+
+          geom_segment(aes(x = -4, y = -4, xend = 4, yend = 4), size= 1, colour='red')
+      }
+      else if ((grepl("PMDD", input$group)==TRUE)){
+        ggscatter(PMDDframe, x = var1(), y = var2(),
+                        add='reg.line', fullrange=TRUE,
+                    conf.int=TRUE,
+                    cor.coef=TRUE, cor.method='pearson',
+                    xlab=var1(), ylab=var2())+
+          geom_segment(aes(x = -4, y = -4, xend = 4, yend = 4), size= 1, colour='red')
+      }
+  
+}, height= 800)
+
+
+
+  cor.test(PMS_delta_PSS, PMS_1_BSRI, method="pearson", use="complete.obs")
+    
+}  
+
 shinyApp(ui=ui, server=server, options=list(height=1200, width=1200))
 ```
 
