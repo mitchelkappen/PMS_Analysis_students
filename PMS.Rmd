@@ -103,7 +103,7 @@ if (vpn == 1){Dir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\" #data from VPN 
 
 setwd(Dir)
 # data <- read.csv(paste0(Dir,"allPMSData.csv"), header=TRUE, sep=)
-data <- read.csv(paste0(Dir,"06102021\\allPMSData.csv"), header=TRUE, sep=) #upload data
+data <- read.csv(paste0(Dir,"06102021\\cleanData.csv"), header=TRUE, sep=) #upload data
 norms <-read.table(paste0(Dir,"\\RMarkdown\\Data\\FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE) #upload norms IAPs images
 
 #put 'NA' into empty spaces
@@ -113,10 +113,10 @@ norms <-read.table(paste0(Dir,"\\RMarkdown\\Data\\FemaleSubjects_1-20.txt"), hea
 
 #we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
 #These moments were counterbalanced. when the order was B-A and the moment is B, this meanheas it is the first test moment, and vice versa for A-B and moment A. 
-data$TestMoment[data$Order == "A-B" & data$Moment == "A"] = 1# TestMoment 1 == Follicular phase
-data$TestMoment[data$Order == "B-A" & data$Moment == "A"] = 2# TestMoment 2 == Luteal phase
-data$TestMoment[data$Order == "A-B" & data$Moment == "B"] = 2
-data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
+data$Moment[data$Order == "A-B" & data$Moment == "A"] = 1# TestMoment 1 == Follicular phase
+data$Moment[data$Order == "B-A" & data$Moment == "A"] = 2# TestMoment 2 == Luteal phase
+data$Moment[data$Order == "A-B" & data$Moment == "B"] = 2
+data$Moment[data$Order == "B-A" & data$Moment == "B"] = 1
 #sum(is.na(data$TestMoment))#check if there are still values missing (NA)
 
 
@@ -142,7 +142,9 @@ data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 
 data$TestMoment <- factor(data$TestMoment)
 
 # # normalize PSS, BSRI, RRS, DASS: z-transform
+
 data$PSS<- (data$PSS - mean(data$PSS, na.rm=TRUE))/sd(data$PSS, na.rm=TRUE)
+
 data$BSRI <-(data$BSRI - mean(data$BSRI, na.rm=TRUE))/sd(data$BSRI, na.rm=TRUE)
 data$allRRS <- (data$allRRS - mean(data$allRRS, na.rm=TRUE))/sd(data$allRRS, na.rm=TRUE)
 data$DASS_Depression <- (data$DASS_Depression - mean(data$DASS_Depression, na.rm=TRUE))/sd(data$DASS_Depression, na.rm=TRUE)
@@ -181,7 +183,7 @@ data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contrac
 # data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor. Coil" & Contraception!='Hor.Coil', na.rm=TRUE)
 
 data_out<-data #the data with the rt outliers
-data <- subset(data, rt < 30)#Dit zijn de data waar de rt outliers uitgehaald zijn! 
+data <- subset(data, rt < 30)#Dit zijn de data waar de rt outliers uitgehaald zijn!
 
 datafaces<-data
 datafaces<- subset(datafaces,  select= -c(PD_Mean, PD_Std, PD_Max, Exclusie))
@@ -633,12 +635,22 @@ server <- function (input, output, session){
          max_y<-max(data$DASS_Depression)
         dmean<-summarySE(data, measurevar="DASS_Depression", groupvars=c('PMS'))
         
+        x <- 0
+        rows <-c()
+        for (i in 1:280){
+          x<- unique(data$ID)[i]
+          rows <- append(rows,(nrow(data[data$ID == x, ])))
+        }
+        max(rows)
+        min(rows)
+        unique(rows)
+        
         ggplot(data, aes(x=PMS, y=DASS_Depression))+
               geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), alpha=.5, adjust = 1.5, colour = NA)+
           
               # geom_jitter(data=frame,aes(colour=PMS))+
               
-              geom_point(data=frame, aes(colour=PMS),position=position_jitter(width=.15), alpha=.5, size=1)+
+              geom_point(data=data, aes(colour=PMS),position=position_jitter(width=.15), alpha=.5, size=1)+
               geom_boxplot(aes(x = PMS, y = DASS_Depression, fill = PMS), alpha= 0.2, outlier.shape= NA, width = .1, colour = "black")+
               geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Depression, group=PMS, fill=PMS), shape = 21, size=10)+
               ggtitle('DASS_Depression~PMS')+
@@ -1139,7 +1151,7 @@ server <- function (input, output, session){
   
   #Doe correllaties BSRI en PSS per group overall, binnen follicular, binnen luteal, en tusssen luteal en follicular
   # correlaties voor dataframe
-  
+
   #noPMS overall
   noPMS_PSS <- data$PSS[data$PMS=='noPMS']
   noPMS_BSRI <- data$BSRI[data$PMS=='noPMS']
@@ -1147,12 +1159,12 @@ server <- function (input, output, session){
   noPMS_1_PSS<- data$PSS[data$PMS=='noPMS'& data$Moment ==1]
   noPMS_1_BSRI <- data$BSRI[data$PMS=='noPMS'& data$Moment ==1]
   #noPMS moment 2
-  noPMS_2_PSS <-data$PSS[data$PMS=='noPMS'& data$Moment ==2] 
+  noPMS_2_PSS <-data$PSS[data$PMS=='noPMS'& data$Moment ==2]
   noPMS_2_BSRI <- data$BSRI[data$PMS=='noPMS'& data$Moment ==2]
   #noPMS change or 'delta'
   noPMS_delta_PSS <- data$PSS[data$PMS=='noPMS'&data$Moment==2]-data$PSS[data$PMS=='noPMS'&data$Moment==1]
   noPMS_delta_BSRI <- data$BSRI[data$PMS=='noPMS'&data$Moment==2]-data$PSS[data$PMS=='noPMS'&data$Moment==1]
-  
+
   #PMS overall
   PMS_PSS <- data$PSS[data$PMS=='PMS']
   PMS_BSRI <- data$BSRI[data$PMS=='PMS']
@@ -1160,12 +1172,12 @@ server <- function (input, output, session){
   PMS_1_PSS<- data$PSS[data$PMS=='PMS'& data$Moment ==1]
   PMS_1_BSRI <- data$BSRI[data$PMS=='PMS'& data$Moment ==1]
   #  PMS moment 2
-  PMS_2_PSS <-data$PSS[data$PMS=='PMS'& data$Moment ==2] 
+  PMS_2_PSS <-data$PSS[data$PMS=='PMS'& data$Moment ==2]
   PMS_2_BSRI <- data$BSRI[data$PMS=='PMS'& data$Moment ==2]
   # PMS change
   PMS_delta_PSS <- data$PSS[data$PMS=='PMS'&data$Moment==2]-data$PSS[data$PMS=='PMS'&data$Moment==1]
   PMS_delta_BSRI <- data$BSRI[data$PMS=='PMS'&data$Moment==2]-data$PSS[data$PMS=='PMS'&data$Moment==1]
-  
+
   #PMDD overall
   PMDD_PSS <- data$PSS[data$PMS=='PMDD']
   PMDD_BSRI <- data$BSRI[data$PMS=='PMDD']
@@ -1173,14 +1185,16 @@ server <- function (input, output, session){
   PMDD_1_PSS<- data$PSS[data$PMS=='PMDD'& data$Moment ==1]
   PMDD_1_BSRI <- data$BSRI[data$PMS=='PMDD'& data$Moment ==1]
   # PMDD moment 2
-  PMDD_2_PSS <-data$PSS[data$PMS=='PMDD'& data$Moment ==2] 
+  PMDD_2_PSS <-data$PSS[data$PMS=='PMDD'& data$Moment ==2]
   PMDD_2_BSRI <- data$BSRI[data$PMS=='PMDD'& data$Moment ==2]
   # PMDD change
   PMDD_delta_PSS <- data$PSS[data$PMS=='PMDD'&data$Moment==2]-data$PSS[data$PMS=='PMDD'&data$Moment==1]
   PMDD_delta_BSRI <- data$BSRI[data$PMS=='PMDD'&data$Moment==2]-data$PSS[data$PMS=='PMDD'&data$Moment==1]
-  
+
   # voor corplots: maak dataframe
-  noPMSframe <- data.frame (noPMS_PSS, noPMS_BSRI, noPMS_1_PSS, noPMS_1_BSRI, noPMS_2_PSS, noPMS_2_BSRI, noPMS_delta_PSS, noPMS_delta_BSRI)
+  noPMSframe <- data.frame (noPMS_PSS, noPMS_BSRI, noPMS_1_PSS, noPMS_1_BSRI, noPMS_2_PSS, noPMS_2_BSRI 
+                            # m noPMS_delta_PSS, noPMS_delta_BSRI
+                            )
   PMSframe <- data.frame(PMS_PSS, PMS_BSRI, PMS_1_PSS, PMS_1_BSRI, PMS_2_PSS, PMS_2_BSRI, PMS_delta_PSS, PMS_delta_BSRI)
   PMDDframe <- data.frame(PMDD_PSS, PMDD_BSRI, PMDD_1_PSS, PMDD_1_BSRI, PMDD_2_PSS, PMDD_2_BSRI, PMDD_delta_PSS, PMDD_delta_BSRI)
   noPMScor<- cor(noPMSframe)
@@ -1189,50 +1203,50 @@ server <- function (input, output, session){
   corrplot(PMScor, method='number')
   PMDDcor <- cor (PMDDframe)
   corrplot(PMDDcor, method='number')
-  
+
   # voor ggscatter: maak dataframe, zet per kolom de waarden?
   dataframe <- data.frame(noPMS_1_PSS, noPMS_1_BSRI)
   library(ggpubr)
-    
+
     ggscatter(dataframe, x = "noPMS_1_PSS", y = "noPMS_1_BSRI",
                         add='reg.line', fullrange=TRUE,
                     conf.int=TRUE,
-                    cor.coef=TRUE, cor.method='pearson', 
+                    cor.coef=TRUE, cor.method='pearson',
                     xlab='noPMS_1_PSS', ylab='noPMS_1_BSRI')+
           geom_segment(aes(x = -4, y = -4, xend = 4, yend = 4), size= 1, colour='red')
-    
-  
+
+
     #corr PSS en BSRI, noPMS group, follicular
   dataframe <- data.frame(noPMS_1_PSS, noPMS_1_BSRI, noPMS_2_PSS, noPMS_2_BSRI)
   M<- cor(dataframe, method='pearson', use='complete.obs')
   corrplot(M, method='color')
-  
+
   cor.test(noPMS_1_PSS, noPMS_1_BSRI, method="pearson", use="complete.obs")
-  
+
   #corr pSS en BSRI, no PMS group, follicular
-    
+
     #corr PSS en BSRI, noPMS group, luteal/premenstrual
     cor.test(data$PSS[data$PMS=='noPMS'& data$Moment ==2],data$BSRI[data$PMS=='noPMS'& data$Moment ==2], method="pearson",use = "complete.obs")
-    
+
     #corr PSS en BSRI, noPMS group, overall
     dataframe <- data.frame(noPMS_PSS, noPMS_BSRI)
     ggscatter(dataframe, x = "noPMS_PSS", y = "noPMS_BSRI",
                         add='reg.line', fullrange=TRUE,
                     conf.int=TRUE,
-                    cor.coef=TRUE, cor.method='pearson', 
+                    cor.coef=TRUE, cor.method='pearson',
                     xlab='noPMS_PSS', ylab='noPMS_BSRI')+
           geom_segment(aes(x = -4, y = -4, xend = 4, yend = 4), size= 1, colour='red')
 
-    
-    #no PMScorrelate change: delta (change in value)BSRI to delta PSS. 
+
+    #no PMScorrelate change: delta (change in value)BSRI to delta PSS.
     dataframe <- data.frame(noPMS_delta_PSS, noPMS_delta_BSRI)
     ggscatter(dataframe, x = "noPMS_delta_PSS", y = "noPMS_delta_BSRI",
                         add='reg.line', fullrange=TRUE,
                     conf.int=TRUE,
-                    cor.coef=TRUE, cor.method='pearson', 
+                    cor.coef=TRUE, cor.method='pearson',
                     xlab='noPMS_delta_PSS', ylab='noPMS_delta_BSRI')+
           geom_segment(aes(x = -4, y = -4, xend = 4, yend = 4), size= 1, colour='red')
-    
+
     
     # PMS follicular
 
