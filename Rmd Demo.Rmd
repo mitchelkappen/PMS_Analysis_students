@@ -1,0 +1,49 @@
+---
+title: "first Rmd"
+author: "Sofie Raeymakers"
+date: "10/4/2021"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# {.tabset}
+
+## Cars dataset
+
+**This text will be displayed**
+
+```{r codebit, echo=FALSE}
+head(mtcars)
+```
+
+## Cars visualisation
+
+```{r echo=FALSE}
+
+ui <- fluidPage(selectInput('n_breaks', label= 'choose a number of breaks',
+                  choices=c(3,5,7,9,11,13), selected=9),
+                tabsetPanel( type='tab',
+                  tabPanel('histogram',plotOutput('histogram_cars'))
+                )
+)
+  
+server <- function (input, output){
+  
+  react_val <- reactive({
+    if (input$n_breaks == 5){ 'the number of breaks is 5'}
+    else {'the number of breaks is not 5'}
+  })
+  
+  output$histogram_cars <-renderPlot({
+    hist(mtcars$mpg,main=react_val(), breaks=as.numeric(input$n_breaks))
+  })
+  
+}
+  
+shinyApp(ui,server, options=list(height=800, width=800))
+
+```
