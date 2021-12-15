@@ -36,7 +36,7 @@ if(length(new.packages)) install.packages(new.packages)
 
 library(Rmisc)
 library(ggsignif)
-library(raincloudplots)
+# library(raincloudplots)
 library(lme4)
 library(lmerTest)
 library(effects)
@@ -138,12 +138,12 @@ data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 
 data$TestMoment <- factor(data$TestMoment)
 
 # # normalize PSS, BSRI, RRS, DASS: z-transform
-data$PSS<- (data$PSS - mean(data$PSS, na.rm=TRUE))/sd(data$PSS, na.rm=TRUE)
-data$BSRI <-(data$BSRI - mean(data$BSRI, na.rm=TRUE))/sd(data$BSRI, na.rm=TRUE)
-data$allRRS <- (data$allRRS - mean(data$allRRS, na.rm=TRUE))/sd(data$allRRS, na.rm=TRUE)
-data$DASS_Depression <- (data$DASS_Depression - mean(data$DASS_Depression, na.rm=TRUE))/sd(data$DASS_Depression, na.rm=TRUE)
-data$DASS_Anxiety <- (data$DASS_Anxiety - mean(data$DASS_Anxiety, na.rm=TRUE))/sd(data$DASS_Anxiety, na.rm=TRUE)
-data$DASS_Stress <- (data$DASS_Stress - mean(data$DASS_Stress, na.rm=TRUE))/sd(data$DASS_Stress, na.rm=TRUE)
+# data$PSS<- (data$PSS - mean(data$PSS, na.rm=TRUE))/sd(data$PSS, na.rm=TRUE)
+# data$BSRI <-(data$BSRI - mean(data$BSRI, na.rm=TRUE))/sd(data$BSRI, na.rm=TRUE)
+# data$allRRS <- (data$allRRS - mean(data$allRRS, na.rm=TRUE))/sd(data$allRRS, na.rm=TRUE)
+# data$DASS_Depression <- (data$DASS_Depression - mean(data$DASS_Depression, na.rm=TRUE))/sd(data$DASS_Depression, na.rm=TRUE)
+# data$DASS_Anxiety <- (data$DASS_Anxiety - mean(data$DASS_Anxiety, na.rm=TRUE))/sd(data$DASS_Anxiety, na.rm=TRUE)
+# data$DASS_Stress <- (data$DASS_Stress - mean(data$DASS_Stress, na.rm=TRUE))/sd(data$DASS_Stress, na.rm=TRUE)
 
 
 
