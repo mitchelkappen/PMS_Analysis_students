@@ -106,6 +106,8 @@ setwd(Dir)
 # data <- read.csv(paste0(Dir,"allPMSData.csv"), header=TRUE, sep=)
 data <- read.csv(paste0(Dir,"06102021\\cleanedData.csv"), header=TRUE, sep=) #upload data 
 
+d <- read.csv(paste0(Dir,"06102021\\allPMSData.csv"), header=TRUE, sep=) #upload data 
+
 #put 'NA' into empty spaces
 # data = lapply(data, function(x) {x[x == " "] <- NA})
 
@@ -140,10 +142,10 @@ data$TestMoment <- factor(data$TestMoment)
 # # normalize PSS, BSRI, RRS, DASS: z-transform
 data$PSS<- (data$PSS - mean(data$PSS, na.rm=TRUE))/sd(data$PSS, na.rm=TRUE)
 data$BSRI <-(data$BSRI - mean(data$BSRI, na.rm=TRUE))/sd(data$BSRI, na.rm=TRUE)
-data$allRRS <- (data$allRRS - mean(data$allRRS, na.rm=TRUE))/sd(data$allRRS, na.rm=TRUE)
-data$DASS_Depression <- (data$DASS_Depression - mean(data$DASS_Depression, na.rm=TRUE))/sd(data$DASS_Depression, na.rm=TRUE)
-data$DASS_Anxiety <- (data$DASS_Anxiety - mean(data$DASS_Anxiety, na.rm=TRUE))/sd(data$DASS_Anxiety, na.rm=TRUE)
-data$DASS_Stress <- (data$DASS_Stress - mean(data$DASS_Stress, na.rm=TRUE))/sd(data$DASS_Stress, na.rm=TRUE)
+data$allRRS <- as.integer((data$allRRS - mean(data$allRRS, na.rm=TRUE))/sd(data$allRRS, na.rm=TRUE))
+data$DASS_Depression <- as.integer((data$DASS_Depression - mean(data$DASS_Depression, na.rm=TRUE))/sd(data$DASS_Depression, na.rm=TRUE))
+data$DASS_Anxiety <- as.integer((data$DASS_Anxiety - mean(data$DASS_Anxiety, na.rm=TRUE))/sd(data$DASS_Anxiety, na.rm=TRUE))
+data$DASS_Stress <- as.integer((data$DASS_Stress - mean(data$DASS_Stress, na.rm=TRUE))/sd(data$DASS_Stress, na.rm=TRUE))
 
 
 
@@ -433,7 +435,7 @@ server <- function (input, output, session){
    models <- reactive({ # we need to create this within a reactive context to be able to access the formula_choice
         m <- c()
         Formula <- paste0(input$formula_choice, '+ (1|Subject)')
-        Formula <- DASS_Depression ~ PMS + (1|Subject)
+        # Formula <- DASS_Depression ~ PMS + (1|Subject)
         tryCatch({ d0.1 <- lmer(Formula,data=data); # if this formula works
           m <- c(m, d1=d0.1)}, #we add this
           error=function(e){})
@@ -480,17 +482,17 @@ server <- function (input, output, session){
       emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type="response")
     }else{emmeans(chosenModel[[1]], pairwise ~ PMS*TestMoment, adjust ="fdr", type="response")}
     
-    tabel<-c()
-    for (i in 1:length(m)){
-      AIC<- AIC(m[[i]])
-      tabel <- c(tabel,round(AIC))}
-    chosenModel<-m[which(tabel == min(tabel))]
-    cat(sprintf("\nemmeans of formula: %s\n", input$formula_choice))
-    if ((grepl("TestMoment", input$formula_choice)==FALSE)){
-      emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type="response")
-    }else{emmeans(chosenModel[[1]], pairwise ~ PMS*TestMoment, adjust ="fdr", type="response")}
-
-    
+    # tabel<-c()
+    # for (i in 1:length(m)){
+    #   AIC<- AIC(m[[i]])
+    #   tabel <- c(tabel,round(AIC))}
+    # chosenModel<-m[which(tabel == min(tabel))]
+    # cat(sprintf("\nemmeans of formula: %s\n", input$formula_choice))
+    # if ((grepl("TestMoment", input$formula_choice)==FALSE)){
+    #   emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type="response")
+    # }else{emmeans(chosenModel[[1]], pairwise ~ PMS*TestMoment, adjust ="fdr", type="response")}
+    # 
+    # 
     
   })
    
@@ -557,12 +559,12 @@ server <- function (input, output, session){
               geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Depression, group=PMS, fill=PMS), shape = 21, size=10)+
               ggtitle('DASS_Depression~PMS')+
               
-              # {if(noPMS_PMS()!='')geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)}+
-              #   annotate('text', x=1.5, y=max_y+0.1, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
-              # {if(PMS_PMDD()!='')geom_segment(aes(x = 2, y=max_y+.2, xend= 3, yend=max_y+.2), size= 1)}+
-              #   annotate('text', x=2.5, y=max_y+.3, label=sprintf("\n%s\n", PMS_PMDD()), size=10)+
-              # {if(noPMS_PMDD()!='')geom_segment(aes(x = 1, y=max_y+.6, xend= 3, yend=max_y+.6), size= 1)}+
-                # annotate('text', x=2, y=max_y+.7, label=sprintf("\n%s\n", noPMS_PMDD()), size=10)+
+              {if(noPMS_PMS()!='')geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)}+
+                annotate('text', x=1.5, y=max_y+0.1, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
+              {if(PMS_PMDD()!='')geom_segment(aes(x = 2, y=max_y+.2, xend= 3, yend=max_y+.2), size= 1)}+
+                annotate('text', x=2.5, y=max_y+.3, label=sprintf("\n%s\n", PMS_PMDD()), size=10)+
+              {if(noPMS_PMDD()!='')geom_segment(aes(x = 1, y=max_y+.6, xend= 3, yend=max_y+.6), size= 1)}+
+              annotate('text', x=2, y=max_y+.7, label=sprintf("\n%s\n", noPMS_PMDD()), size=10)+
 
               scale_fill_manual(values = c("blue", "red", "purple"))+
               scale_colour_manual(values = c("blue", "red", "purple"))+
