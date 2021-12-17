@@ -20,9 +20,14 @@ library(gridExtra) #gridarrange
 
 if (!dir.exists("figures"))
   dir.create("figures")
-# General settings
+#####  General settings ##### 
 nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1ù
 vpn = 1 # Set to 1 if using VPN
+
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #Set WD to script location
+
+# Get and declare functions
+source("functions.R") # This is a file in the same directory where you can stash your functions so you can save them there and have them together
 
 # Set WD
 if (vpn == 1) {
@@ -41,10 +46,10 @@ data <-
 ##### Clean data up a bit #####
 #we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
 #These moments were counterbalanced. when the order was B-A and the moment is B, this meanheas it is the first test moment, and vice versa for A-B and moment A.
-data$TestMoment[data$Order == "A-B" &
-                  data$Moment == "A"] = 1# TestMoment 1 == Follicular phase
-data$TestMoment[data$Order == "B-A" &
-                  data$Moment == "A"] = 2# TestMoment 2 == Luteal phase
+
+# This part is not working because we don't have A and B in Moment here, but already foll and lut
+data$TestMoment[data$Order == "A-B" & data$Moment == "A"] = 1# TestMoment 1 == Follicular phase
+data$TestMoment[data$Order == "B-A" & data$Moment == "A"] = 2# TestMoment 2 == Luteal phase
 data$TestMoment[data$Order == "A-B" & data$Moment == "B"] = 2
 data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
 
@@ -53,14 +58,11 @@ data$PMS[data$PMSScore == 0] = 'noPMS'
 data$PMS[data$PMSScore == 1] = 'PMS'
 data$PMS[data$PMSScore == 2] = 'PMDD'
 
-data$PMS <-
-  ordered(data$PMS, levels = c('noPMS', 'PMS', 'PMDD')) # Factorize and turn into ordered levels
+data$PMS <- ordered(data$PMS, levels = c('noPMS', 'PMS', 'PMDD')) # Factorize and turn into ordered levels
+# data$PMS <- as.factor(data$PMS)
 
 # Factorize the rest of the data where needed
 data$ID <- factor(data$ID)
-levs <- union(data$ID, data$ID)
-data$newid <-
-  factor(data$ID, levels = levs, labels = seq_along(levs)) #this code replaces the '627, 534 IDs with 1, 2, 3, ) || Looks cleaner I guess?
 
 data$PMSScore <- factor(data$PMSScore)
 data$PMS <- factor(data$PMS)
@@ -79,207 +81,220 @@ data <-
       data$Contraception == "Hor.Coil"
   ), ] # Delete all these columns
 
-##### Get and declare functions #####
-source("functions.R") # This is a file in the same directory where you can stash your functions so you can save them there and have them together
+data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
+
 
 ##### ##### Statistics Time ##### ##### 
 dataHalf <- data[!duplicated(data$ID),] # Since we're first looking at trait questionnaires, we only need 1 measure per participant
-dataHalf <- data
-# dataHalf$DASS_Depression <- rescalepostive(dataHalf$DASS_Depression)
-dataHalf$DASS_Depression <- dataHalf$DASS_Depression * 20
-
 ##### DASS ##### 
 ##### DASS: Depression ##### 
-formulas= c('DASS_Depression ~ PMS', 'DASS_Anxiety ~ PMS','DASS_Stress ~ PMS' )
+formula <- 'DASS_Depression ~ PMS + (1|Age) + (1|FirstMenstrual) + (1|Order)'
 
-# formula <- 'DASS_Depression ~ Age * FirstMenstrual * PMS + (1|ID)'
-formula <- 'DASS_Depression ~ PMS + Age + FirstMenstrual + (1|newid)'
-
-# rm(d0.1, d0.2, d0.3, d0.4, d0.5, d0.6, d0.7, d0.8, d0.9)
+rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 d0.1 <- lmer(formula,data=dataHalf)
-d0.2 <- glmer(formula,data=dataHalf, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.3 <- glmer(formula,data=dataHalf, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
 
-d0.4 <- glmer(formula,data=dataHalf, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.5 <- glmer(formula,data=dataHalf, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.6 <- glmer(formula,data=dataHalf, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
+d0.2 <- glmer(formula,data=dataHalf, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
 
-d0.7 <- glmer(formula,data=dataHalf, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.8 <- glmer(formula,data=dataHalf, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.9 <- glmer(formula,data=dataHalf, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
+d0.3 <- glmer(formula,data=dataHalf, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
+
+modelNames = c(d0.1,d0.2,d0.3)
+
+# Model Selection
+tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3))
+chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
+
+Anova(chosenModel[[1]])
+plot(effect("PMS", chosenModel[[1]]))
+
+emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type = "response")
+emm0.1 <- summary(emmeans0.1)$emmeans
+emmeans0.1$contrasts
+
+pd <- position_dodge(0.01) # move them .05 to the left and right
+
+## Visualisation
+ggplot(emm0.1, aes(x=PMS, y=emmean, color=PMS)) +
+  geom_point(size = 1) + 
+  geom_line(aes(group = 1),size = 1)+
+  geom_errorbar(width=.125, aes(ymin=emmean-SE, ymax=emmean+SE), position=pd)+
+  theme_bw(base_size = 8)+
+  theme(legend.position="bottom")+
+  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
+  ggtitle("DASS Depression")+
+  labs(y = "DASS Depression", x= "Groups")
+
+##### DASS: Anxiety ##### 
+formula <- 'DASS_Anxiety ~ PMS + (1|Age) + (1|FirstMenstrual) + (1|Order)'
+
+rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
+
+d0.1 <- lmer(formula,data=dataHalf)
+
+d0.2 <- glmer(formula,data=dataHalf, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
+
+d0.3 <- glmer(formula,data=dataHalf, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
+
+modelNames = c(d0.1,d0.3) #d0.2 failed to converge
+
+# Model Selection
+tabel <- cbind(AIC(d0.1), AIC(d0.3))
+chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
+
+Anova(chosenModel[[1]])
+plot(effect("PMS", chosenModel[[1]]))
+
+emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type = "response")
+emm0.1 <- summary(emmeans0.1)$emmeans
+emmeans0.1$contrasts
+
+pd <- position_dodge(0.01) # move them .05 to the left and right
+
+## Visualisation
+ggplot(emm0.1, aes(x=PMS, y=emmean, color=PMS)) +
+  geom_point(size = 1) + 
+  geom_line(aes(group = 1),size = 1)+
+  geom_errorbar(width=.125, aes(ymin=emmean-SE, ymax=emmean+SE), position=pd)+
+  theme_bw(base_size = 8)+
+  theme(legend.position="bottom")+
+  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
+  ggtitle("DASS Anxiety")+
+  labs(y = "DASS Anxiety", x= "Groups")
+
+
+##### DASS: Stress ##### 
+formula <- 'DASS_Stress ~ PMS + (1|Age) + (1|FirstMenstrual)' # No effects found for Order - so removed as random intercept
+
+rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
+
+d0.1 <- lmer(formula,data=dataHalf)
+
+d0.2 <- glmer(formula,data=dataHalf, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
+
+d0.3 <- glmer(formula,data=dataHalf, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
+
+modelNames = c(d0.1,d0.2,d0.3)
+
+# Model Selection
+tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3))
+chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
+
+Anova(chosenModel[[1]])
+plot(effect("PMS", chosenModel[[1]]))
+
+emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type = "response")
+emm0.1 <- summary(emmeans0.1)$emmeans
+emmeans0.1$contrasts
+
+pd <- position_dodge(0.01) # move them .05 to the left and right
+
+## Visualisation
+ggplot(emm0.1, aes(x=PMS, y=emmean, color=PMS)) +
+  geom_point(size = 1) + 
+  geom_line(aes(group = 1),size = 1)+
+  geom_errorbar(width=.125, aes(ymin=emmean-SE, ymax=emmean+SE), position=pd)+
+  theme_bw(base_size = 8)+
+  theme(legend.position="bottom")+
+  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
+  ggtitle("DASS Stress")+
+  labs(y = "DASS Stress", x= "Groups")
 
 
 ##### States ##### 
 ##### State: PSS ##### 
-formula <- 'PSS ~ PMS * Moment + (1|newid)'
+formula <- 'PSS ~ PMS * Moment + (1|Age) + (1|newid)' # FirstMenstrual had zero effect so was removed from the model | Order showed no effect and was removed from model
 
-# dataModel <- data[data$PSS != 0, ]
 dataModel = data
-# rm(d0.1, d0.2, d0.3, d0.4, d0.5, d0.6, d0.7, d0.8, d0.9)
+
+rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 d0.1 <- lmer(formula,data=dataModel)
-d0.2 <- glmer(formula,data=dataModel, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.3 <- glmer(formula,data=dataModel, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
 
-d0.4 <- glmer(formula,data=dataModel, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.5 <- glmer(formula,data=dataModel, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.6 <- glmer(formula,data=dataModel, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
+d0.2 <- glmer(formula,data=dataModel, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
 
-d0.7 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.8 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.9 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
+d0.3 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
 
-Anova(d0.1)
-plot(effect("PMS", d0.1)) #just to check
-plot(effect("PMS:Moment", d0.1)) #just to check
-
-emmeans0.1 <- emmeans(d0.1, pairwise ~ PMS | Moment, adjust ="fdr", type = "response") # Compute a variable containing all emmeans/contrasts
-emm0.1 <- summary(emmeans0.1)$emmeans
-
-pd <- position_dodge(0.05) # move them .05 to the left and right
-## LINEPLOT
-ggplot(emm0.1, aes(x=Moment, y=emmean, color=PMS)) +
-  geom_point(size = 1) + 
-  geom_line(aes(group = PMS),size = 1)+
-  geom_errorbar(width=.125, aes(ymin=emmean-SE, ymax=emmean+SE), position=pd)+
-  theme_bw(base_size = 8)+
-  theme(legend.position="bottom")+
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
-  ggtitle("Feedback: Group x IBI")+
-  labs(y = "Delta IBI (s)")
-  # annotate(geom="text", x=xplotPosition, y=-37.5, label="**", color="#000000")+ #IBI3
-  # annotate(geom="text", x=xplotPosition + 1, y=-34.5, label="**", color="#000000")+ #IBI4
-  # annotate(geom="text", x=xplotPosition + 2, y=-26, label="***", color="#000000")+ #IBI5
-  # annotate(geom="text", x=xplotPosition + 3, y=-17, label="***", color="#000000")+ #IBI6
-  # annotate(geom="text", x=xplotPosition + 4, y=-12.5, label="**", color="#000000") #IBI7
-
-print('Not a significant interaction effect, but groups among each other show PMS vs noPMs sig. but PMS vs PMDD non-significant')
-
-# Now the other way around, over time
-emmeans(d0.1, pairwise ~ Moment | PMS, adjust ="fdr", type = "response")$contrasts
-
-print('Never an effect over time/moment, not as main effect and also not contrasts')
-
-##### State: BSRI ##### 
-formula <- 'BSRI ~ PMS * Moment + (1|newid)'
-
-dataModel <- data[data$BSRI != 0, ] # There is only 1 '0' value, so kick it out to enable better fitting models
-# dataModel = data
-rm(d0.1, d0.2, d0.3, d0.4, d0.5, d0.6, d0.7, d0.8, d0.9)
-
-d0.1 <- lmer(formula,data=dataModel)
-d0.2 <- glmer(formula,data=dataModel, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.3 <- glmer(formula,data=dataModel, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-
-d0.4 <- glmer(formula,data=dataModel, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.5 <- glmer(formula,data=dataModel, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.6 <- glmer(formula,data=dataModel, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-
-d0.7 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.8 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-d0.9 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-
-modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
+modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
 # Model Selection
-tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
+tabel <- cbind(AIC(d0.1))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 
-Anova(chosenModel[[1]]) # Run Anova, double square brackets because of list properties
-plot(effect("PMS", chosenModel[[1]])) #just to check
-plot(effect("PMS:Moment", d0.1)) #just to check
+Anova(chosenModel[[1]])
+print("There is no significant interaction effect in the main model. However, we established these hypothesis before, so compare contrasts nonetheless")
+plot(effect("PMS", chosenModel[[1]]))
+plot(effect("PMS:Moment", chosenModel[[1]]))
 
-emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response") # Compute a variable containing all emmeans/contrasts
+# Between groups at time points
+emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
+emmeans0.1$contrasts
+print("All groups significantly differ from each other at every time point except PMS-PMDD at follicular. This is interesting, indicating that the both are not different non-PMS phase, but PMDD group gets more stress symptoms (so linked to PMs symptoms?)")
 
-pd <- position_dodge(0.05) # move them .05 to the left and right
-## LINEPLOT
-ggplot(emm0.1, aes(x=Moment, y=emmean, color=PMS)) +
+# Between timepoints for groups
+emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
+emm0.2 <- summary(emmeans0.2)$emmeans
+emmeans0.2$contrasts
+print("Stress specifically doesn't increase for any group during the premenstrual phase as compared to the non-premenstrual phase")
+
+pd <- position_dodge(0.02) # move them .05 to the left and right
+
+## Visualisation
+ggplot(emm0.2, aes(x=Moment, y=emmean, color=PMS)) +
   geom_point(size = 1) + 
   geom_line(aes(group = PMS),size = 1)+
   geom_errorbar(width=.125, aes(ymin=emmean-SE, ymax=emmean+SE), position=pd)+
   theme_bw(base_size = 8)+
   theme(legend.position="bottom")+
   theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
-  ggtitle("Moment x PMS group")+
-  labs(y = "BSRI")
+  ggtitle("PSS Stress")+
+  labs(y = "PSS Stress", x= "Groups")
 
-print('Significant interaction effect. Groups among each other show PMS vs noPMs sig. but PMS vs PMDD non-significant')
+##### State: BSRI ##### 
+formula <- 'BSRI ~ PMS * Moment + (1|FirstMenstrual)  + (1|newid)' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
 
-# Now the other way around, over time
-emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")$contrasts
+dataModel = data
 
-print('Only significant effect over time for PMS group')
+rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
+d0.1 <- lmer(formula,data=dataModel)
 
+d0.2 <- glmer(formula,data=dataModel, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
 
+d0.3 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
 
+modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
+# Model Selection
+tabel <- cbind(AIC(d0.1))
+chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 
+Anova(chosenModel[[1]])
+print("There is no significant interaction effect in the main model. However, we established these hypothesis before, so compare contrasts nonetheless")
+plot(effect("PMS", chosenModel[[1]])) # No idea why we're getting "PMS is not a high-order term in the model"
+plot(effect("PMS:Moment", chosenModel[[1]]))
 
+# Between groups at time points
+emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response")
+emm0.1 <- summary(emmeans0.1)$emmeans
+emmeans0.1$contrasts
+print("PMS and PMDD do not differ from each other at any time point, they do both differ from noPMS ")
 
+# Between timepoints for groups
+emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
+emm0.2 <- summary(emmeans0.2)$emmeans
+emmeans0.2$contrasts
+print("State Rumination specifically doesn't increase for any group during the premenstrual phase as compared to the non-premenstrual phase")
 
+pd <- position_dodge(0.02) # move them .05 to the left and right
 
-
-
-
-
-
-
-
-
-
-
-for(i in 1) {
-  Formula <- paste0(Formulas[i], '+ (1|ID)')
-  m <- c() # Create empty list to add succesful models to
-  tryCatch({ d0.1 <- lmer(Formula,data=data); # if this formula works
-  m <- c(m, d1=d0.1)}, #we add this
-  error=function(e){})
-  tryCatch({ d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),mustart=pmax(data$PSS, 1e-3),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-  m <- c(m, d2=d0.2)}, error=function(e){})
-  tryCatch({ d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),mustart=pmax(data$PSS, 1e-3),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-  m <- c(m, d3=d0.3)}, error=function(e){})
-  tryCatch({ d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-  m <- c(m, d4=d0.4)}, error=function(e){})
-  tryCatch({ d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-  m <- c(m, d5=d0.5) }, error=function(e){})
-  tryCatch({ d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-  m <- c(m, d6=d0.6) }, error=function(e){})
-  tryCatch({ d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ);
-  m <- c(m, d7=d0.7) }, error=function(e){})
-  tryCatch({ d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-  m <- c(m, d8=d0.8) }, error=function(e){})
-  tryCatch({ d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ); 
-  m <- c(m, d9=d0.9) }, error=function(e){})
-  m
-
-  
-    modelNames<-c()
-    tabel<-c()
-    chosenModel<-c()
-    for (i in 1:length(m)){
-      modelNames<-c(modelNames, names(models()[i]))
-      AIC<-AIC(models()[[i]])
-      tabel <- c (tabel, AIC)}
-    chosenModel = modelNames[which(tabel == min(tabel))]
-    tabel <- data.frame(Models=c('chosen  Model:', modelNames), AIC= c(chosenModel, round(tabel)))
-    tabel
-
-  
-  
-  
-  
-  
-}
-
-
-
-
-
-
-
-
-
-
+## Visualisation
+ggplot(emm0.2, aes(x=Moment, y=emmean, color=PMS)) +
+  geom_point(size = 1) + 
+  geom_line(aes(group = PMS),size = 1)+
+  geom_errorbar(width=.125, aes(ymin=emmean-SE, ymax=emmean+SE), position=pd)+
+  theme_bw(base_size = 8)+
+  theme(legend.position="bottom")+
+  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
+  ggtitle("PSS Stress")+
+  labs(y = "PSS Stress", x= "Groups")
