@@ -39,7 +39,7 @@ if (vpn == 1) {
 setwd(Dir)
 # Get data
 data <-
-  read.csv(paste0(Dir, "06102021\\cleanedData.csv"),
+  read.csv(paste0(Dir, "06102021\\cleanedDataMoments.csv"),
            header = TRUE,
            sep = ) #upload data
 
@@ -84,121 +84,6 @@ data <-
 data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
 
 
-##### ##### Statistics Time ##### ##### 
-dataHalf <- data[!duplicated(data$ID),] # Since we're first looking at trait questionnaires, we only need 1 measure per participant
-##### DASS ##### 
-##### DASS: Depression ##### 
-formula <- 'DASS_Depression ~ PMS + (1|Age) + (1|FirstMenstrual)'
-
-rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
-
-d0.1 <- lmer(formula,data=dataHalf)
-
-d0.2 <- glmer(formula,data=dataHalf, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
-
-d0.3 <- glmer(formula,data=dataHalf, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-
-modelNames = c(d0.1,d0.2,d0.3)
-
-# Model Selection
-tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3))
-chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
-
-Anova(chosenModel[[1]], type = 'III')
-plot(effect("PMS", chosenModel[[1]]))
-
-emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type = "response")
-emm0.1 <- summary(emmeans0.1)$emmeans
-emmeans0.1$contrasts
-
-pd <- position_dodge(0.01) # move them .05 to the left and right
-
-## Visualisation
-ggplot(emm0.1, aes(x=PMS, y=emmean, color=PMS)) +
-  geom_point(size = 1) + 
-  geom_line(aes(group = 1),size = 1)+
-  geom_errorbar(width=.125, aes(ymin=emmean-SE, ymax=emmean+SE), position=pd)+
-  theme_bw(base_size = 8)+
-  theme(legend.position="bottom")+
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
-  ggtitle("DASS Depression")+
-  labs(y = "DASS Depression", x= "Groups")
-
-##### DASS: Anxiety ##### 
-formula <- 'DASS_Anxiety ~ PMS + (1|Age) + (1|FirstMenstrual) + (1|Order)'
-
-rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
-
-d0.1 <- lmer(formula,data=dataHalf)
-
-d0.2 <- glmer(formula,data=dataHalf, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
-
-d0.3 <- glmer(formula,data=dataHalf, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-
-modelNames = c(d0.1,d0.3) #d0.2 failed to converge
-
-# Model Selection
-tabel <- cbind(AIC(d0.1), AIC(d0.3))
-chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
-
-Anova(chosenModel[[1]])
-plot(effect("PMS", chosenModel[[1]]))
-
-emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type = "response")
-emm0.1 <- summary(emmeans0.1)$emmeans
-emmeans0.1$contrasts
-
-pd <- position_dodge(0.01) # move them .05 to the left and right
-
-## Visualisation
-ggplot(emm0.1, aes(x=PMS, y=emmean, color=PMS)) +
-  geom_point(size = 1) + 
-  geom_line(aes(group = 1),size = 1)+
-  geom_errorbar(width=.125, aes(ymin=emmean-SE, ymax=emmean+SE), position=pd)+
-  theme_bw(base_size = 8)+
-  theme(legend.position="bottom")+
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
-  ggtitle("DASS Anxiety")+
-  labs(y = "DASS Anxiety", x= "Groups")
-
-
-##### DASS: Stress ##### 
-formula <- 'DASS_Stress ~ PMS + (1|Age) + (1|FirstMenstrual)' # No effects found for Order - so removed as random intercept
-
-rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
-
-d0.1 <- lmer(formula,data=dataHalf)
-
-d0.2 <- glmer(formula,data=dataHalf, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
-
-d0.3 <- glmer(formula,data=dataHalf, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-
-modelNames = c(d0.1,d0.2,d0.3)
-
-# Model Selection
-tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3))
-chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
-
-Anova(chosenModel[[1]])
-plot(effect("PMS", chosenModel[[1]]))
-
-emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type = "response")
-emm0.1 <- summary(emmeans0.1)$emmeans
-emmeans0.1$contrasts
-
-pd <- position_dodge(0.01) # move them .05 to the left and right
-
-## Visualisation
-ggplot(emm0.1, aes(x=PMS, y=emmean, color=PMS)) +
-  geom_point(size = 1) + 
-  geom_line(aes(group = 1),size = 1)+
-  geom_errorbar(width=.125, aes(ymin=emmean-SE, ymax=emmean+SE), position=pd)+
-  theme_bw(base_size = 8)+
-  theme(legend.position="bottom")+
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
-  ggtitle("DASS Stress")+
-  labs(y = "DASS Stress", x= "Groups")
-
 
 ##### States ##### 
 ##### State: PSS ##### 
@@ -220,7 +105,7 @@ modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being
 tabel <- cbind(AIC(d0.1))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 
-Anova(chosenModel[[1]])
+Anova(chosenModel[[1]], type = 'III') # Jens always uses anova() in stead of Anova() for lmer, but when doing so it ignores 'type' parameter. Need to figure out..
 print("There is no significant interaction effect in the main model. However, we established these hypothesis before, so compare contrasts nonetheless")
 plot(effect("PMS", chosenModel[[1]]))
 plot(effect("PMS:Moment", chosenModel[[1]]))
@@ -270,7 +155,7 @@ modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being
 tabel <- cbind(AIC(d0.1))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 
-Anova(chosenModel[[1]])
+Anova(chosenModel[[1]], type = 'III')
 print("There is no significant interaction effect in the main model. However, we established these hypothesis before, so compare contrasts nonetheless")
 plot(effect("PMS", chosenModel[[1]])) # No idea why we're getting "PMS is not a high-order term in the model"
 plot(effect("PMS:Moment", chosenModel[[1]]))
@@ -299,8 +184,3 @@ ggplot(emm0.2, aes(x=Moment, y=emmean, color=PMS)) +
   theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
   ggtitle("PSS Stress")+
   labs(y = "PSS Stress", x= "Groups")
-
-
-
-### State questionnaires -> check NA's
-### Anova type III's
