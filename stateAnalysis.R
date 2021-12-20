@@ -111,16 +111,25 @@ plot(effect("PMS", chosenModel[[1]]))
 plot(effect("PMS:Moment", chosenModel[[1]]))
 
 # Between groups at time points
-emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response")
+emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="none", type = "response") #we don't adjust because we do this later
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
 print("All groups significantly differ from each other at every time point except PMS-PMDD at follicular. This is interesting, indicating that the both are not different non-PMS phase, but PMDD group gets more stress symptoms (so linked to PMs symptoms?)")
 
 # Between timepoints for groups
-emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
+emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="none", type = "response")
 emm0.2 <- summary(emmeans0.2)$emmeans
 emmeans0.2$contrasts
 print("Stress specifically doesn't increase for any group during the premenstrual phase as compared to the non-premenstrual phase")
+
+
+## p-adjust! correct for multiple comparisons
+# first add all p-values from the emmeans to 'p'
+PMS_frame <- as.data.frame(emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response")$contrasts)[7]
+Moment_frame <- as.data.frame(emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")$contrasts)[7]
+p <- rbind(PMS_frame,Moment_frame)
+p<-unlist(p)
+p.adjust(p, method= 'fdr', n=9)
 
 # Add custom fdr, get p-values from 2 different contrasts so we're comparing 9 ipv 15 tests
 pd <- position_dodge(0.02) # move them .05 to the left and right
@@ -161,16 +170,24 @@ plot(effect("PMS", chosenModel[[1]])) # No idea why we're getting "PMS is not a 
 plot(effect("PMS:Moment", chosenModel[[1]]))
 
 # Between groups at time points
-emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response")
+emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="none", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
 print("PMS and PMDD do not differ from each other at any time point, they do both differ from noPMS ")
 
 # Between timepoints for groups
-emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
+emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="none", type = "response")
 emm0.2 <- summary(emmeans0.2)$emmeans
 emmeans0.2$contrasts
 print("State Rumination specifically doesn't increase for any group during the premenstrual phase as compared to the non-premenstrual phase")
+
+## p-adjust! correct for multiple comparisons
+# first add all p-values from the emmeans to 'p'
+PMS_frame <- as.data.frame(emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response")$contrasts)[7]
+Moment_frame <- as.data.frame(emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")$contrasts)[7]
+p <- rbind(PMS_frame,Moment_frame)
+p<-unlist(p)
+p.adjust(p, method= 'fdr', n=9)
 
 pd <- position_dodge(0.02) # move them .05 to the left and right
 
