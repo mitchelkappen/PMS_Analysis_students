@@ -7,7 +7,8 @@ library(yarrr)
 library(lme4)
 library(emmeans)
 library(pander)
-
+library(Rmisc)
+library(tidyverse)
 library(reshape)
 library(pander)
 library(dplyr)
@@ -135,7 +136,7 @@ p.adjust(p, method= 'fdr', n=9)
 pd <- position_dodge(0.02) # move them .05 to the left and right
 
 ## Visualisation
-ggplot(emm0.2, aes(x=Moment, y=emmean, color=PMS)) +
+ggplot(emm0.1, aes(x=Moment, y=emmean, color=PMS)) + 
   geom_point(size = 1) + 
   geom_line(aes(group = PMS),size = 1)+
   geom_errorbar(width=.125, aes(ymin=emmean-SE, ymax=emmean+SE), position=pd)+
@@ -144,6 +145,121 @@ ggplot(emm0.2, aes(x=Moment, y=emmean, color=PMS)) +
   theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
   ggtitle("PSS Stress")+
   labs(y = "PSS Stress", x= "Groups")
+
+emm0.2 <- data.frame('Moment'=emm0.2$Moment, 'PSS'= emm0.2$emmean, 'PMS'=emm0.2$PMS)
+
+ggplot()+
+  ggtitle('PSS ~ Moment | PMS')+
+  
+  # geom_flat_violin(data= data, aes(x= Moment, y= PSS, fill=PMS),position = position_nudge(x =.01, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
+  
+  geom_point(data= emm0.2, aes(x = Moment, y = PSS, fill=PMS),outlier.shape= NA, width = .5, size=3, colour= NA)
++
+  geom_line(data= emm0.2, aes(x= as.numeric(Moment), y= emmean, fill=PMS),size = 1, alpha=.5, colour= NA)+
+  
+  scale_fill_manual(values = c("blue", 'red', 'purple'),
+                    name='',
+                    labels=c('noPMS', 'PMS', 'PMDD'))+
+  guides(fill = guide_legend(reverse=TRUE))+
+  theme(
+    # legend.position='bottom',
+    plot.title = element_text(size=rel(2)),
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "black"),
+    panel.grid.major.y = element_line( size=.1, color="#dedede" ),
+    axis.text.x=element_text(size=rel(2)),
+    axis.title.y=element_text(size=rel(1.5)),
+    axis.title.x = element_blank()
+  )
+  
+
+dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS', 'Moment'), na.rm=TRUE)
+ggplot(data, aes(x=Moment, y=PSS, fill=PMS))+
+  geom_flat_violin (aes(fill=PMS), position= position_nudge(x=.3, y=0), adjust=1.5, alpha= .5, colour=NA)+
+  geom_boxplot(aes(x=Moment, y=PSS, fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')
+
++ #fatteNULL removes median line
+  # geom_line(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS), position= position_dodge(0.3), linetype = 1, alpha=.3)+
+  # geom_point(data = dmean, aes(x = as.numeric(Moment)+0.3, y = PSS, fill= PMS), shape = 21, size=6)+
+  
+  # {if(noPMS1_PMS1()!='')geom_segment(aes(x =0.9, y = 2.5, xend = 1, yend = 2.5), size= 1)}+
+  # # geom_segment(aes(x =0.9, y = 2.5, xend = 1, yend = 2.5), size= 1)+
+  # annotate('text', x=0.95, y=2.6, label=sprintf("\n%s\n", noPMS1_PMS1()), size=10)+
+  # # annotate('text', x=0.95, y=2.6, label='*', size=10)+
+  # {if(PMS1_PMDD1()!='')geom_segment(aes(x =1, y = 2.7, xend = 1.1, yend = 2.7), size= 1)}+
+  # # geom_segment(aes(x =1, y = 2.7, xend = 1.1, yend = 2.7), size= 1)+
+  # annotate('text', x=1.05, y=2.8, label=sprintf("\n%s\n", PMS1_PMDD1()), size=10)+
+  # # annotate('text', x=1.05, y=2.8, label='*', size=10)+
+  # 
+  # {if(noPMS2_PMS2()!='')geom_segment(aes(x =1.9, y = 2.5, xend = 2, yend = 2.5), size= 1)}+
+  # # geom_segment(aes(x =1.9, y = 2.5, xend = 2, yend = 2.5), size= 1)+
+  # annotate('text', x=1.95, y=2.6, label=sprintf("\n%s\n", noPMS2_PMS2()), size=10)+
+  # # annotate('text', x=1.95, y=2.6, label='*', size=10)+
+  # {if(PMS2_PMDD2()!='')geom_segment(aes(x =2, y = 2.7, xend = 2.1, yend = 2.7), size= 1)}+
+  # # geom_segment(aes(x =2, y = 2.7, xend = 2.1, yend = 2.7), size= 1)+
+  # annotate('text', x=2.05, y=2.8, label=sprintf("\n%s\n", PMS2_PMDD2()), size=10)+
+  # # annotate('text', x=2.05, y=2.8, label='*', size=10)+
+  # 
+  # {if(noPMS1_noPMS2()!='')geom_segment(aes(x =0.9, y = 3, xend = 1.9, yend = 3), size= 1, colour= "blue")}+
+  # # geom_segment(aes(x =0.9, y = 3, xend = 1.9, yend = 3), size= 1, colour= "#2166AC")+
+  # annotate('text', x=1.4, y=3.1, label=sprintf("\n%s\n", noPMS1_noPMS2()), size=10)+
+  # # annotate('text', x=1.4, y=3.1, label='*', size=10)+
+  # {if(PMS1_PMS2()!='')geom_segment(aes(x =1, y = 3.3, xend = 2, yend = 3.3), size= 1, colour= "red")}+
+  # # geom_segment(aes(x =1, y = 3.3, xend = 2, yend = 3.3), size= 1, colour= "#49A4B9")+
+  # annotate('text', x=1.5, y=3.4, label=sprintf("\n%s\n", PMS1_PMS2()), size=10)+
+  # # annotate('text', x=1.5, y=3.6, label='*', size=10)+
+  # {if(PMDD1_PMDD2()!='')geom_segment(aes(x =1.1, y = 3.6, xend = 2.1, yend = 3.6), size= 1, colour= "purple")}+
+  # # geom_segment(aes(x =1.1, y = 3.6, xend = 2.1, yend = 3.6), size= 1, colour= "#92C5DE")+
+  # annotate('text', x=1.6, y=3.7, label=sprintf("\n%s\n", PMDD1_PMDD2()), size=10)+
+  # # annotate('text', x=1.6, y=4.1, label='*', size=10)+
+  
+  geom_point(data = dmean, aes(x = as.numeric(Moment), y = PSS, group = PMS), position= position_dodge(0.3), shape = 21, size=10)+
+  scale_x_discrete(labels=c('1'='follicular', '2'='premenstrual'))+
+  # scale_fill_discrete(breaks=c("PMDD","PMS","noPMS"))
+  ggtitle('PSS ~ PMS * Moment')+
+  
+  scale_fill_manual(values = c("blue", 'red', 'purple'),
+                    name='',
+                    labels=c('noPMS', 'PMS', 'PMDD'))+
+  guides(fill = guide_legend(reverse=TRUE))+
+  theme(
+    # legend.position='bottom',
+    plot.title = element_text(size=rel(2)),
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "black"),
+    panel.grid.major.y = element_line( size=.1, color="#dedede" ),
+    axis.text.x=element_text(size=rel(2)),
+    axis.title.y=element_text(size=rel(1.5)),
+    axis.title.x = element_blank()
+  )
+
+dmean<-summarySE(data, measurevar="PSS", groupvars=c('PMS'), na.rm=TRUE)
+ggplot(data, aes(x = PMS, y = PSS))+
+  geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
+  geom_point(aes(colour=PMS),position=position_jitter(width=.15), size=.25)+
+  geom_boxplot(aes(x = PMS, y = PSS, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
+  geom_point(data = dmean, aes(x = as.numeric(PMS), y = PSS, group=PMS, fill=PMS), shape = 21, size=10)+
+  
+  # annotate('text', x=1.5, y=2.6, label=sprintf("\n%s\n", noPMS_PMS()), size=10)+
+  # annotate('text', x=2.5, y=2.8, label=sprintf("\n%s\n", PMS_PMDD()), size=10)++
+  # annotate('text', x=2, y=3.2, label=sprintf("\n%s\n", noPMS_PMDD()), size=10)+
+  
+  ggtitle('PSS~PMS')+
+  scale_fill_manual(values = c("blue", "red", "purple"))+
+  scale_colour_manual(values = c("blue", "red", "purple"))+
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size=rel(2)),
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "black"),
+    panel.grid.major.y = element_line( size=.1, color="#dedede" ),
+    axis.text.x=element_text(size=rel(2)),
+    axis.title.y=element_text(size=rel(1.5)),
+    axis.title.x = element_blank())
+
 
 ##### State: BSRI ##### 
 formula <- 'BSRI ~ PMS * Moment + (1|FirstMenstrual)  + (1|newid)' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
