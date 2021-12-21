@@ -57,7 +57,7 @@ data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
 # new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1,
 data$PMS[data$PMSScore == 0] = 'noPMS'
 data$PMS[data$PMSScore == 1] = 'PMS'
-data$PMS[data$PMSScore == 2] = 'PMDD'
+data$PMS[data$PMSScore == 2] = 'PMS'
 
 data$PMS <- ordered(data$PMS, levels = c('noPMS', 'PMS', 'PMDD')) # Factorize and turn into ordered levels
 # data$PMS <- as.factor(data$PMS)
@@ -112,7 +112,7 @@ plot(effect("PMS", chosenModel[[1]]))
 plot(effect("PMS:Moment", chosenModel[[1]]))
 
 # Between groups at time points
-emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="none", type = "response") #we don't adjust because we do this later
+emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response") #we don't adjust because we do this later
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
 print("All groups significantly differ from each other at every time point except PMS-PMDD at follicular. This is interesting, indicating that the both are not different non-PMS phase, but PMDD group gets more stress symptoms (so linked to PMs symptoms?)")
@@ -148,14 +148,17 @@ ggplot(emm0.1, aes(x=Moment, y=emmean, color=PMS)) +
 
 emm0.2 <- data.frame('Moment'=emm0.2$Moment, 'PSS'= emm0.2$emmean, 'PMS'=emm0.2$PMS)
 
+newframe <- merge (emm0.2, data, by="PSS")
+
+
 ggplot()+
   ggtitle('PSS ~ Moment | PMS')+
   
-  # geom_flat_violin(data= data, aes(x= Moment, y= PSS, fill=PMS),position = position_nudge(x =.01, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
+  geom_flat_violin(data= data, aes(x= Moment, y= PSS, fill=PMS),position = position_nudge(x =.01, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
   
-  geom_point(data= emm0.2, aes(x = Moment, y = PSS, fill=PMS),outlier.shape= NA, width = .5, size=3, colour= NA)
-+
-  geom_line(data= emm0.2, aes(x= as.numeric(Moment), y= emmean, fill=PMS),size = 1, alpha=.5, colour= NA)+
+  geom_point(data= emm0.2, aes(x = Moment, y = PSS, group=PMS),outlier.shape= NA, width = .5, size=3)+
+  scale_color_manual(values = c("PMDD" = "purple", "PMS" = "red", "noPMS"="blue"))+
+  geom_line(data= emm0.2, aes(x= Moment, y= PSS, group=PMS),size = 1, alpha=.5)+
   
   scale_fill_manual(values = c("blue", 'red', 'purple'),
                     name='',
@@ -286,7 +289,7 @@ plot(effect("PMS", chosenModel[[1]])) # No idea why we're getting "PMS is not a 
 plot(effect("PMS:Moment", chosenModel[[1]]))
 
 # Between groups at time points
-emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="none", type = "response")
+emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
 print("PMS and PMDD do not differ from each other at any time point, they do both differ from noPMS ")
