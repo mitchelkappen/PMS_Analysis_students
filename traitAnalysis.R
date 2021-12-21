@@ -55,6 +55,8 @@ data$PMS[data$PMSScore == 2] = 'PMDD'
 data$PMS <- ordered(data$PMS, levels = c('noPMS', 'PMS', 'PMDD')) # Factorize and turn into ordered levels
 # data$PMS <- as.factor(data$PMS)
 
+data$RRS <- data$allRRS
+
 # Factorize the rest of the data where needed
 data$ID <- factor(data$ID)
 
@@ -114,6 +116,37 @@ ggplot(emm0.1, aes(x=PMS, y=emmean, color=PMS)) +
   ggtitle("DASS Depression")+
   labs(y = "DASS Depression", x= "Groups")
 
+emm0.1 <- data.frame('Depression'= emm0.1$emmean, 'PMS'=emm0.1$PMS)
+
+max_y<-max(data$DASS_Depression)
+ggplot(data, aes(x = PMS, y = DASS_Depression)) +
+  geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), alpha=.5, adjust = 1.5, colour = NA)+
+  # geom_point(aes(colour=PMS),position=position_jitter(width=.15), alpha=.5, size=.25)+
+  geom_boxplot(aes(x = PMS, y = DASS_Depression, fill = PMS), outlier.shape=NA, width = .1, colour = "black")+
+  geom_point(data= emm0.1, aes(x = PMS, y = Depression, fill=PMS), size=3)+
+  scale_colour_manual(values = c("blue", "red", "purple"))+
+  ggtitle('DASS_Depression~PMS')+
+    geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)+
+  annotate('text', x=1.5, y=max_y+0.3, label='***', size=10)+
+  geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+
+  annotate('text', x=2.5, y=max_y+ 1.3, label='**', size=10)+
+  geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
+  annotate('text', x=2, y=max_y+2.3, label='***', size=10)+
+    scale_fill_manual(values = c("blue", 'red', 'purple'),
+                    name='',labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+
+  guides(fill = guide_legend(reverse=TRUE))+
+  theme(
+    legend.key.size=unit(1.2, 'cm'),
+    plot.title = element_text(size=rel(2)),
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "black"),
+    panel.grid.major.y = element_line( size=.1, color="#dedede" ),
+    axis.text.x=element_text(size=rel(2)),
+    axis.title.y=element_text(size=rel(1.5)),
+    axis.title.x = element_blank())  
+
+
 ##### DASS: Anxiety ##### 
 formula <- 'DASS_Anxiety ~ PMS + (1|Age) + (1|FirstMenstrual) + (1|Order)'
 
@@ -127,7 +160,7 @@ d0.3 <- glmer(formula,data=data, family = inverse.gaussian(link = "identity"),gl
 
 modelNames = c(d0.1,d0.2,d0.3) 
 
-# Model Selection
+ # Model Selection
 tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 
@@ -151,6 +184,35 @@ ggplot(emm0.1, aes(x=PMS, y=emmean, color=PMS)) +
   ggtitle("DASS Anxiety")+
   labs(y = "DASS Anxiety", x= "Groups")
 
+emm0.1 <- data.frame('Anxiety'= emm0.1$emmean, 'PMS'=emm0.1$PMS)
+
+max_y<-max(data$DASS_Anxiety)
+dmean<-summarySE(data, measurevar="DASS_Anxiety", groupvars=c('PMS'))
+ggplot(data, aes(x = PMS, y = DASS_Anxiety)) +
+  geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), alpha=.5, adjust = 1.5, colour = NA)+
+  # geom_point(aes(colour=PMS, fill=PMS),position=position_jitter(width=.15), alpha=.5, size=.25)+
+  geom_boxplot(aes(x = PMS, y = DASS_Anxiety, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
+  geom_point(data= emm0.1, aes(x = PMS, y = Anxiety, fill=PMS),outlier.shape= NA, width = .5, size=3)+
+  ggtitle('DASS_Anxiety~PMS')+
+  geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)+
+  annotate('text', x=1.5, y=max_y+0.3, label='***', size=10)+
+  geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+
+  annotate('text', x=2.5, y=max_y+ 1.3, label='**', size=10)+
+  geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
+  annotate('text', x=2, y=max_y+2.3, label='***', size=10)+
+    scale_fill_manual(values = c("blue", 'red', 'purple'),
+                    name='',labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+
+  guides(fill = guide_legend(reverse=TRUE))+
+  theme(
+    legend.key.size=unit(1.2, 'cm'),
+    plot.title = element_text(size=rel(2)),
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "black"),
+    panel.grid.major.y = element_line( size=.1, color="#dedede" ),
+    axis.text.x=element_text(size=rel(2)),
+    axis.title.y=element_text(size=rel(1.5)),
+    axis.title.x = element_blank()) 
 
 ##### DASS: Stress ##### 
 formula <- 'DASS_Stress ~ PMS + (1|Age) + (1|FirstMenstrual)' # No effects found for Order - so removed as random intercept
@@ -188,3 +250,107 @@ ggplot(emm0.1, aes(x=PMS, y=emmean, color=PMS)) +
   theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
   ggtitle("DASS Stress")+
   labs(y = "DASS Stress", x= "Groups")
+
+emm0.1 <- data.frame('Stress'= emm0.1$emmean, 'PMS'=emm0.1$PMS)
+
+max_y<-max(data$DASS_Anxiety)
+ggplot(data, aes(x = PMS, y = DASS_Stress)) +
+  geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), alpha=.5, adjust = 1.5, colour = NA)+
+  # geom_point(aes(colour=PMS),position=position_jitter(width=.15), alpha=.5, size=.25)+
+  geom_boxplot(aes(x = PMS, y = DASS_Stress, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
+   # geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_Stress, group=PMS, fill=PMS), shape = 21, size=2)+
+  geom_point(data= emm0.1, aes(x = PMS, y = Stress, fill=PMS),outlier.shape= NA, width = .5, size=3)+
+  ggtitle('DASS_Stress~PMS')+
+  geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)+
+  annotate('text', x=1.5, y=max_y+0.3, label='***', size=10)+
+  geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+
+  annotate('text', x=2.5, y=max_y+ 1.3, label='***', size=10)+
+  geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
+  annotate('text', x=2, y=max_y+2.3, label='***', size=10)+
+  
+  scale_fill_manual(values = c("blue", 'red', 'purple'),
+                    name='',labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+
+  guides(fill = guide_legend(reverse=TRUE))+
+  theme(
+    legend.key.size=unit(1.2, 'cm'),
+    plot.title = element_text(size=rel(2)),
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "black"),
+    panel.grid.major.y = element_line( size=.1, color="#dedede" ),
+    axis.text.x=element_text(size=rel(2)),
+    axis.title.y=element_text(size=rel(1.5)),
+    axis.title.x = element_blank()) 
+
+
+
+##### RRS ##### 
+formula <- 'RRS ~ PMS + (1|Age) + (1|FirstMenstrual)' # No effects found for Order - so removed as random intercept
+
+rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
+
+d0.1 <- lmer(formula,data=data)
+
+d0.2 <- glmer(formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
+
+d0.3 <- glmer(formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
+
+modelNames = c(d0.1,d0.2) #d0.3 failed to converge
+
+# Model Selection
+tabel <- cbind(AIC(d0.1), AIC(d0.3))
+chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
+
+Anova(chosenModel[[1]], type = 'III')
+plot(effect("PMS", chosenModel[[1]]))
+
+emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type = "response")
+emm0.1 <- summary(emmeans0.1)$emmeans
+emmeans0.1$contrasts
+
+pd <- position_dodge(0.01) # move them .05 to the left and right
+
+## Visualisation
+ggplot(emm0.1, aes(x=PMS, y=emmean, color=PMS)) +
+  geom_point(size = 1) + 
+  geom_line(aes(group = 1),size = 1)+
+  geom_errorbar(width=.125, aes(ymin=emmean-SE, ymax=emmean+SE), position=pd)+
+  theme_bw(base_size = 8)+
+  theme(legend.position="bottom")+
+  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
+  ggtitle("RRS")+
+  labs(y = "RRS", x= "Groups")
+
+emm0.1 <- data.frame('RRS'= emm0.1$emmean, 'PMS'=emm0.1$PMS)
+
+max_y<-max(data$RRS)
+ggplot() +
+  geom_flat_violin(data= data, aes(x= PMS, y= RRS, fill=PMS),position = position_nudge(x =.3, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
+  # geom_point(aes(colour=PMS),position=position_jitter(width=.15), alpha=.5, size=.25)+
+  geom_boxplot(data= data, aes(x = PMS, y = RRS, fill = PMS),outlier.shape= NA, width = .1, colour = "black")+
+   # geom_point(data = dmean, aes(x = as.numeric(PMS), y = DASS_RSS, group=PMS, fill=PMS), shape = 21, size=2)+
+  geom_point(data= emm0.1, aes(x = PMS, y = RRS, fill=PMS), size=3)+
+  ggtitle('RSS~PMS')+
+  geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)+
+  annotate('text', x=1.5, y=max_y+0.3, label='***', size=10)+
+  geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+
+  annotate('text', x=2.5, y=max_y+ 1.3, label='***', size=10)+
+  geom_segment(aes(x = 1, y=max_y+4, xend= 3, yend=max_y+4), size= 1)+
+  annotate('text', x=2, y=max_y+4.3, label='***', size=10)+
+  
+  scale_fill_manual(values = c("blue", 'red', 'purple'),
+                    name='',labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+
+  # scale_x_discrete(labels=c("noPMS" = "noPMS \n n =196 ", "PMS" = "PMS \n n=138",
+  #                           "PMDD" = "PMDD \n n=46"))
+  guides(fill = guide_legend(reverse=TRUE))+
+  theme(
+    legend.key.size=unit(1.2, 'cm'),
+    plot.title = element_text(size=rel(2)),
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.line = element_line(colour = "black"),
+    panel.grid.major.y = element_line( size=.1, color="#dedede" ),
+    axis.text.x=element_text(size=rel(2)),
+    axis.title.y=element_text(size=rel(1.5)),
+    axis.title.x = element_blank()) 
+
