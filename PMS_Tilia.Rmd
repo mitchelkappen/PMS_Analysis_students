@@ -1,0 +1,297 @@
+---
+title: "PMS_Tilia"
+output: html_document
+---
+_____________________________
+1. PACKAGES AND DEPENDENCIES 
+_____________________________
+
+```{r setup, include=FALSE}
+.libPaths("C:/Users/linth/Documenten/R/win-library/4.1") # Error otherwise bcs OneDrive full & not up-to-date
+knitr::opts_chunk$set(dev = "png",
+                      fig.path='T:\\shares\\ghepmk_data\\2020_Kappen_PMS\\figures2\\',
+                      dpi = 300,
+                      cache = FALSE)
+```
+
+
+```{r}
+#'@CLEAR_WORKING_MEMORY
+
+rm(list = ls())
+
+#'@INSTAL_NECESSARY_PACKAGES
+
+for(pkg in c("Rmisc", "ggsignif", "raincloudplots", "ggstatsplot", "ggformula", "ggdist", "ggpubr", "ggeffects")){
+  install.packages(pkg, character.only = TRUE, lib= "C:/Users/linth/Documenten/R/win-library/4.1") 
+}
+# package ‘raincloudplots’ is not available for this version of R
+# The downloaded binary packages are in C:\Users\linth\AppData\Local\Temp\Rtmpis7LFW\downloaded_packages
+
+#'@TRYING_TO_MAKE_IT_RAIN_IN_R
+
+# https://wellcomeopenresearch.org/articles/4-63/v2           (<- this worked!)
+if (!require(remotes)) {
+    install.packages("remotes", lib= "C:/Users/linth/Documenten/R/win-library/4.1")
+}
+remotes::install_github('jorvlan/raincloudplots')
+```
+
+
+```{r}
+#'@LOAD_NECESSARY_PACKAGES
+
+for(pkg in c("Rmisc", "ggsignif", "raincloudplots", "lme4", "lmerTest", "effects", "car", "emmeans","fitdistrplus", "gplots",
+              "ggplot2", "ggstatsplot", "ggsignif", "ggformula", "ggdist", "ggpubr", "ggeffects", "gridExtra", "tidyverse", "pander",
+              "stringr", "cowplot", "lavaan", "readr", "jpeg", "reshape2", "yarrr", "knitr", "remotes")){
+  library(pkg, character.only = TRUE)
+}
+
+recode <- dplyr::recode
+count <- dplyr::count
+select <- dplyr::select  #https://www.statology.org/dplyr-error-in-select-unused-arguments/
+filter <- dplyr::filter
+
+```
+
+```{r}
+#'@CREATE_FOLDER_TO_SAVE_FIGURES
+
+if (!dir.exists('T:\\shares\\ghepmk_data\\2020_Kappen_PMS\\figures2\\')){
+dir.create('T:\\shares\\ghepmk_data\\2020_Kappen_PMS\\figures2\\')
+} else {
+    print("Dir already exists!")
+}
+    
+#'@GENERAL_SETTINGS
+
+nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1
+vpn = 1  # Set to 1 if using VPN
+```
+______________________________________
+LET'S START WORKING WITH THE DATASET 
+______________________________________
+
+```{r load-data, echo=FALSE}
+#'@SET_WD_AND_LOAD_DATA
+
+work_dir <- "T:\\shares\\ghepmk_data\\2020_Kappen_PMS\\RMarkdown\\Data\\"
+setwd(work_dir) # warning message
+
+Dir = "T:\\shares\\ghepmk_data\\2020_Kappen_PMS\\"
+data <- read.csv(paste0(Dir,"06102021\\allPMSdata.csv"), header=TRUE, sep=) # upload data
+norms <- read.table(paste0(Dir,"\\RMarkdown\\Data\\FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE) # upload norms
+
+#'@EDIT_DATASET
+
+# we make a new variable that has value 1 for the first Testmoment and 2 for the second Testmoment
+# These moments were counterbalanced
+data$TestMoment[data$Order == "A-B" & data$Moment == "A"] = 1 
+data$TestMoment[data$Order == "B-A" & data$Moment == "A"] = 2
+data$TestMoment[data$Order == "A-B" & data$Moment == "B"] = 2
+data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
+
+# Check if there are still values missing (NA)
+sum(is.na(data$TestMoment))
+# 0
+
+# New variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1, 
+data$PMS[data$PMSScore == 0] = 'noPMS'
+data$PMS[data$PMSScore == 1] = 'PMS'
+data$PMS[data$PMSScore == 2] = 'PMDD' # PMDD (no official diagnosis, is just PMS)
+
+data$PMS<-ordered(data$PMS, levels=c('noPMS', 'PMS', 'PMDD'))
+
+# Put rt in sec instead of ms
+data$rt = data$rt/1000
+
+# We make factors of the independent variables
+data$Subject <- factor(data$ID)
+levs<-union(data$ID, data$ID)
+data$newid <- factor(data$ID, levels=levs, labels=seq_along(levs)) #this code replaces the '627, 534 IDs with 1, 2, 3, )
+# WHY?????????????????? ASK THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+# Make PMS and Moment factors
+data$PMSScore <- factor(data$PMSScore)
+data$PMS <- factor(data$PMS)
+data$Moment <- factor(data$Moment) 
+data$TestMoment <- factor(data$TestMoment)
+
+```
+
+```{r}
+#'@INSERT_NEW_VARIABLE:PMS_VS_NOPMS
+
+data$PMSbinary[data$PMS == 'noPMS'] = 'noPMS'
+data$PMSbinary[data$PMS == 'PMS' | data$PMS == 'PMDD'] = 'PMS'
+
+```
+
+```{r load-data, echo=FALSE}
+#'@VIEW_DATASETS_IN_SEPERATE_WINDOW
+
+view(data) # there are 22 lines per testmoment per subject (= 22 IAPS images per testmoment)
+view(norms)
+```
+
+__________________________
+Apply exclusion criteria
+__________________________
+
+```{r}
+#'@EXCLUDE_PARTICIPANTS_WITH_ONLY_1_TESTMOMENT            ASK MITCHEL ABOUT THIS, WHY ARE THEY STILL IN DATASET????????????
+                                                          # cleanData on GitHub Mitchel, but no info about scales. 
+datanew <- data %>%
+  group_by(ID) %>%
+  mutate(count=length(ID)) %>%
+  rename(totalIAPS = count) %>%
+  # We want to keep ppn with totalIAPS 44 (2 testmoments), exclude participants with totalIAPS 22
+  # 546, 661, 517 (see GitHub) also excluded with this line!
+  filter(totalIAPS == 44) %>%
+  ungroup(ID)
+
+datanew2 <- datanew %>%
+    filter(is.na(Exclusie)) # filter (Exclusie != 1 does not work, but this does)
+    # 644, 197, 577, 213, 238, 644, 197, 577 excluded
+
+#'@EXCLUDE_WOMEN_WITH_HORMONAL_CONTRACEPTION
+
+# We need to exclude everyone with pill/copper spiral/other, only natural contraception included
+data_allnatural <- datanew2 %>% 
+  filter(Contraception == 'Natural')
+
+#'@EXCLUDE_RT>30
+
+data_cleanedrt <- data_allnatural %>% 
+  filter(rt < 30)
+
+data_cleanedrt
+
+nrow(data_cleanedrt) 
+nrow(data_cleaned)
+```
+______________________________________________
+Calculate percentages & descriptives for paper
+______________________________________________
+
+```{r}
+#'@CONTRACEPTION_PERCENTAGES
+
+Percentage_contraception <- datanew2 %>%
+  group_by(ID) %>%
+  slice(1) %>% # Keep the first row of every ID
+  group_by(Contraception) %>%
+  summarize( absfreq_contraception= n()) %>% # absolute frequency of participants per type of contraception
+  mutate(relfreq_contraception = absfreq_contraception/273)  #relative frequency of participants per type of contraception
+
+Percentage_contraception
+
+# Just a sanity check, do we here have 273 different ID's? Yes!
+# test <- datanew2 %>% distinct(ID) 
+# nrow(test)
+# 273
+
+#'@RT_OUTLIERS_PERCENTAGES
+# !!! THIS IS % ONLY FOR NATURAL CONTRACEPTION, if you do analyses with contraception, calculate on full dataset
+
+nrow(data_allnatural) - nrow(data_cleanedrt)
+# 11 RT outliers 
+
+(nrow(datanew2) - nrow(data_cleanedrt))/nrow(data_allnatural) 
+# [1] 0.001506024 = < 1% of all trials rejected due to fast RT      
+
+```
+
+```{r}
+#'@DEMOGRAPHICS_OF_EVERYONE       # ASK MITCHEL: Should be the only natural contraception? I don't think so
+demographics <- datanew2 %>%  
+  distinct(ID, Age, FirstMenstrual, MenstrualDuration) %>%
+  summarize(mean(Age), sd(Age), mean(FirstMenstrual), sd(FirstMenstrual),mean(MenstrualDuration), sd(MenstrualDuration))
+
+demographics
+```
+_______________________________
+IAPS VALENCE AND AROUSAL SCALES
+_______________________________
+
+```{r}
+#'@IAPS_IMAGES
+
+# Calculate mean and sd of arousal & valence, and normalize the scores I think?
+# I don't quite understand the FemaleSubjects_1-20.txt" used in Sofies markdown ?????????????????? ask
+
+IAPS <- data_cleanedrt %>%
+  group_by(ID) %>%D
+  group_by(PMSbinary, TestMoment) %>%
+  summarize(mean(Arousal), sd(Arousal), mean(Valence), sd(Valence))
+
+IAPS
+```
+
+```{r load-data, echo=FALSE}
+
+# rewrite this code
+
+data_out<-data #the data with the rt outliers
+data <- subset(data, rt < 30)#Dit zijn de data waar de rt outliers uitgehaald zijn! 
+
+datafaces<-data
+datafaces<- subset(datafaces,  select= -c(PD_Mean, PD_Std, PD_Max, Exclusie))
+
+# REMOVE CONFIDENCE UNDER 95
+datafaces<-subset(data, confidence >.95, na.rm=TRUE)#only take data where confidence is bigger than 95
+
+#remove datafaces with NA varaibles
+# datafaces<-na.omit(datafaces)
+
+
+
+#dataframe with the norms for the stimuli (IAPs images)
+norms$IAPS <-round(norms$IAPS)
+un<-c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '9320', '9584', '9592', '9594', '9600', '9911', '9920', '9921') # all the unique(data$Stimulus) in a list
+norms<-as.data.frame(norms) # make a dataframe
+norms$row_num <- seq.int(nrow(norms)) # give row numbers
+#move column with names 
+norms <- norms %>%
+  relocate(desc, .after=row_num)
+norms<-subset(norms, IAPS%in% un ) #we now have table with the norms for ONLY the stimuli used in this PMS experiment
+norms<-norms[-c(4),] #we remove the second 1610 because it is double for some reason
+#now we add the sd and means from these data to this dataframe
+# https://stackoverflow.com/questions/21982987/mean-per-group-in-a-data-frame
+# norms$valmn_pms<- mean(data$Valence)
+norms<-cbind(norms, round(ddply(data, .(Stimulus), summarize,  valmn_pms=mean(Valence))[2])/10)
+norms<-cbind(norms, round(ddply(data, .(Stimulus), summarize,  aromn_pms=mean(Arousal))[2])/10)
+norms<-cbind(norms, round(ddply(data, .(Stimulus), summarize,  valsd_pms=sd(Valence))[2])/10)
+norms<-cbind(norms, round(ddply(data, .(Stimulus), summarize,  arosd_pms=mean(Arousal))[2])/10)
+#make all columns unique!
+colnames(norms)<-make.unique(names(norms))
+# group stimuli depending on whether they are part of group A or group B in exp
+A<-unique(data$Stimulus[data$Order=='A-B' & data$Moment==1])# two groups of stimuli: A and B
+B <-unique(data$Stimulus[data$Order=='B-A' & data$Moment==1])
+norms$group[norms$IAPS %in% A]='A'# add this to the 'norms' dataset
+norms$group[norms$IAPS %in% B]='B'
+
+```
+
+
+```{r descriptives, echo=FALSE}
+#dataframe with the means of descriptives
+knitr::kable(data.frame(
+  PMS=c('cyclus duration:', round(mean(data$MenstrualDuration[data$PMS=='PMS']), digits=1),
+        'Age:', round(mean(data$Age[data$PMS=='PMS']), digits=1),
+        'first menstrual:', round(mean(data$FirstMenstrual[data$PMS=='PMS']), digits=1)
+        ), 
+  noPMS= c('cyclus duration:', round(mean(data$MenstrualDuration[data$PMS=='noPMS']), digits=1),
+           'Age:', round(mean(data$Age[data$PMS=='noPMS']), digits=1),
+           'first menstrual:', round(mean(data$FirstMenstrual[data$PMS=='noPMS']), digits=1)
+           )
+  ))
+
+kable(table(data$Order))
+
+nat<- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Natural']))
+hor <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Hor.Coil'|data_allcontraception$Contraception=='Hor. Coil']))
+cop <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Cop.Coil']))
+pill <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Pill']))
+oth <-length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='other']))
+```
