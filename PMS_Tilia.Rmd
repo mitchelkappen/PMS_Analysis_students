@@ -80,7 +80,7 @@ setwd(work_dir) # warning message
 
 Dir = "T:\\shares\\ghepmk_data\\2020_Kappen_PMS\\"
 data <- read.csv(paste0(Dir,"06102021\\allPMSdata.csv"), header=TRUE, sep=) # upload data
-norms <- read.table(paste0(Dir,"\\RMarkdown\\Data\\FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE) # upload norms
+norms <- read.table(paste0(Dir,"\\RMarkdown\\Data\\FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE) # upload norms #??? Only 43 images in here
 
 #'@EDIT_DATASET
 
@@ -117,9 +117,6 @@ data$PMS <- factor(data$PMS)
 data$Moment <- factor(data$Moment) 
 data$TestMoment <- factor(data$TestMoment)
 
-```
-
-```{r}
 #'@INSERT_NEW_VARIABLE:PMS_VS_NOPMS
 
 data$PMSbinary[data$PMS == 'noPMS'] = 'noPMS'
@@ -215,17 +212,23 @@ IAPS VALENCE AND AROUSAL SCALES
 __________________________________________________________________________________________________________________________________________
 
 ```{r}
-#'@IAPS_IMAGES
+#'@IAPS_IMAGES_EXPLICIT_SCALES
 
 # Calculate mean and sd of arousal & valence, and normalize the scores I think?
-# I don't quite understand the FemaleSubjects_1-20.txt" used in Sofies markdown ?????????????????? ask
+# I don't quite understand the FemaleSubjects_1-20.txt" --> verified norms. We can use them to divide the IAPS images in groups
 
 IAPS <- data_cleanedrt %>%
-  group_by(ID) %>%D
-  group_by(PMSbinary, TestMoment) %>%
+  group_by(ID) %>%
+  group_by(PMS, TestMoment) %>%
   summarize(mean(Arousal), sd(Arousal), mean(Valence), sd(Valence))
 
 IAPS
+```
+```{r}
+#'@ANALYZING_THE_EXPLICIT_SCALES
+
+# With the use of Linear Mixed-Effects Model
+
 ```
 
 ```{r load-data, echo=FALSE}
@@ -274,24 +277,3 @@ norms$group[norms$IAPS %in% B]='B'
 ```
 
 
-```{r descriptives, echo=FALSE}
-#dataframe with the means of descriptives
-knitr::kable(data.frame(
-  PMS=c('cyclus duration:', round(mean(data$MenstrualDuration[data$PMS=='PMS']), digits=1),
-        'Age:', round(mean(data$Age[data$PMS=='PMS']), digits=1),
-        'first menstrual:', round(mean(data$FirstMenstrual[data$PMS=='PMS']), digits=1)
-        ), 
-  noPMS= c('cyclus duration:', round(mean(data$MenstrualDuration[data$PMS=='noPMS']), digits=1),
-           'Age:', round(mean(data$Age[data$PMS=='noPMS']), digits=1),
-           'first menstrual:', round(mean(data$FirstMenstrual[data$PMS=='noPMS']), digits=1)
-           )
-  ))
-
-kable(table(data$Order))
-
-nat<- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Natural']))
-hor <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Hor.Coil'|data_allcontraception$Contraception=='Hor. Coil']))
-cop <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Cop.Coil']))
-pill <- length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='Pill']))
-oth <-length(unique(data_allcontraception$ID[data_allcontraception$Contraception=='other']))
-```
