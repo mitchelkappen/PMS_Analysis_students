@@ -90,16 +90,12 @@ data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that 
 data$Date[data$Moment=='Foll'] <- data$TrueFollicular[data$Moment=='Foll']
 data$Date[data$Moment=='Lut'] <- data$TrueLuteal[data$Moment=='Lut']
 # Convert this one column
-data$Date2 = strptime(as.character(data$Date), "%d-%m-%Y")
+data$Date = strptime(as.character(data$Date), "%d-%m-%Y")
 
-format(data$Date, "%Y/%m/%d") # turn around because Rstudio uses this format
-data$Date <- as.Date(data$Date) # make it a date
+data$Date <- as.Date(data$Date) # make it a date | MK: Wasnt it already a date?
 
-
-startdate <- "2020-11-09" #first date in dataset
+startdate <- min(data$Date) #first date in dataset
 data$Days <- as.integer(difftime(data$Date, startdate, units= 'days')) # NumDays variable: difference between current date and first date
-
-
 
 ##### States ##### 
 ##### State: PSS ##### 
@@ -110,10 +106,6 @@ dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 d0.1 <- lmer(formula,data=dataModel)
-
-d0.2 <- glmer(formula,data=dataModel, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
-
-d0.3 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
 
 modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
@@ -133,7 +125,7 @@ emmeans0.1$contrasts
 print("All groups significantly differ from each other at every time point except PMS-PMDD at follicular. This is interesting, indicating that the both are not different non-PMS phase, but PMDD group gets more stress symptoms (so linked to PMs symptoms?)")
 
 # Between timepoints for groups
-emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="none", type = "response")
+emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
 emm0.2 <- summary(emmeans0.2)$emmeans
 emmeans0.2$contrasts
 print("Stress specifically doesn't increase for any group during the premenstrual phase as compared to the non-premenstrual phase")
@@ -141,8 +133,8 @@ print("Stress specifically doesn't increase for any group during the premenstrua
 
 ## p-adjust! correct for multiple comparisons
 # first add all p-values from the emmeans to 'p'
-PMS_frame <- as.data.frame(emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response")$contrasts)[7]
-Moment_frame <- as.data.frame(emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")$contrasts)[7]
+PMS_frame <- as.data.frame(emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="none", type = "response")$contrasts)[7]
+Moment_frame <- as.data.frame(emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="none", type = "response")$contrasts)[7]
 p <- rbind(PMS_frame,Moment_frame)
 p<-unlist(p)
 p.adjust(p, method= 'fdr', n=9)
@@ -150,17 +142,7 @@ p.adjust(p, method= 'fdr', n=9)
 # Add custom fdr, get p-values from 2 different contrasts so we're comparing 9 ipv 15 tests
 pd <- position_dodge(0.02) # move them .05 to the left and right
 
-## Visualisation
-ggplot(emm0.1, aes(x=Moment, y=emmean, color=PMS)) + 
-  geom_point(size = 1) + 
-  geom_line(aes(group = PMS),size = 1)+
-  geom_errorbar(width=.125, aes(ymin=emmean-SE, ymax=emmean+SE), position=pd)+
-  theme_bw(base_size = 8)+
-  theme(legend.position="bottom")+
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
-  ggtitle("PSS Stress")+
-  labs(y = "PSS Stress", x= "Groups")
-
+## Visualisation | TODO: Zou je je plotting kunnen commenten zodat het duidelijk is wat er per regel/segment gebeurt?
 emm0.2 <- data.frame('Moment'=emm0.2$Moment, 'PSS'= emm0.2$emmean, 'PMS'=emm0.2$PMS)
 
 ggplot()+
@@ -202,17 +184,13 @@ ggplot()+
 
 
 ##### State: BSRI ##### 
-formula <- 'BSRI ~ PMS * Moment  + (1|FirstMenstrual)  + (1|newid) + Date' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
+formula <- 'BSRI ~ PMS * Moment + (1|FirstMenstrual)  + (1|newid)' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
 
 dataModel = data
 
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 d0.1 <- lmer(formula,data=dataModel)
-
-d0.2 <- glmer(formula,data=dataModel, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
-
-d0.3 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
 
 modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
@@ -248,17 +226,7 @@ p.adjust(p, method= 'fdr', n=9)
 pd <- position_dodge(0.02) # move them .05 to the left and right
 
 ## Visualisation
-ggplot(emm0.2, aes(x=Moment, y=emmean, color=PMS)) +
-  geom_point(size = 1) + 
-  geom_line(aes(group = PMS),size = 1)+
-  geom_errorbar(width=.125, aes(ymin=emmean-SE, ymax=emmean+SE), position=pd)+
-  theme_bw(base_size = 8)+
-  theme(legend.position="bottom")+
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
-  ggtitle("PSS Stress")+
-  labs(y = "PSS Stress", x= "Groups")
-
-max_y<-max(data$PTQ)
+max_y<-max(data$PTQ) # TO DO: this returns -Inf, check if correct?
 emm0.2 <- data.frame('Moment'=emm0.2$Moment, 'BSRI'= emm0.2$emmean, 'PMS'=emm0.2$PMS)
 ggplot()+
   ggtitle('BSRI ~ PMS * Moment')+
@@ -299,14 +267,14 @@ ggplot()+
 
 
 ##### PTQ ##### 
-formula <- 'PTQ ~ PMS * Moment * Days + (1|FirstMenstrual)  + (1|newid) ' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
+formula <- 'PTQ ~ PMS * Moment + (1|newid) ' # Age no effect |  Order had zero effect so was removed from the model | First Menstrual showed no effect and was removed from model || ranef(d0.1)
 
 dataModel = data
 
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 d0.1 <- lmer(formula,data=dataModel)
-
+#ranef(d0.1)
 d0.2 <- glmer(formula,data=dataModel, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
 
 d0.3 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
@@ -321,8 +289,6 @@ Anova(chosenModel[[1]], type = 'III')
 print(" sign effect of PMS, Moment and Moment:Days and PMS:Moment:Days")
 plot(effect("PMS", chosenModel[[1]])) # No idea why we're getting "PMS is not a high-order term in the model"
 plot(effect("PMS:Moment", chosenModel[[1]]))
-plot(effect("PMS:Moment:Days", chosenModel[[1]]))
-plot(effect("PMS:Days", chosenModel[[1]]))
 
 # Between groups at time points
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment , adjust ="fdr", type = "response")
@@ -335,71 +301,3 @@ emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="none",
 emm0.2 <- summary(emmeans0.2)$emmeans
 emmeans0.2$contrasts
 print("all insign")
-
-
-library(hrbrthemes)
-
-p <- data %>%
-  ggplot( aes(x=Days, y=PTQ)) +
-  geom_area(fill="#69b3a2", alpha=0.5) +
-  geom_line(color="#69b3a2") +
-  ylab("bitcoin price ($)") +
-  theme_ipsum()
-
-# Turn it interactive with ggplotly
-p <- ggplotly(p)
-p
-
-
-
-formula <- 'PSS ~ PMS * Moment * Days + (1|FirstMenstrual)  + (1|newid) ' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
-
-dataModel = data
-
-rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
-
-d0.1 <- lmer(formula,data=dataModel)
-
-d0.2 <- glmer(formula,data=dataModel, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
-
-d0.3 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-
-modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
-
-# Model Selection
-tabel <- cbind(AIC(d0.1))
-chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
-
-Anova(chosenModel[[1]], type = 'III')
-print(" sign effect of PMS, Moment and Moment:Days and PMS:Moment:Days")
-plot(effect("PMS", chosenModel[[1]])) # No idea why we're getting "PMS is not a high-order term in the model"
-plot(effect("PMS:Moment", chosenModel[[1]]))
-plot(effect("PMS:Moment:Days", chosenModel[[1]]))
-plot(effect("PMS:Days", chosenModel[[1]]))
-
-
-
-formula <- 'BSRI ~ PMS * Moment * Days + (1|FirstMenstrual)  + (1|newid) ' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
-
-dataModel = data
-
-rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
-
-d0.1 <- lmer(formula,data=dataModel)
-
-d0.2 <- glmer(formula,data=dataModel, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
-
-d0.3 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
-
-modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
-
-# Model Selection
-tabel <- cbind(AIC(d0.1))
-chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
-
-Anova(chosenModel[[1]], type = 'III')
-print(" sign effect of PMS, Moment and Moment:Days and PMS:Moment:Days")
-plot(effect("PMS", chosenModel[[1]])) # No idea why we're getting "PMS is not a high-order term in the model"
-plot(effect("PMS:Moment", chosenModel[[1]]))
-plot(effect("PMS:Moment:Days", chosenModel[[1]]))
-plot(effect("PMS:Days", chosenModel[[1]]))
