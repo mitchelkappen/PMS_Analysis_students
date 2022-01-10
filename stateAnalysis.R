@@ -329,16 +329,81 @@ plot(effect("PMS:Moment:Days", chosenModel[[1]]))
 plot(effect("PMS:Days", chosenModel[[1]]))
 
 # Between groups at time points
-emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment & Days, adjust ="fdr", type = "response")
+emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment , adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
 print(" all sign except for noPMS-PMS for follicular")
 
 # Between timepoints for groups
-emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS & Days, adjust ="none", type = "response")
+emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="none", type = "response")
 emm0.2 <- summary(emmeans0.2)$emmeans
 emmeans0.2$contrasts
 print("all insign")
 
 
+library(hrbrthemes)
 
+p <- data %>%
+  ggplot( aes(x=Days, y=PTQ)) +
+  geom_area(fill="#69b3a2", alpha=0.5) +
+  geom_line(color="#69b3a2") +
+  ylab("bitcoin price ($)") +
+  theme_ipsum()
+
+# Turn it interactive with ggplotly
+p <- ggplotly(p)
+p
+
+
+
+formula <- 'PSS ~ PMS * Moment * Days + (1|FirstMenstrual)  + (1|newid) ' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
+
+dataModel = data
+
+rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
+
+d0.1 <- lmer(formula,data=dataModel)
+
+d0.2 <- glmer(formula,data=dataModel, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
+
+d0.3 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
+
+modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
+
+# Model Selection
+tabel <- cbind(AIC(d0.1))
+chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
+
+Anova(chosenModel[[1]], type = 'III')
+print(" sign effect of PMS, Moment and Moment:Days and PMS:Moment:Days")
+plot(effect("PMS", chosenModel[[1]])) # No idea why we're getting "PMS is not a high-order term in the model"
+plot(effect("PMS:Moment", chosenModel[[1]]))
+plot(effect("PMS:Moment:Days", chosenModel[[1]]))
+plot(effect("PMS:Days", chosenModel[[1]]))
+
+
+
+formula <- 'BSRI ~ PMS * Moment * Days + (1|FirstMenstrual)  + (1|newid) ' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
+
+dataModel = data
+
+rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
+
+d0.1 <- lmer(formula,data=dataModel)
+
+d0.2 <- glmer(formula,data=dataModel, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
+
+d0.3 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
+
+modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
+
+# Model Selection
+tabel <- cbind(AIC(d0.1))
+chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
+
+Anova(chosenModel[[1]], type = 'III')
+print(" sign effect of PMS, Moment and Moment:Days and PMS:Moment:Days")
+plot(effect("PMS", chosenModel[[1]])) # No idea why we're getting "PMS is not a high-order term in the model"
+plot(effect("PMS:Moment", chosenModel[[1]]))
+plot(effect("PMS:Moment:Days", chosenModel[[1]]))
+plot(effect("PMS:Days", chosenModel[[1]]))
