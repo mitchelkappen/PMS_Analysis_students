@@ -41,6 +41,7 @@ DataFrameClean <- select(DataFrame, c(ï..id, Age, FirstMenstrual, MenstrualStart
 ################ Linking Excel file to assess A-B/B-A distribution #################
 # ExcelPMS <- as.data.frame(read.csv(file = paste0(dataDir, dateDir,"Participant-Excel.csv"), head = TRUE, sep=";",  stringsAsFactors=FALSE))
 ExcelPMS <- as.data.frame(read.csv(file = paste0(dataDir, dateDir,"Participant-Excel.csv"), head = TRUE, sep=",",  stringsAsFactors=FALSE))
+# ExcelPMS <- as.data.frame(read.csv(file = paste0(dataDir, dateDir,"Participant-Excel-backup10-01-2021.csv"), head = TRUE, sep=",",  stringsAsFactors=FALSE))
 
 library(tidyr)
 ExcelPMS <- ExcelPMS %>% mutate_all(~ replace_na(.x, "")) # Replace all NA's with empty lines. This makes the code make better sense
@@ -53,7 +54,7 @@ ExcelPMS$TrueFollicular[ExcelPMS$Test.gemist == ""] = ExcelPMS$folliculaire.fase
 ExcelPMS$TrueLuteal[ExcelPMS$Test.gemist == "TRUE"] = ExcelPMS$Nieuwe.luteale.fase[ExcelPMS$Test.gemist == "TRUE"]
 ExcelPMS$TrueLuteal[ExcelPMS$Test.gemist == ""] = ExcelPMS$luteale.fase[ExcelPMS$Test.gemist == ""] 
 
-Randomisatie <- select(ExcelPMS, Entry.nummer, email, ï..Participantnummer, Randomisatie, Exclusie, TrueFollicular, TrueLuteal, duur.cyclus)
+Randomisatie <- select(ExcelPMS, Entry.nummer, email, Participantnummer, Randomisatie, Exclusie, TrueFollicular, TrueLuteal, duur.cyclus)
 
 # Trim the email addresses because some have whitespace at the end
 DataFrame$EMail <- trimws(DataFrame$EMail)
@@ -69,7 +70,7 @@ for (i in 1:nrow(DataFrame)){ # Loop over all participant rows that filled out s
     print(paste0("Something going on with participant ",toString(DataFrame$ï..id[i])," AKA entrynumber " ))
   } else {
     DataFrame$testVolgorde[i] = Randomisatie$Randomisatie[loc] # Use this location to grab their randomisation and participantNumber allocated
-    DataFrame$participantID[i] = Randomisatie$ï..Participantnummer[loc]
+    DataFrame$participantID[i] = Randomisatie$Participantnummer[loc]
     DataFrame$Exclusie[i] = Randomisatie$Exclusie[loc]
     DataFrame$TrueFollicular[i] = Randomisatie$TrueFollicular[loc]
     DataFrame$TrueLuteal[i] = Randomisatie$TrueLuteal[loc]

@@ -86,16 +86,12 @@ data <-
 
 data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
 
-# 
-# data$Date <-as.Date(data$TrueFollicular[data$Moment=='Foll'])
-# data$Date <-as.Date(data$TrueLuteal[data$Moment == 'Lut'])
-# 
-# data$Date <- format(strptime(as.character(data$TrueFollicular[data$Moment=='Foll']), "%d/%m/%Y"), "%Y-%m-%d")
-# 
+# First make a variable containing all the right dates
+data$Date[data$Moment=='Foll'] <- data$TrueFollicular[data$Moment=='Foll']
+data$Date[data$Moment=='Lut'] <- data$TrueLuteal[data$Moment=='Lut']
+# Convert this one column
+data$Date2 = strptime(as.character(data$Date), "%d-%m-%Y")
 
-
-data$Date <- strptime(as.character(data$TrueFollicular[data$Moment=='Foll']), "%d-%m-%Y") # makes it recognise it as day, month, year
-data$Date <- strptime(as.character(data$TrueLuteal[data$Moment=='Lut']), "%d-%m-%Y")
 format(data$Date, "%Y/%m/%d") # turn around because Rstudio uses this format
 data$Date <- as.Date(data$Date) # make it a date
 
