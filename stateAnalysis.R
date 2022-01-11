@@ -211,7 +211,7 @@ emmeans0.1$contrasts
 print("PMS and PMDD do not differ from each other at any time point, they do both differ from noPMS ")
 
 # Between timepoints for groups
-emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="none", type = "response")
+emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
 emm0.2 <- summary(emmeans0.2)$emmeans
 emmeans0.2$contrasts
 print("State Rumination specifically doesn't increase for any group during the premenstrual phase as compared to the non-premenstrual phase")
@@ -298,7 +298,7 @@ emmeans0.1$contrasts
 print(" all sign except for noPMS-PMS for follicular")
 
 # Between timepoints for groups
-emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="none", type = "response")
+emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
 emm0.2 <- summary(emmeans0.2)$emmeans
 emmeans0.2$contrasts
 print("all insign")
