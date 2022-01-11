@@ -580,7 +580,21 @@ for (i in 1:length(isala)){
 }
 
 write.csv(IsalaSet, paste0(dataDir,dateDir,"IsalaDataScreen.csv"), row.names = FALSE)
+# Get the 15 longitudinal points
 
+targets = c('00140','00159','00256', '00617', '00644', '00970', '01387', '01547', '01823', '01912', '02506', '02741', '02744', '02774', '02859')
+for (n in 1:length(targets)){
+  loc = which(IsalaSet$Isala == targets[n])
+  if (n == 1) {
+    subsetData <- rbind(IsalaSet[loc,])
+  } else {
+    subsetData <- rbind(subsetData, IsalaSet[loc,])
+  }
+}
+
+write.csv(subsetData, paste0(dataDir,dateDir,"IsalaDataSubset.csv"), row.names = FALSE)
+
+# Get all other ms data
 msData <- DataFrameClean[is.na(DataFrameClean$folliculairPSS) == FALSE & is.na(DataFrameClean$luteaalPSS) == FALSE, ]
 msData <- msData[msData$participantNo != 407, ] # This is a double entry. 
 
