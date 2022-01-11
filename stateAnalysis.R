@@ -86,16 +86,6 @@ data <-
 
 data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
 
-# First make a variable containing all the right dates
-data$Date[data$Moment=='Foll'] <- data$TrueFollicular[data$Moment=='Foll']
-data$Date[data$Moment=='Lut'] <- data$TrueLuteal[data$Moment=='Lut']
-# Convert this one column
-data$Date = strptime(as.character(data$Date), "%d-%m-%Y")
-
-data$Date <- as.Date(data$Date) # make it a date | MK: Wasnt it already a date?
-
-startdate <- min(data$Date) #first date in dataset
-data$Days <- as.integer(difftime(data$Date, startdate, units= 'days')) # NumDays variable: difference between current date and first date
 
 ##### States ##### 
 ##### State: PSS ##### 
@@ -115,8 +105,6 @@ chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 
 Anova(chosenModel[[1]], type = 'III') # Jens always uses anova() in stead of Anova() for lmer, but when doing so it ignores 'type' parameter. Need to figure out..
 print("There is no significant interaction effect in the main model. However, we established these hypothesis before, so compare contrasts nonetheless")
-plot(effect("PMS", chosenModel[[1]]))
-plot(effect("PMS:Moment", chosenModel[[1]]))
 
 # Between groups at time points
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response") #we don't adjust because we do this later
@@ -131,61 +119,51 @@ emmeans0.2$contrasts
 print("Stress specifically doesn't increase for any group during the premenstrual phase as compared to the non-premenstrual phase")
 
 
-## p-adjust! correct for multiple comparisons
-# first add all p-values from the emmeans to 'p'
-PMS_frame <- as.data.frame(emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="none", type = "response")$contrasts)[7]
-Moment_frame <- as.data.frame(emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="none", type = "response")$contrasts)[7]
-p <- rbind(PMS_frame,Moment_frame)
-p<-unlist(p)
-p.adjust(p, method= 'fdr', n=9)
+## Visualisation | 
+max_y<-max(data$PSS) # max PSS is 33
+emm0.2 <- data.frame('Moment'=emm0.2$Moment, 'PSS'= emm0.2$emmean, 'PMS'=emm0.2$PMS) #dataframe with all the emmeans
 
-# Add custom fdr, get p-values from 2 different contrasts so we're comparing 9 ipv 15 tests
-
-## Visualisation | TODO: Zou je je plotting kunnen commenten zodat het duidelijk is wat er per regel/segment gebeurt?
-max_y<-max(data$PSS) # TO DO: this returns -Inf, check if correct?
-emm0.2 <- data.frame('Moment'=emm0.2$Moment, 'PSS'= emm0.2$emmean, 'PMS'=emm0.2$PMS)
 ggplot()+
-  ggtitle('PSS ~ PMS * Moment')+
-  geom_flat_violin(data= data, aes(x= Moment, y= PSS, fill=PMS),position = position_nudge(x =.3, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
-  geom_boxplot(data= data, aes(x=Moment, y=PSS, fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+
-  geom_point(data= emm0.2, aes(x = Moment, y = PSS, fill=PMS), position= position_dodge(0.3), size=4)+
-  scale_color_manual(values = c("PMDD" = "purple", "PMS" = "red", "noPMS"="blue"))+
+  ggtitle('PSS ~ PMS * Moment')+ #title 
+  geom_flat_violin(data= data, aes(x= Moment, y= PSS, fill=PMS),position = position_nudge(x =.3, y = 0), adjust = 1.5, alpha = .5, colour = NA)+ # flat violin distribution, .3 points to the right. alpha=.5 so see-through
+  geom_boxplot(data= data, aes(x=Moment, y=PSS, fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+ #boxplot, see through, no outline, 
+  geom_point(data= emm0.2, aes(x = Moment, y = PSS, fill=PMS), position= position_dodge(0.3), size=4)+ #points representing the emmeans
   
   # Follicular
-  geom_segment(aes(x =0.9, y = max_y, xend = 1, yend = max_y), size= 1)+
-   annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=10)+
-   # geom_segment(aes(x =1, y = max_y+max_y/50, xend = 1.1, yend = max_y+max_y/50), size= 1)+
-   # annotate('text', x=1.05, y=max_y+max_y/50+max_y/100, label='*', size=10)+
-  geom_segment(aes(x =0.9, y = max_y+max_y/10, xend = 1.1, yend = max_y+max_y/10), size= 1)+
-  annotate('text', x=1, y=max_y+max_y/10+max_y/100, label='***', size=10)+
+  geom_segment(aes(x =0.9, y = max_y, xend = 1, yend = max_y), size= 1)+ # line bottom first
+   annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=7)+ # star
+  geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
+  annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='***', size=7)+
 
   # Luteal
-   geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+
-   annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=10)+
-   geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+
-   annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='*', size=10)+
-  geom_segment(aes(x =1.9, y = max_y+max_y/10, xend = 2.1, yend = max_y+max_y/10), size= 1)+
-  annotate('text', x=2, y=max_y+max_y/10+max_y/100, label='***', size=10)+
+   geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+ #bottom first line
+   annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+
+   geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+ # bottom second line
+   annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+
+geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+# top line
+  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)+
   
-  scale_fill_manual(values = c("blue", 'red', 'purple'),
-                    name='',
-                    labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+
-  guides(fill = guide_legend(reverse=TRUE))+
+  scale_fill_manual(values = c("blue", 'red', 'purple'), #colours used in plot, repressent PMDD, PMS and noPMS
+                    name='', #legend gets no name
+                    labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+ #labels names
+  guides(fill = guide_legend(reverse=TRUE))+ # show labels in different order 
+  
   theme(
-    legend.key.size=unit(1.2, 'cm'),
-    plot.title = element_text(size=rel(2)),
-    panel.border = element_blank(),
-    panel.background = element_blank(),
-    axis.line = element_line(colour = "black"),
-    panel.grid.major.y = element_line( size=.1, color="#dedede" ),
-    axis.text.x=element_text(size=rel(2)),
-    axis.title.y=element_text(size=rel(1.5)),
-    axis.title.x = element_blank())
+    legend.key.size=unit(1.3, 'cm'), # make keys of legend bigger
+    legend.text=element_text(size=13), # text legend bigger
+    plot.title = element_text(size=rel(2)), # plot title bigger
+    panel.border = element_blank(), # no border panel (APA)
+    panel.background = element_blank(), #white simple background
+    axis.line = element_line(colour = "black"), # axis lines black
+    panel.grid.major.y = element_line( size=.1, color="#dedede" ), #slight grey horizontal lines
+    axis.text.x=element_text(size=rel(2)), #size x axis title
+    axis.title.y=element_text(size=rel(1.5)), #size y axis title
+    axis.title.x = element_blank()) # leave away extra x title (only 'foll' and 'lut')
   
 
 
 ##### State: BSRI ##### 
-formula <- 'BSRI ~ PMS * Moment + (1|FirstMenstrual)  + (1|newid)' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
+formula <- 'BSRI ~ PMS * Moment + (1|Age)  + (1|newid)' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
 
 dataModel = data
 
@@ -201,8 +179,6 @@ chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 
 Anova(chosenModel[[1]], type = 'III')
 print("There is no significant interaction effect in the main model. However, we established these hypothesis before, so compare contrasts nonetheless")
-plot(effect("PMS", chosenModel[[1]])) # No idea why we're getting "PMS is not a high-order term in the model"
-plot(effect("PMS:Moment", chosenModel[[1]]))
 
 # Between groups at time points
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response")
@@ -216,14 +192,6 @@ emm0.2 <- summary(emmeans0.2)$emmeans
 emmeans0.2$contrasts
 print("State Rumination specifically doesn't increase for any group during the premenstrual phase as compared to the non-premenstrual phase")
 
-## p-adjust! correct for multiple comparisons
-# first add all p-values from the emmeans to 'p'
-PMS_frame <- as.data.frame(emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response")$contrasts)[7]
-Moment_frame <- as.data.frame(emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")$contrasts)[7]
-p <- rbind(PMS_frame,Moment_frame)
-p<-unlist(p)
-p.adjust(p, method= 'fdr', n=9)
-
 ## Visualisation
 max_y<-max(data$BSRI) # TO DO: this returns -Inf, check if correct?
 emm0.2 <- data.frame('Moment'=emm0.2$Moment, 'BSRI'= emm0.2$emmean, 'PMS'=emm0.2$PMS)
@@ -232,30 +200,26 @@ ggplot()+
   geom_flat_violin(data= data, aes(x= Moment, y= BSRI, fill=PMS),position = position_nudge(x =.3, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
   geom_boxplot(data= data, aes(x=Moment, y=BSRI, fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+
   geom_point(data= emm0.2, aes(x = Moment, y = BSRI, fill=PMS), position= position_dodge(0.3), size=4)+
-  scale_color_manual(values = c("PMDD" = "purple", "PMS" = "red", "noPMS"="blue"))+
   
   # Follicular
   geom_segment(aes(x =0.9, y = max_y, xend = 1, yend = max_y), size= 1)+
-  annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=10)+
-  # geom_segment(aes(x =1, y = 33, xend = 1.1, yend = 33), size= 1)+
-  # annotate('text', x=1.05, y=33.5, label='*', size=10)+
-  geom_segment(aes(x =0.9, y = max_y+max_y/10, xend = 1.1, yend = max_y+max_y/10), size= 1)+
-  annotate('text', x=1, y=max_y+max_y/10+max_y/100, label='**', size=10)+
+  annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=7)+
+  geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
+  annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='**', size=7)+
 
   # Luteal
   geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+
-  annotate('text', x=1.95, y=max_y+max_y/100, label='*', size=10)+
-  # geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+
-  # annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='*', size=10)+
-  geom_segment(aes(x =1.9, y = max_y+max_y/10, xend = 2.1, yend = max_y+max_y/10), size= 1)+
-  annotate('text', x=2, y=max_y+max_y/10+max_y/100, label='**', size=10)+
+  annotate('text', x=1.95, y=max_y+max_y/100, label='*', size=7)+
+  geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
+  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='**', size=7)+
   
   scale_fill_manual(values = c("blue", 'red', 'purple'),
                     name='',
                     labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+
   guides(fill = guide_legend(reverse=TRUE))+
   theme(
-    legend.key.size=unit(1.2, 'cm'),
+    legend.key.size=unit(1.3, 'cm'),
+    legend.text=element_text(size=13),
     plot.title = element_text(size=rel(2)),
     panel.border = element_blank(),
     panel.background = element_blank(),
@@ -268,16 +232,14 @@ ggplot()+
 
 
 ##### State: PTQ ##### 
-formula <- 'PTQ ~ PMS * Moment + (1|newid) ' # Age no effect |  Order had zero effect so was removed from the model | First Menstrual showed no effect and was removed from model || ranef(d0.1)
+formula <- 'PTQ ~ PMS * Moment + (1|Age) + (1|newid) ' # Age no effect |  Order had zero effect so was removed from the model | First Menstrual showed no effect and was removed from model || ranef(d0.1)
 
 dataModel = data
 
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
-d0.1 <- lmer(formula,data=dataModel)
-#ranef(d0.1)
+d0.1 <- lmer(formula,data=dataModel)#ranef(d0.1)
 d0.2 <- glmer(formula,data=dataModel, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
-
 d0.3 <- glmer(formula,data=dataModel, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
 
 modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
@@ -288,8 +250,6 @@ chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 
 Anova(chosenModel[[1]], type = 'III')
 print(" sign effect of PMS, Moment and Moment:Days and PMS:Moment:Days")
-plot(effect("PMS", chosenModel[[1]])) # No idea why we're getting "PMS is not a high-order term in the model"
-plot(effect("PMS:Moment", chosenModel[[1]]))
 
 # Between groups at time points
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment , adjust ="fdr", type = "response")
@@ -311,34 +271,28 @@ ggplot()+
   geom_flat_violin(data= data, aes(x= Moment, y= PTQ, fill=PMS),position = position_nudge(x =.3, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
   geom_boxplot(data= data, aes(x=Moment, y=PTQ, fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+
   geom_point(data= emm0.2, aes(x = Moment, y = PTQ, fill=PMS), position= position_dodge(0.3), size=4)+
-  scale_color_manual(values = c("PMDD" = "purple", "PMS" = "red", "noPMS"="blue"))+
   
   # Follicular
-  # geom_segment(aes(x =0.9, y = max_y, xend = 1, yend = max_y), size= 1)+
-  # annotate('text', x=0.95, y=max_y + max_y/100, label='', size=10)+
-    
-  geom_segment(aes(x =1, y = max_y, xend = 1.1, yend = max_y), size= 1)+
-  annotate('text', x=1.05, y=max_y + max_y/100, label='**', size=10)+
-    
-  geom_segment(aes(x =0.9, y = max_y+max_y/10, xend = 1.1, yend = max_y+max_y/10), size= 1)+
-  annotate('text', x=1, y=max_y+max_y/10+max_y/100, label='***', size=10)+
+  geom_segment(aes(x =1, y = max_y+max_y/50, xend = 1.1, yend = max_y+max_y/50), size= 1)+
+  annotate('text', x=1.05, y=max_y + max_y/100+max_y/50, label='**', size=7)+
+  geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
+  annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='***', size=7)+
   
   # Luteal
   geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+
-  annotate('text', x=1.95, y=max_y+max_y/100, label='*', size=10)+
-  
+  annotate('text', x=1.95, y=max_y+max_y/100, label='*', size=7)+
   geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+
-  annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='***', size=10)+
+  annotate('text', x=2.05, y=max_y + max_y/100+max_y/50, label='***', size=7)+
+  geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
+  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)+
   
-  geom_segment(aes(x =1.9, y = max_y+max_y/10, xend = 2.1, yend = max_y+max_y/10), size= 1)+
-  annotate('text', x=2, y=max_y+max_y/10+max_y/100, label='***', size=10)+
-
-scale_fill_manual(values = c("blue", 'red', 'purple'),
-                  name='',
-                  labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+
+  scale_fill_manual(values = c("blue", 'red', 'purple'),
+                    name='',
+                    labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+
   guides(fill = guide_legend(reverse=TRUE))+
   theme(
-    legend.key.size=unit(1.2, 'cm'),
+    legend.key.size=unit(1.3, 'cm'),
+    legend.text=element_text(size=13),
     plot.title = element_text(size=rel(2)),
     panel.border = element_blank(),
     panel.background = element_blank(),
