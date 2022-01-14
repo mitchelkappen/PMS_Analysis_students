@@ -69,7 +69,7 @@ data <-
   data[!(
     data$Contraception == "Pill" |
       data$Contraception == "other" |
-      data$Contraception == "Cop.Coil" |
+      data$Contraception == "Cop. Coil" |
       data$Contraception == "Hor. Coil" |
       data$Contraception == "Hor.Coil"
   ), ] # Delete all these columns
@@ -131,7 +131,7 @@ ggplot(data, aes(x = PMS, y = DASS_Depression)) +
   geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
   annotate('text', x=2, y=max_y+2.3, label='***', size=7)+
     scale_fill_manual(values = c("blue", 'red', 'purple'),
-                    name='',labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+
+                    name='',labels=c('noPMS \n n=196 ', 'PMS \n n=138', 'PMDD \n n=46'))+
   guides(fill = guide_legend(reverse=TRUE))+
   theme(
     legend.key.size=unit(1.3, 'cm'),
@@ -198,7 +198,7 @@ ggplot(data, aes(x = PMS, y = DASS_Anxiety)) +
   geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
   annotate('text', x=2, y=max_y+2.3, label='***', size=7)+
     scale_fill_manual(values = c("blue", 'red', 'purple'),
-                    name='',labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+
+                      name='',labels=c('noPMS \n n=196 ', 'PMS \n n=138', 'PMDD \n n=46'))+
   guides(fill = guide_legend(reverse=TRUE))+
   theme(
     legend.key.size=unit(1.3, 'cm'),
@@ -263,7 +263,7 @@ ggplot(data, aes(x = PMS, y = DASS_Stress)) +
   geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
   annotate('text', x=2, y=max_y+2.3, label='***', size=7)+
   scale_fill_manual(values = c("blue", 'red', 'purple'),
-                    name='',labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+
+                    name='',labels=c('noPMS \n n=196 ', 'PMS \n n=138', 'PMDD \n n=46'))+
   guides(fill = guide_legend(reverse=TRUE))+
   theme(
     legend.key.size=unit(1.3, 'cm'),
@@ -330,7 +330,7 @@ ggplot() +
   geom_segment(aes(x = 1, y=max_y+4, xend= 3, yend=max_y+4), size= 1)+
   annotate('text', x=2, y=max_y+4.3, label='***', size=7)+
   scale_fill_manual(values = c("blue", 'red', 'purple'),
-                    name='',labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+
+                    name='',labels=c('noPMS \n n=196 ', 'PMS \n n=138', 'PMDD \n n=46'))+
   guides(fill = guide_legend(reverse=TRUE))+
   theme(
     legend.key.size=unit(1.3, 'cm'),

@@ -79,7 +79,7 @@ data <-
   data[!(
     data$Contraception == "Pill" |
       data$Contraception == "other" |
-      data$Contraception == "Cop.Coil" |
+      data$Contraception == "Cop. Coil" |
       data$Contraception == "Hor. Coil" |
       data$Contraception == "Hor.Coil"
   ), ] # Delete all these columns
@@ -94,9 +94,7 @@ formula <- 'PSS ~ PMS * Moment + (1|Age) + (1|newid)' # FirstMenstrual had zero 
 dataModel = data
 
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
-
 d0.1 <- lmer(formula,data=dataModel)
-
 modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
 # Model Selection
