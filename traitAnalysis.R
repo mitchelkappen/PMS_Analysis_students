@@ -24,7 +24,6 @@ if (!dir.exists("figures"))
 nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1ù
 vpn = 1 # Set to 1 if using VPN
 
-
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #Set WD to script location
 
 # Get and declare functions
@@ -44,56 +43,43 @@ data <-
            header = TRUE,
            sep = ) #upload data
 
-plotPrefix <- paste0(Dir, "figures/")
 plotPrefix <- paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/figures/")
 
 ##### Clean data up a bit #####
-#we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
-#These moments were counterbalanced. when the order was B-A and the moment is B, this meanheas it is the first test moment, and vice versa for A-B and moment A.
-
-# new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1,
 data$PMS[data$PMSScore == 0] = 'noPMS'
 data$PMS[data$PMSScore == 1] = 'PMS'
 data$PMS[data$PMSScore == 2] = 'PMDD'
 
+# Factorize and rename columns
 data$PMS <- ordered(data$PMS, levels = c('noPMS', 'PMS', 'PMDD')) # Factorize and turn into ordered levels
-# data$PMS <- as.factor(data$PMS)
-
-data$RRS <- data$allRRS
-
-# Factorize the rest of the data where needed
+names(data)[names(data) == "allRRS"] = "RRS" # Rename column
 data$ID <- factor(data$ID)
-
-data$PMSScore <- factor(data$PMSScore)
-data$PMS <- factor(data$PMS)
+data$Order <- factor(data$Order)
 
 # Exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
 data_allcontraception <- data # Backup the data prior to exclusion
-data <-
-  data[!(
-    data$Contraception == "Pill" |
-      data$Contraception == "other" |
-      data$Contraception == "Cop. Coil" |
-      data$Contraception == "Hor. Coil" |
-      data$Contraception == "Hor.Coil"
-  ), ] # Delete all these columns
+data <- data[data$Contraception == "Natural", ] # Only looking at non-hormonal contraceptives, so kick out all other data
 
 data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
-
 
 ##### ##### Statistics Time ##### ##### 
 ##### DASS ##### 
 ##### DASS: Depression #####
-
-formula <- 'DASS_Depression ~ PMS + (1|Age) + (1|FirstMenstrual)'
+formula <- 'DASS_Depression ~ PMS + Age + Order'
 
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
-d0.1 <- lmer(formula,data=data)
+d0.1 <- lm(formula,data=data)
 
 d0.2 <- glmer(formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
 
 d0.3 <- glmer(formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
+
+d0.1 <- lm(formula,data=data)
+
+d0.2 <- glm(formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 10000000)),nAGQ = nAGQ)
+
+d0.3 <- glm(formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ = nAGQ)
 
 modelNames = c(d0.1,d0.2,d0.3)
 
@@ -113,16 +99,14 @@ plot <- prettyplot(emm0.1, data$DASS_Depression,'Depression') +
   geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)+
     annotate('text', x=1.5, y=max_y+0.3, label='***', size=7)+
     geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+
-    annotate('text', x=2.5, y=max_y+ 1.3, label='**', size=7)+
+    annotate('text', x=2.5, y=max_y+ 1.3, label='*', size=7)+
     geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
     annotate('text', x=2, y=max_y+2.3, label='***', size=7)
 ggsave(plot, file=paste0(plotPrefix, "DASS_Depression_Plot.jpeg"), width = 2000, height = 1500, dpi = 300, units = "px")
 plot
 
-
-
 ##### DASS: Anxiety ##### 
-formula <- 'DASS_Anxiety ~ PMS + (1|Age) + (1|FirstMenstrual) + (1|Order)'
+formula <- 'DASS_Anxiety ~ PMS + Age + Order + (1|Order)'
 
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
