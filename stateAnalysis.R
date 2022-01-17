@@ -38,7 +38,7 @@ data <-
 if (!dir.exists("figures")) #create map for storing the figures
   dir.create("figures")
 plotPrefix <- paste0(Dir, "figures/")
-plotPrefix <- paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/figures/")
+plotPrefix <- paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/figures paper/")
 
 ##### Data Cleaning #####
 data$PMS[data$PMSScore == 0] = 'noPMS'

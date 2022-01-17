@@ -34,7 +34,7 @@ data <-
            header = TRUE,
            sep = ) #upload data
 
-plotPrefix <- paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/figures/")
+plotPrefix <- paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/figures paper/")
 
 ##### Clean data up a bit #####
 data$PMS[data$PMSScore == 0] = 'noPMS'
