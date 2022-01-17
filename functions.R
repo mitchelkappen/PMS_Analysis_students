@@ -149,19 +149,17 @@ rescalepostive <- function(x) {
   (x - min(x)) / (max(x) - min(x)) + 0.000000001
 }
 
-#function for visualisations
-
-traitplot <-function(emm0.1, var, y_title_var){
-  emm0.1 <- data.frame('emmean'= emm0.1$emmean, 'PMS'=emm0.1$PMS)
-  ggplot(data, aes(x = PMS, y = var)) +
+# Trait viz
+traitplot <-function(data, emmean_dataframe, var, title){
+  ggplot(data, aes(x = PMS, y = .data[[var]])) +
     geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), alpha=.5, adjust = 1.5, colour = NA)+
-    geom_boxplot(aes(x = PMS, y = var, fill = PMS), outlier.shape=NA, alpha= .45, width = .1, colour = "black") +
-    geom_point(data= emm0.1, aes(x = PMS, y = emmean, fill=PMS), size=4)+
+    geom_boxplot(aes(x = PMS, y = .data[[var]], fill = PMS), outlier.shape=NA, alpha= .45, width = .1, colour = "black") +
+    geom_point(data= emmean_dataframe, aes(x = PMS, y = emmean, fill=PMS), size=4)+
     scale_colour_manual(values = c("blue", "red", "purple"))+
     scale_fill_manual(values = c("blue", 'red', 'purple'),
                       name='',labels=c('noPMS \n n=196 ', 'PMS \n n=138', 'PMDD \n n=46'))+
     guides(fill = guide_legend(reverse=TRUE))+
-    labs(y=y_title_var)+
+    labs(y=title)+
     theme(
       legend.key.size=unit(1.3, 'cm'),
       legend.text=element_text(size=13),
@@ -175,6 +173,7 @@ traitplot <-function(emm0.1, var, y_title_var){
       axis.title.x = element_blank())
 }
 
+# State Viz
 stateplot <-function(emm0.2, var, y_title_var){
   emm0.2 <- data.frame('Moment'=emm0.2$Moment, 'emmean'= emm0.2$emmean, 'PMS'=emm0.2$PMS) #dataframe with all the emmeans
   ggplot()+ 
