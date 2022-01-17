@@ -3,29 +3,9 @@ rm(list = ls()) # Clear environment
 cat("\014") # Clear console
 dev.off() # Clear plot window
 
-library(yarrr)
-library(lme4)
-library(emmeans)
-library(pander)
-library(Rmisc)
-library(tidyverse)
-library(reshape)
-library(pander)
-library(dplyr)
-library(arrow)
-library(car)
-library(ggplot2)
-library(effects)
-library(ggsignif)
-library(gridExtra) #gridarrange
-
-if (!dir.exists("figures"))
-  dir.create("figures")
 #####  General settings ##### 
-nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1ù
+nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1
 vpn = 1 # Set to 1 if using VPN
-
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #Set WD to script location
 
 # Get and declare functions
 source("functions.R") # This is a file in the same directory where you can stash your functions so you can save them there and have them together
@@ -36,16 +16,18 @@ if (vpn == 1) {
 } else {
   Dir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\" #data from github dir
 }
-
 setwd(Dir)
+
 # Get data
 data <-
   read.csv(paste0(Dir, "06102021\\cleanedDataMoments.csv"),
            header = TRUE,
            sep = ) #upload data
 
+# save figures
+if (!dir.exists("figures")) #create map for storing the figures
+  dir.create("figures")
 plotPrefix <- paste0(Dir, "figures/")
-plotPrefix <- paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/figures/")
 
 ##### Clean data up a bit #####
 #we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
@@ -75,17 +57,9 @@ data$Moment <-
 data$TestMoment <- factor(data$TestMoment)
 
 
-
 # Exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
 data_allcontraception <- data # Backup the data prior to exclusion
-data <-
-  data[!(
-    data$Contraception == "Pill" |
-      data$Contraception == "other" |
-      data$Contraception == "Cop. Coil" |
-      data$Contraception == "Hor. Coil" |
-      data$Contraception == "Hor.Coil"
-  ), ] # Delete all these columns
+data <- data[data$Contraception == "Natural", ] # Only looking at non-hormonal contraceptives, so kick out all other data
 
 data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
 
