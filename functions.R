@@ -157,7 +157,7 @@ traitplot <-function(data, emmean_dataframe, var, title){
     geom_point(data= emmean_dataframe, aes(x = PMS, y = emmean, fill=PMS), size=4)+
     scale_colour_manual(values = c("blue", "red", "purple"))+
     scale_fill_manual(values = c("blue", 'red', 'purple'),
-                      name='',labels=c('noPMS \n n=196 ', 'PMS \n n=138', 'PMDD \n n=46'))+
+                      name='',labels=c(paste0('noPMS \n n=', as.character(sum(data$PMS == "noPMS"))), paste0('PMS \n n=', as.character(sum(data$PMS == "PMS"))), paste0('PMDD \n n=', as.character(sum(data$PMS == "PMDD")))))+
     guides(fill = guide_legend(reverse=TRUE))+
     labs(y=title)+
     theme(
@@ -174,16 +174,16 @@ traitplot <-function(data, emmean_dataframe, var, title){
 }
 
 # State Viz
-stateplot <-function(data, emmean_dataframe, var){
+stateplot <-function(data, emmean_dataframe, var, title){
   ggplot()+ 
     geom_flat_violin(data= data, aes(x= Moment, y= .data[[var]], fill=PMS),position = position_nudge(x =.3, y = 0), adjust = 1.5, alpha = .5, colour = NA)+ # flat violin distribution, .3 points to the right. alpha=.5 so see-through
     geom_boxplot(data= data, aes(x=Moment, y=.data[[var]], fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+ #boxplot, see through, no outline, 
     geom_point(data= emmean_dataframe, aes(x = Moment, y = emmean, fill=PMS), position= position_dodge(0.3), size=4)+ #points representing the emmeans
     scale_fill_manual(values = c("blue", 'red', 'purple'), #colours used in plot, repressent PMDD, PMS and noPMS
                       name='', #legend gets no name
-                      labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+ #labels names
+                      labels=c(paste0('noPMS \n n=', as.character(sum(data$PMS == "noPMS")/2)), paste0('PMS \n n=', as.character(sum(data$PMS == "PMS")/2)), paste0('PMDD \n n=',as.character(sum(data$PMS == "PMDD")/2))))+ #labels names
     guides(fill = guide_legend(reverse=TRUE))+ # show labels in different order 
-    labs(y=var)+# make title not 'var'
+    labs(y=title)+
     theme(
       legend.key.size=unit(1.3, 'cm'), # make keys of legend bigger
       legend.text=element_text(size=13), # text legend bigger
