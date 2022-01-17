@@ -3,6 +3,22 @@ rm(list = ls()) # Clear environment
 cat("\014") # Clear console
 dev.off() # Clear plot window
 
+# library(yarrr)
+# library(lme4)
+# library(emmeans)
+# library(pander)
+# library(Rmisc)
+# library(tidyverse)
+# library(reshape)
+# library(pander)
+# library(dplyr)
+# library(arrow)
+# library(car)
+# library(ggplot2)
+# library(effects)
+# library(ggsignif)
+# library(gridExtra) #gridarrange
+
 #####  General settings ##### 
 nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1
 vpn = 1 # Set to 1 if using VPN
@@ -30,35 +46,29 @@ if (!dir.exists("figures")) #create map for storing the figures
 plotPrefix <- paste0(Dir, "figures/")
 
 ##### Data Cleaning #####
-#When the order is B-A and the moment is B, Testmoment=1 (first testmoment.
+#When the order is B-A and the moment is B, moment=1 (first testmoment.This removes "A and B", A == 1, B == 2 now
 
 # This part is not working because we don't have A and B in Moment here, but already foll and lut
-data$TestMoment[data$Order == "A-B" & data$Moment == "A"] = 1# TestMoment 1 == Follicular phase
-data$TestMoment[data$Order == "B-A" & data$Moment == "A"] = 2# TestMoment 2 == Luteal phase
-data$TestMoment[data$Order == "A-B" & data$Moment == "B"] = 2
-data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
+data$Moment[data$Order == "A-B" & data$Moment == "A"] = 1# TestMoment 1 == Follicular phase
+data$Moment[data$Order == "B-A" & data$Moment == "A"] = 2# TestMoment 2 == Luteal phase
+data$Moment[data$Order == "A-B" & data$Moment == "B"] = 2
+data$Moment[data$Order == "B-A" & data$Moment == "B"] = 1
 
 # new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1,
 data$PMS[data$PMSScore == 0] = 'noPMS'
 data$PMS[data$PMSScore == 1] = 'PMS'
 data$PMS[data$PMSScore == 2] = 'PMDD'
-
 data$PMS <- ordered(data$PMS, levels = c('noPMS', 'PMS', 'PMDD')) # Factorize and turn into ordered levels
-# data$PMS <- as.factor(data$PMS)
 
 # Factorize the rest of the data where needed
 data$ID <- factor(data$ID)
-
-data$PMSScore <- factor(data$PMSScore)
 data$PMS <- factor(data$PMS)
-data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 now
-
+data$Moment <- factor(data$Moment) 
+data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
 
 # Exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
 data_allcontraception <- data # Backup the data prior to exclusion
 data <- data[data$Contraception == "Natural", ] # Only looking at non-hormonal contraceptives, so kick out all other data
-
-data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
 
 
 ##### States ##### 
