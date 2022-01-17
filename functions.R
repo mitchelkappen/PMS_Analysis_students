@@ -153,7 +153,7 @@ rescalepostive <- function(x) {
 
 prettyplot <-function(emm0.1, var, y_title_var){
   emm0.1 <- data.frame('emmean'= emm0.1$emmean, 'PMS'=emm0.1$PMS)
-  max_y<-max(var)
+  max_y<-max( var)
   ggplot(data, aes(x = PMS, y = var)) +
     geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), alpha=.5, adjust = 1.5, colour = NA)+
     geom_boxplot(aes(x = PMS, y = var, fill = PMS), outlier.shape=NA, alpha= .45, width = .1, colour = "black") +
