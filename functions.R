@@ -148,3 +148,31 @@ geom_split_violin <-
 rescalepostive <- function(x) {
   (x - min(x)) / (max(x) - min(x)) + 0.000000001
 }
+
+#function for visualisations
+
+prettyplot <-function(emm0.1, var, y_title_var){
+  emm0.1 <- data.frame('emmean'= emm0.1$emmean, 'PMS'=emm0.1$PMS)
+  max_y<-max(var)
+  ggplot(data, aes(x = PMS, y = var)) +
+    geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), alpha=.5, adjust = 1.5, colour = NA)+
+    geom_boxplot(aes(x = PMS, y = var, fill = PMS), outlier.shape=NA, alpha= .45, width = .1, colour = "black") +
+    geom_point(data= emm0.1, aes(x = PMS, y = emmean, fill=PMS), size=4)+
+    scale_colour_manual(values = c("blue", "red", "purple"))+
+    
+    scale_fill_manual(values = c("blue", 'red', 'purple'),
+                      name='',labels=c('noPMS \n n=196 ', 'PMS \n n=138', 'PMDD \n n=46'))+
+    guides(fill = guide_legend(reverse=TRUE))+
+    labs(y=y_title_var)+
+    theme(
+      legend.key.size=unit(1.3, 'cm'),
+      legend.text=element_text(size=13),
+      plot.title = element_text(size=rel(2)),
+      panel.border = element_blank(),
+      panel.background = element_blank(),
+      axis.line = element_line(colour = "black"),
+      panel.grid.major.y = element_line( size=.1, color="#dedede" ),
+      axis.text.x=element_text(size=rel(1.5)),
+      axis.title.y=element_text(size=rel(1.4)),
+      axis.title.x = element_blank())
+}

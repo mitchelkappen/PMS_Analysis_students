@@ -97,53 +97,22 @@ tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 
 Anova(chosenModel[[1]], type = 'III')
-plot(effect("PMS", chosenModel[[1]]))
 
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
 
 ## Visualisation
-pd <- position_dodge(0.01) # move them .05 to the left and right
-ggplot(emm0.1, aes(x=PMS, y=emmean, color=PMS)) +
-  geom_point(size = 1) + 
-  geom_line(aes(group = 1),size = 1)+
-  geom_errorbar(width=.125, aes(ymin=emmean-SE, ymax=emmean+SE), position=pd)+
-  theme_bw(base_size = 8)+
-  theme(legend.position="bottom")+
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+ 
-  ggtitle("DASS Depression")+
-  labs(y = "DASS Depression", x= "Groups")
 
-emm0.1 <- data.frame('Depression'= emm0.1$emmean, 'PMS'=emm0.1$PMS)
-max_y<-max(data$DASS_Depression)
-ggplot(data, aes(x = PMS, y = DASS_Depression)) +
-  geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), alpha=.5, adjust = 1.5, colour = NA)+
-  # geom_point(aes(colour=PMS),position=position_jitter(width=.15), alpha=.5, size=.25)+
-  geom_boxplot(aes(x = PMS, y = DASS_Depression, fill = PMS), outlier.shape=NA, alpha= .45, width = .1, colour = "black")+
-  geom_point(data= emm0.1, aes(x = PMS, y = Depression, fill=PMS), size=4)+
-  scale_colour_manual(values = c("blue", "red", "purple"))+
-  ggtitle('DASS_Depression~PMS')+
-    geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)+
-  annotate('text', x=1.5, y=max_y+0.3, label='***', size=7)+
-  geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+
-  annotate('text', x=2.5, y=max_y+ 1.3, label='**', size=7)+
-  geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
-  annotate('text', x=2, y=max_y+2.3, label='***', size=7)+
-    scale_fill_manual(values = c("blue", 'red', 'purple'),
-                    name='',labels=c('noPMS \n n=196 ', 'PMS \n n=138', 'PMDD \n n=46'))+
-  guides(fill = guide_legend(reverse=TRUE))+
-  theme(
-    legend.key.size=unit(1.3, 'cm'),
-    legend.text=element_text(size=13),
-    plot.title = element_text(size=rel(2)),
-    panel.border = element_blank(),
-    panel.background = element_blank(),
-    axis.line = element_line(colour = "black"),
-    panel.grid.major.y = element_line( size=.1, color="#dedede" ),
-    axis.text.x=element_text(size=rel(1.5)),
-    axis.title.y=element_text(size=rel(1.4)),
-    axis.title.x = element_blank())  
+plot <- prettyplot(emm0.1, DASS_Depression)
+plot <- plot +
+  geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)+
+    annotate('text', x=1.5, y=max_y+0.3, label='***', size=7)+
+    geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+
+    annotate('text', x=2.5, y=max_y+ 1.3, label='**', size=7)+
+    geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
+    annotate('text', x=2, y=max_y+2.3, label='***', size=7)
+ggsave(plot, file=paste0(plotPrefix, "DASS_Depression_Plot.jpeg"), width = 2000, height = 1500, dpi = 300, units = "px")
 
 
 ##### DASS: Anxiety ##### 
