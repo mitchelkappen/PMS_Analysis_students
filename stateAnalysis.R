@@ -103,7 +103,7 @@ print("Stress specifically doesn't increase for any group during the premenstrua
 
 ## Visualisation
 max_y<-max(data$PSS)
-plot <- stateplot(emm0.2, data$PSS, 'PSS') +
+plot <- stateplot(data, emm0.2,'PSS') +
   # Follicular
   geom_segment(aes(x =0.9, y = max_y, xend = 1, yend = max_y), size= 1)+ # line bottom first
   annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=7)+ # star
