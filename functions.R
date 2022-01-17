@@ -174,12 +174,11 @@ traitplot <-function(data, emmean_dataframe, var, title){
 }
 
 # State Viz
-stateplot <-function(data, emm0.2, var){
-  emm0.2 <- data.frame('Moment'=emm0.2$Moment, 'emmean'= emm0.2$emmean, 'PMS'=emm0.2$PMS) #dataframe with all the emmeans
+stateplot <-function(data, emmean_dataframe, var){
   ggplot()+ 
     geom_flat_violin(data= data, aes(x= Moment, y= .data[[var]], fill=PMS),position = position_nudge(x =.3, y = 0), adjust = 1.5, alpha = .5, colour = NA)+ # flat violin distribution, .3 points to the right. alpha=.5 so see-through
     geom_boxplot(data= data, aes(x=Moment, y=.data[[var]], fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+ #boxplot, see through, no outline, 
-    geom_point(data= emm0.2, aes(x = Moment, y = emmean, fill=PMS), position= position_dodge(0.3), size=4)+ #points representing the emmeans
+    geom_point(data= emmean_dataframe, aes(x = Moment, y = emmean, fill=PMS), position= position_dodge(0.3), size=4)+ #points representing the emmeans
     scale_fill_manual(values = c("blue", 'red', 'purple'), #colours used in plot, repressent PMDD, PMS and noPMS
                       name='', #legend gets no name
                       labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+ #labels names
