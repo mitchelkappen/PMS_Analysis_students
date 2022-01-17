@@ -3,21 +3,12 @@ rm(list = ls()) # Clear environment
 cat("\014") # Clear console
 dev.off() # Clear plot window
 
-# library(yarrr)
-# library(lme4)
-# library(emmeans)
-# library(pander)
-# library(Rmisc)
-# library(tidyverse)
-# library(reshape)
-# library(pander)
-# library(dplyr)
-# library(arrow)
-# library(car)
-# library(ggplot2)
-# library(effects)
-# library(ggsignif)
-# library(gridExtra) #gridarrange
+library(lme4)
+library(emmeans)
+library(tidyverse)
+library(car)
+library(ggplot2)
+
 
 #####  General settings #####
 nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1
