@@ -151,15 +151,13 @@ rescalepostive <- function(x) {
 
 #function for visualisations
 
-prettyplot <-function(emm0.1, var, y_title_var){
+traitplot <-function(emm0.1, var, y_title_var){
   emm0.1 <- data.frame('emmean'= emm0.1$emmean, 'PMS'=emm0.1$PMS)
-  max_y<-max( var)
   ggplot(data, aes(x = PMS, y = var)) +
     geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), alpha=.5, adjust = 1.5, colour = NA)+
     geom_boxplot(aes(x = PMS, y = var, fill = PMS), outlier.shape=NA, alpha= .45, width = .1, colour = "black") +
     geom_point(data= emm0.1, aes(x = PMS, y = emmean, fill=PMS), size=4)+
     scale_colour_manual(values = c("blue", "red", "purple"))+
-    
     scale_fill_manual(values = c("blue", 'red', 'purple'),
                       name='',labels=c('noPMS \n n=196 ', 'PMS \n n=138', 'PMDD \n n=46'))+
     guides(fill = guide_legend(reverse=TRUE))+
@@ -175,4 +173,28 @@ prettyplot <-function(emm0.1, var, y_title_var){
       axis.text.x=element_text(size=rel(1.5)),
       axis.title.y=element_text(size=rel(1.4)),
       axis.title.x = element_blank())
+}
+
+stateplot <-function(emm0.2, var, y_title_var){
+  emm0.2 <- data.frame('Moment'=emm0.2$Moment, 'emmean'= emm0.2$emmean, 'PMS'=emm0.2$PMS) #dataframe with all the emmeans
+  ggplot()+ 
+    geom_flat_violin(data= data, aes(x= Moment, y= var, fill=PMS),position = position_nudge(x =.3, y = 0), adjust = 1.5, alpha = .5, colour = NA)+ # flat violin distribution, .3 points to the right. alpha=.5 so see-through
+    geom_boxplot(data= data, aes(x=Moment, y=var, fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+ #boxplot, see through, no outline, 
+    geom_point(data= emm0.2, aes(x = Moment, y = emmean, fill=PMS), position= position_dodge(0.3), size=4)+ #points representing the emmeans
+    scale_fill_manual(values = c("blue", 'red', 'purple'), #colours used in plot, repressent PMDD, PMS and noPMS
+                      name='', #legend gets no name
+                      labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+ #labels names
+    guides(fill = guide_legend(reverse=TRUE))+ # show labels in different order 
+    labs(y=y_title_var)+# make title not 'var'
+    theme(
+      legend.key.size=unit(1.3, 'cm'), # make keys of legend bigger
+      legend.text=element_text(size=13), # text legend bigger
+      plot.title = element_text(size=rel(2)), # plot title bigger
+      panel.border = element_blank(), # no border panel (APA)
+      panel.background = element_blank(), #white simple background
+      axis.line = element_line(colour = "black"), # axis lines black
+      panel.grid.major.y = element_line( size=.1, color="#dedede" ), #slight grey horizontal lines
+      axis.text.x=element_text(size=rel(2)), #size x axis title
+      axis.title.y=element_text(size=rel(1.5)), #size y axis title
+      axis.title.x = element_blank()) # leave away extra x title (only 'foll' and 'lut')
 }

@@ -44,6 +44,9 @@ data <-
            header = TRUE,
            sep = ) #upload data
 
+plotPrefix <- paste0(Dir, "figures/")
+plotPrefix <- paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/figures/")
+
 ##### Clean data up a bit #####
 #we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
 #These moments were counterbalanced. when the order was B-A and the moment is B, this meanheas it is the first test moment, and vice versa for A-B and moment A.
@@ -117,47 +120,24 @@ emmeans0.2$contrasts
 print("Stress specifically doesn't increase for any group during the premenstrual phase as compared to the non-premenstrual phase")
 
 
-## Visualisation | 
-max_y<-max(data$PSS) # max PSS is 33
-emm0.2 <- data.frame('Moment'=emm0.2$Moment, 'PSS'= emm0.2$emmean, 'PMS'=emm0.2$PMS) #dataframe with all the emmeans
-
-ggplot()+
-  ggtitle('PSS ~ PMS * Moment')+ #title 
-  geom_flat_violin(data= data, aes(x= Moment, y= PSS, fill=PMS),position = position_nudge(x =.3, y = 0), adjust = 1.5, alpha = .5, colour = NA)+ # flat violin distribution, .3 points to the right. alpha=.5 so see-through
-  geom_boxplot(data= data, aes(x=Moment, y=PSS, fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+ #boxplot, see through, no outline, 
-  geom_point(data= emm0.2, aes(x = Moment, y = PSS, fill=PMS), position= position_dodge(0.3), size=4)+ #points representing the emmeans
-  
+## Visualisation
+max_y<-max(data$PSS)
+plot <- stateplot(emm0.2, data$PSS, 'PSS') +
   # Follicular
   geom_segment(aes(x =0.9, y = max_y, xend = 1, yend = max_y), size= 1)+ # line bottom first
-   annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=7)+ # star
+  annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=7)+ # star
   geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='***', size=7)+
-
   # Luteal
-   geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+ #bottom first line
-   annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+
-   geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+ # bottom second line
-   annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+
-geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+# top line
-  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)+
-  
-  scale_fill_manual(values = c("blue", 'red', 'purple'), #colours used in plot, repressent PMDD, PMS and noPMS
-                    name='', #legend gets no name
-                    labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+ #labels names
-  guides(fill = guide_legend(reverse=TRUE))+ # show labels in different order 
-  
-  theme(
-    legend.key.size=unit(1.3, 'cm'), # make keys of legend bigger
-    legend.text=element_text(size=13), # text legend bigger
-    plot.title = element_text(size=rel(2)), # plot title bigger
-    panel.border = element_blank(), # no border panel (APA)
-    panel.background = element_blank(), #white simple background
-    axis.line = element_line(colour = "black"), # axis lines black
-    panel.grid.major.y = element_line( size=.1, color="#dedede" ), #slight grey horizontal lines
-    axis.text.x=element_text(size=rel(2)), #size x axis title
-    axis.title.y=element_text(size=rel(1.5)), #size y axis title
-    axis.title.x = element_blank()) # leave away extra x title (only 'foll' and 'lut')
-  
+  geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+ #bottom first line
+  annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+
+  geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+ # bottom second line
+  annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+
+  geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+# top line
+  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
+ggsave(plot, file=paste0(plotPrefix, "PSS_Plot.jpeg"), width = 2000, height = 1500, dpi = 300, units = "px")
+plot
+
 
 
 ##### State: BSRI ##### 
@@ -191,41 +171,20 @@ emmeans0.2$contrasts
 print("State Rumination specifically doesn't increase for any group during the premenstrual phase as compared to the non-premenstrual phase")
 
 ## Visualisation
-max_y<-max(data$BSRI) # TO DO: this returns -Inf, check if correct?
-emm0.2 <- data.frame('Moment'=emm0.2$Moment, 'BSRI'= emm0.2$emmean, 'PMS'=emm0.2$PMS)
-ggplot()+
-  ggtitle('BSRI ~ PMS * Moment')+
-  geom_flat_violin(data= data, aes(x= Moment, y= BSRI, fill=PMS),position = position_nudge(x =.3, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
-  geom_boxplot(data= data, aes(x=Moment, y=BSRI, fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+
-  geom_point(data= emm0.2, aes(x = Moment, y = BSRI, fill=PMS), position= position_dodge(0.3), size=4)+
-  
+max_y<-max(data$BSRI)
+plot <- stateplot(emm0.2, data$BSRI, 'BSRI') +
   # Follicular
   geom_segment(aes(x =0.9, y = max_y, xend = 1, yend = max_y), size= 1)+
   annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=7)+
   geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='**', size=7)+
-
   # Luteal
   geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+
   annotate('text', x=1.95, y=max_y+max_y/100, label='*', size=7)+
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
-  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='**', size=7)+
-  
-  scale_fill_manual(values = c("blue", 'red', 'purple'),
-                    name='',
-                    labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+
-  guides(fill = guide_legend(reverse=TRUE))+
-  theme(
-    legend.key.size=unit(1.3, 'cm'),
-    legend.text=element_text(size=13),
-    plot.title = element_text(size=rel(2)),
-    panel.border = element_blank(),
-    panel.background = element_blank(),
-    axis.line = element_line(colour = "black"),
-    panel.grid.major.y = element_line( size=.1, color="#dedede" ),
-    axis.text.x=element_text(size=rel(2)),
-    axis.title.y=element_text(size=rel(1.5)),
-    axis.title.x = element_blank())
+  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='**', size=7)
+ggsave(plot, file=paste0(plotPrefix, "BSRI_Plot.jpeg"), width = 2000, height = 1500, dpi = 300, units = "px")
+plot
 
 
 
@@ -261,15 +220,9 @@ emm0.2 <- summary(emmeans0.2)$emmeans
 emmeans0.2$contrasts
 print("all insign")
 
-# Visualisation
-max_y<-max(data$PTQ) # TO DO: this returns -Inf, check if correct?
-emm0.2 <- data.frame('Moment'=emm0.2$Moment, 'PTQ'= emm0.2$emmean, 'PMS'=emm0.2$PMS)
-ggplot()+
-  ggtitle('PTQ ~ PMS * Moment')+
-  geom_flat_violin(data= data, aes(x= Moment, y= PTQ, fill=PMS),position = position_nudge(x =.3, y = 0), adjust = 1.5, alpha = .5, colour = NA)+
-  geom_boxplot(data= data, aes(x=Moment, y=PTQ, fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+
-  geom_point(data= emm0.2, aes(x = Moment, y = PTQ, fill=PMS), position= position_dodge(0.3), size=4)+
-  
+## Visualisation
+max_y<-max(data$PTQ)
+plot <- stateplot(emm0.2, data$PTQ, 'PTQ') +
   # Follicular
   geom_segment(aes(x =1, y = max_y+max_y/50, xend = 1.1, yend = max_y+max_y/50), size= 1)+
   annotate('text', x=1.05, y=max_y + max_y/100+max_y/50, label='**', size=7)+
@@ -282,20 +235,7 @@ ggplot()+
   geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+
   annotate('text', x=2.05, y=max_y + max_y/100+max_y/50, label='***', size=7)+
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
-  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)+
-  
-  scale_fill_manual(values = c("blue", 'red', 'purple'),
-                    name='',
-                    labels=c('noPMS \n n=128 ', 'PMS \n n=74', 'PMDD \n n=35'))+
-  guides(fill = guide_legend(reverse=TRUE))+
-  theme(
-    legend.key.size=unit(1.3, 'cm'),
-    legend.text=element_text(size=13),
-    plot.title = element_text(size=rel(2)),
-    panel.border = element_blank(),
-    panel.background = element_blank(),
-    axis.line = element_line(colour = "black"),
-    panel.grid.major.y = element_line( size=.1, color="#dedede" ),
-    axis.text.x=element_text(size=rel(2)),
-    axis.title.y=element_text(size=rel(1.5)),
-    axis.title.x = element_blank())
+  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
+ggsave(plot, file=paste0(plotPrefix, "PTQ_Plot.jpeg"), width = 2000, height = 1500, dpi = 300, units = "px")
+plot
+
