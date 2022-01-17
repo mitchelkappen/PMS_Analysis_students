@@ -197,3 +197,4 @@ stateplot <-function(emm0.2, var, y_title_var){
       axis.title.y=element_text(size=rel(1.5)), #size y axis title
       axis.title.x = element_blank()) # leave away extra x title (only 'foll' and 'lut')
 }
+
