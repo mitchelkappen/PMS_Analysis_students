@@ -3,20 +3,11 @@ rm(list = ls()) # Clear environment
 cat("\014") # Clear console
 dev.off() # Clear plot window
 
-library(yarrr)
 library(lme4)
 library(emmeans)
-library(pander)
 library(tidyverse)
-library(reshape)
-library(pander)
-library(dplyr)
-library(arrow)
 library(car)
 library(ggplot2)
-library(effects)
-library(ggsignif)
-library(gridExtra) #gridarrange
 
 if (!dir.exists("figures"))
   dir.create("figures")
