@@ -29,9 +29,8 @@ if (!dir.exists("figures")) #create map for storing the figures
   dir.create("figures")
 plotPrefix <- paste0(Dir, "figures/")
 
-##### Clean data up a bit #####
-#we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
-#These moments were counterbalanced. when the order was B-A and the moment is B, this meanheas it is the first test moment, and vice versa for A-B and moment A.
+##### Data Cleaning #####
+#When the order is B-A and the moment is B, Testmoment=1 (first testmoment.
 
 # This part is not working because we don't have A and B in Moment here, but already foll and lut
 data$TestMoment[data$Order == "A-B" & data$Moment == "A"] = 1# TestMoment 1 == Follicular phase
@@ -52,9 +51,7 @@ data$ID <- factor(data$ID)
 
 data$PMSScore <- factor(data$PMSScore)
 data$PMS <- factor(data$PMS)
-data$Moment <-
-  factor(data$Moment) # This removes "A and B", A == 1, B == 2 now
-data$TestMoment <- factor(data$TestMoment)
+data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 now
 
 
 # Exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
