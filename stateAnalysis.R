@@ -23,6 +23,8 @@ dev.off() # Clear plot window
 nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1
 vpn = 1 # Set to 1 if using VPN
 
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #Set WD to script location
+
 # Get and declare functions
 source("functions.R") # This is a file in the same directory where you can stash your functions so you can save them there and have them together
 
@@ -46,13 +48,6 @@ if (!dir.exists("figures")) #create map for storing the figures
 plotPrefix <- paste0(Dir, "figures/")
 
 ##### Data Cleaning #####
-#When the order is B-A and the moment is B, moment=1 (first testmoment.This removes "A and B", A == 1, B == 2 now
-
-# This part is not working because we don't have A and B in Moment here, but already foll and lut
-data$Moment[data$Order == "A-B" & data$Moment == "A"] = 1# TestMoment 1 == Follicular phase
-data$Moment[data$Order == "B-A" & data$Moment == "A"] = 2# TestMoment 2 == Luteal phase
-data$Moment[data$Order == "A-B" & data$Moment == "B"] = 2
-data$Moment[data$Order == "B-A" & data$Moment == "B"] = 1
 
 # new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1,
 data$PMS[data$PMSScore == 0] = 'noPMS'
@@ -73,11 +68,10 @@ data <- data[data$Contraception == "Natural", ] # Only looking at non-hormonal c
 
 ##### States ##### 
 ##### State: PSS ##### 
-formula <- 'PSS ~ PMS * Moment + (1|Age) + (1|newid)' # FirstMenstrual had zero effect so was removed from the model | Order showed no effect and was removed from model
-
+formula <- 'PSS ~ PMS * Moment + Age + FirstMenstrual + (1|newid)' # FirstMenstrual had zero effect so was removed from the model | Order showed no effect and was removed from model
 dataModel = data
-
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
+
 d0.1 <- lmer(formula,data=dataModel)
 modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
@@ -86,19 +80,16 @@ tabel <- cbind(AIC(d0.1))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 
 Anova(chosenModel[[1]], type = 'III') # Jens always uses anova() in stead of Anova() for lmer, but when doing so it ignores 'type' parameter. Need to figure out..
-print("There is no significant interaction effect in the main model. However, we established these hypothesis before, so compare contrasts nonetheless")
 
 # Between groups at time points
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response") #we don't adjust because we do this later
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
-print("All groups significantly differ from each other at every time point except PMS-PMDD at follicular. This is interesting, indicating that the both are not different non-PMS phase, but PMDD group gets more stress symptoms (so linked to PMs symptoms?)")
 
 # Between timepoints for groups
 emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
 emm0.2 <- summary(emmeans0.2)$emmeans
 emmeans0.2$contrasts
-print("Stress specifically doesn't increase for any group during the premenstrual phase as compared to the non-premenstrual phase")
 
 
 ## Visualisation
@@ -122,14 +113,11 @@ plot
 
 
 ##### State: BSRI ##### 
-formula <- 'BSRI ~ PMS * Moment + (1|Age)  + (1|newid)' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
-
+formula <- 'BSRI ~ PMS * Moment + Age + FirstMenstrual + (1|newid)' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
 dataModel = data
-
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 d0.1 <- lmer(formula,data=dataModel)
-
 modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
 # Model Selection
@@ -137,23 +125,20 @@ tabel <- cbind(AIC(d0.1))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 
 Anova(chosenModel[[1]], type = 'III')
-print("There is no significant interaction effect in the main model. However, we established these hypothesis before, so compare contrasts nonetheless")
 
 # Between groups at time points
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
-print("PMS and PMDD do not differ from each other at any time point, they do both differ from noPMS ")
 
 # Between timepoints for groups
 emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
 emm0.2 <- summary(emmeans0.2)$emmeans
 emmeans0.2$contrasts
-print("State Rumination specifically doesn't increase for any group during the premenstrual phase as compared to the non-premenstrual phase")
 
 ## Visualisation
 max_y<-max(data$BSRI)
-plot <- stateplot(emm0.2, data$BSRI, 'BSRI') +
+plot <- stateplot(data, emm0.2,'BSRI') +
   # Follicular
   geom_segment(aes(x =0.9, y = max_y, xend = 1, yend = max_y), size= 1)+
   annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=7)+
@@ -170,10 +155,8 @@ plot
 
 
 ##### State: PTQ ##### 
-formula <- 'PTQ ~ PMS * Moment + (1|Age) + (1|newid) ' # Age no effect |  Order had zero effect so was removed from the model | First Menstrual showed no effect and was removed from model || ranef(d0.1)
-
+formula <- 'PTQ ~ PMS * Moment + Age + FirstMenstrual + (1|newid) ' # Age no effect |  Order had zero effect so was removed from the model | First Menstrual showed no effect and was removed from model || ranef(d0.1)
 dataModel = data
-
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 d0.1 <- lmer(formula,data=dataModel)#ranef(d0.1)
@@ -187,29 +170,25 @@ tabel <- cbind(AIC(d0.1))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 
 Anova(chosenModel[[1]], type = 'III')
-print(" sign effect of PMS, Moment and Moment:Days and PMS:Moment:Days")
 
 # Between groups at time points
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment , adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
-print(" all sign except for noPMS-PMS for follicular")
 
 # Between timepoints for groups
 emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
 emm0.2 <- summary(emmeans0.2)$emmeans
 emmeans0.2$contrasts
-print("all insign")
 
 ## Visualisation
 max_y<-max(data$PTQ)
-plot <- stateplot(emm0.2, data$PTQ, 'PTQ') +
+plot <- stateplot(data, emm0.2, 'PTQ') +
   # Follicular
   geom_segment(aes(x =1, y = max_y+max_y/50, xend = 1.1, yend = max_y+max_y/50), size= 1)+
   annotate('text', x=1.05, y=max_y + max_y/100+max_y/50, label='**', size=7)+
   geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='***', size=7)+
-  
   # Luteal
   geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+
   annotate('text', x=1.95, y=max_y+max_y/100, label='*', size=7)+
