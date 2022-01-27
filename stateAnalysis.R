@@ -86,12 +86,13 @@ plot <- stateplot(data, emm0.2,'PSS', 'PSS') +
   # Follicular
   geom_segment(aes(x =0.9, y = max_y, xend = 1, yend = max_y), size= 1)+ # line bottom first
   annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=7)+ # star
-  geom_segment(aes(x =1, y = max_y+max_y/50, xend = 1.1, yend = max_y+max_y/50), size= 1)+ # line bottom first
-  annotate('text', x=1.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+ # star
+  # geom_segment(aes(x =1, y = max_y+max_y/50, xend = 1.1, yend = max_y+max_y/50), size= 1)+ # line bottom second
+  # annotate('text', x=1.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+ # star
   geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='***', size=7)+
-  # Luteal  # geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+ #bottom first line
-  # annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+
+  # Luteal  
+  geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+ #bottom first line
+  annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+
   geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+ # bottom second line
   annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+# top line
@@ -175,8 +176,8 @@ plot <- stateplot(data, emm0.2, "PTQ", 'PTQ') +
   geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='***', size=7)+
   # Luteal
-  # geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+
-  # annotate('text', x=1.95, y=max_y+max_y/100, label='*', size=7)+
+  geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+
+  annotate('text', x=1.95, y=max_y+max_y/100, label='*', size=7)+
   geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+
   annotate('text', x=2.05, y=max_y + max_y/100+max_y/50, label='***', size=7)+
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
