@@ -57,13 +57,15 @@ data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that 
 ##### ##### Statistics Time ##### ##### 
 ##### DASS ##### 
 ##### DASS: Depression #####
-formula <- 'DASS_Depression ~ PMS' # No added value for Age # anova(d0.31, d0.3, test="Chisq")
+formula <- 'DASS_Depression ~ PMS' # No added value for Age nor contracepion # anova(d0.31, d0.3, test="Chisq")
 
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 d0.1 <- lm(formula,data=data)
 d0.2 <- glm(formula,data=data, family = Gamma(link = "identity"))
 d0.3 <- glm(formula,data=data, family = inverse.gaussian(link = "identity"))
+
+anova(d0.3, d0.31, test="Chisq")
 
 modelNames = c('d0.1','d0.2','d0.3')
 
@@ -91,7 +93,7 @@ ggsave(plot, file=paste0(plotPrefix, "DASS_Depression_Plot.jpeg"), width = 2500,
 # plot
 
 ##### DASS: Anxiety ##### 
-formula <- 'DASS_Anxiety ~ PMS + Age' # Age was included due to a significant effect for model including it # anova(d0.2, d0.21, test="Chisq")
+formula <- 'DASS_Anxiety ~ PMS + Age' # Age was included due to a significant effect for model including it, Contraception gave no added value # anova(d0.2, d0.21, test="Chisq")
 
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
@@ -125,7 +127,7 @@ ggsave(plot, file=paste0(plotPrefix, "DASS_Anxiety.jpeg"), width = 2500, height 
 # plot
 
 ##### DASS: Stress ##### 
-formula <- 'DASS_Stress ~ PMS + Age' # Age was included since it was a significant contribution to the model # anova(d0.3, d0.31, test="Chisq")
+formula <- 'DASS_Stress ~ PMS + Age' # Age was included since it was a significant contribution to the model } Contraception was not # anova(d0.3, d0.31, test="Chisq")
 
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
@@ -159,7 +161,7 @@ ggsave(plot, file=paste0(plotPrefix, "DASS_Stress.jpeg"), width = 2500, height =
 # plot 
 
 ##### RRS ##### 
-formula <- 'RRS ~ PMS + Age' # Age was added to model, being signifcant contributor # anova(d0.2, d0.21, test="Chisq")
+formula <- 'RRS ~ PMS + Age' # Age was added to model, being signifcant contributor | Contraception was not # anova(d0.2, d0.21, test="Chisq")
 
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
