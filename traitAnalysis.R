@@ -65,8 +65,6 @@ d0.1 <- lm(formula,data=data)
 d0.2 <- glm(formula,data=data, family = Gamma(link = "identity"))
 d0.3 <- glm(formula,data=data, family = inverse.gaussian(link = "identity"))
 
-anova(d0.3, d0.31, test="Chisq")
-
 modelNames = c('d0.1','d0.2','d0.3')
 
 # Model Selection
@@ -89,7 +87,7 @@ plot <- traitplot(data, emm0.1, "DASS_Depression",'DASS:Depression') +
     annotate('text', x=2.5, y=max_y+ 1.3, label='**', size=7)+
     geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
     annotate('text', x=2, y=max_y+2.3, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "DASS_Depression_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+ggsave(plot, file=paste0(plotPrefix, "DASS_Depression.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 # plot
 
 ##### DASS: Anxiety ##### 
