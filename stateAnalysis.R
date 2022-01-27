@@ -55,7 +55,7 @@ data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contrac
 
 ##### States #####
 ##### State: PSS #####
-formula <- 'PSS ~ PMS * Moment + Age + (1|newid)' # No added effect for testing order nor contraception, yes for age. # anova(d0.1, d0.2, test="Chisq")
+formula <- 'PSS ~ PMS * Moment + Age + (1|newid)' # No added effect for contraception, yes for age. # anova(d0.1, d0.2, test="Chisq")
 
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
@@ -105,7 +105,7 @@ ggsave(plot, file=paste0(plotPrefix, "PSS_Plot.jpeg"), width = 2500, height = 15
 plot
 
 ##### State: BSRI #####
-formula <- 'BSRI ~ PMS * Moment + (1|newid)' # No added value to the model for Age nor order, nor contraception anova(d0.1, d0.2, test="Chisq")
+formula <- 'BSRI ~ PMS * Moment + (1|newid)' # No added value to the model for Age nor contraception # anova(d0.1, d0.2, test="Chisq")
 
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
@@ -147,7 +147,7 @@ ggsave(plot, file=paste0(plotPrefix, "BSRI_Plot.jpeg"), width = 2500, height = 1
 plot
 
 ##### State: PTQ #####
-formula <- 'PTQ ~ PMS * Moment + (1|newid)' # No effect for order, no effect for age, no effect for contraception
+formula <- 'PTQ ~ PMS * Moment + (1|newid)' # No effect for age, no effect for contraception
 
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
