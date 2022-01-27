@@ -53,7 +53,7 @@ data$Moment <- factor(data$Moment)
 
 # Exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
 data_allcontraception <- data # Backup the data prior to exclusion
-data <- data[data$Contraception == "Natural", ] # Only looking at non-hormonal contraceptives, so kick out all other data
+data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contraception=="Hor. Coil"|data$Contraception=="Hor.Coil"),] # Only looking at non-hormonal contraceptives, so kick out all other data
 
 ##### States #####
 ##### State: PSS #####
@@ -90,15 +90,18 @@ plot <- stateplot(data, emm0.2,'PSS', 'PSS') +
   annotate('text', x=1.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+ # star
   geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='***', size=7)+
-  # Luteal
-  # geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+ #bottom first line
+  # Luteal  # geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+ #bottom first line
   # annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+
   geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+ # bottom second line
   annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+# top line
+  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)+
+  geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+ # bottom second line
+  annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+
+  geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+# top line
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "PSS_Plot.jpeg"), width = 2000, height = 1500, dpi = 300, units = "px")
-# plot
+ggsave(plot, file=paste0(plotPrefix, "PSS_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+  plot
 
 ##### State: BSRI #####
 formula <- 'BSRI ~ PMS * Moment + Age + Order + (1|newid)' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
@@ -134,7 +137,7 @@ plot <- stateplot(data, emm0.2, 'BSRI', 'BSRI') +
   # Luteal
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "BSRI_Plot.jpeg"), width = 2000, height = 1500, dpi = 300, units = "px")
+ggsave(plot, file=paste0(plotPrefix, "BSRI_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot
 
 ##### State: PTQ #####
@@ -178,5 +181,119 @@ plot <- stateplot(data, emm0.2, "PTQ", 'PTQ') +
   annotate('text', x=2.05, y=max_y + max_y/100+max_y/50, label='***', size=7)+
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "PTQ_Plot.jpeg"), width = 2000, height = 1500, dpi = 300, units = "px")
-plot
+ggsave(plot, file=paste0(plotPrefix, "PTQ_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+# plot
+
+
+
+# #Doe correllaties BSRI en PSS per group overall, binnen follicular, binnen luteal, en tusssen luteal en follicular
+# # correlaties voor dataframe
+
+#noPMS overall
+noPMS_PSS <- data$PSS[data$PMS=='noPMS']
+noPMS_PTQ <- data$PTQ[data$PMS=='noPMS']
+#noPMS moment 1
+noPMS_1_PSS<- data$PSS[data$PMS=='noPMS'& data$Moment =='Foll']
+noPMS_1_PTQ <- data$PTQ[data$PMS=='noPMS'& data$Moment =='Foll']
+#noPMS moment 2
+noPMS_2_PSS <-data$PSS[data$PMS=='noPMS'& data$Moment =='Lut']
+noPMS_2_PTQ <- data$PTQ[data$PMS=='noPMS'& data$Moment =='Lut']
+#noPMS change or 'delta'
+noPMS_delta_PSS <- data$PSS[data$PMS=='noPMS'&data$Moment=='Lut']-data$PSS[data$PMS=='noPMS'&data$Moment=='Foll']
+noPMS_delta_PTQ <- data$PTQ[data$PMS=='noPMS'&data$Moment=='Lut']-data$PSS[data$PMS=='noPMS'&data$Moment=='Foll']
+
+#PMS overall
+PMS_PSS <- data$PSS[data$PMS=='PMS']
+PMS_PTQ <- data$PTQ[data$PMS=='PMS']
+# PMS moment 1
+PMS_1_PSS<- data$PSS[data$PMS=='PMS'& data$Moment =='Foll']
+PMS_1_PTQ <- data$PTQ[data$PMS=='PMS'& data$Moment =='Foll']
+#  PMS moment 2
+PMS_2_PSS <-data$PSS[data$PMS=='PMS'& data$Moment =='Lut']
+PMS_2_PTQ <- data$PTQ[data$PMS=='PMS'& data$Moment =='Lut']
+# PMS change
+PMS_delta_PSS <- data$PSS[data$PMS=='PMS'&data$Moment=='Lut']-data$PSS[data$PMS=='PMS'&data$Moment=='Foll']
+PMS_delta_PTQ <- data$PTQ[data$PMS=='PMS'&data$Moment=='Lut']-data$PSS[data$PMS=='PMS'&data$Moment=='Foll']
+
+#PMDD overall
+PMDD_PSS <- data$PSS[data$PMS=='PMDD']
+PMDD_PTQ <- data$PTQ[data$PMS=='PMDD']
+# PMDD moment 1
+PMDD_1_PSS<- data$PSS[data$PMS=='PMDD'& data$Moment =='Foll']
+PMDD_1_PTQ <- data$PTQ[data$PMS=='PMDD'& data$Moment =='Foll']
+# PMDD moment 2
+PMDD_2_PSS <-data$PSS[data$PMS=='PMDD'& data$Moment =='Lut']
+PMDD_2_PTQ <- data$PTQ[data$PMS=='PMDD'& data$Moment =='Lut']
+# PMDD change
+PMDD_delta_PSS <- data$PSS[data$PMS=='PMDD'&data$Moment=='Lut']-data$PSS[data$PMS=='PMDD'&data$Moment=='Foll']
+PMDD_delta_PTQ <- data$PTQ[data$PMS=='PMDD'&data$Moment=='Lut']-data$PSS[data$PMS=='PMDD'&data$Moment=='FOll']
+
+# # voor corplots: maak dataframe
+# noPMSframe <- data.frame (noPMS_PSS, noPMS_PTQ, noPMS_1_PSS, noPMS_1_PTQ, noPMS_2_PSS, noPMS_2_PTQ
+#                           # m noPMS_delta_PSS, noPMS_delta_PTQ
+#                           )
+# PMSframe <- data.frame(PMS_PSS, PMS_PTQ, PMS_1_PSS, PMS_1_PTQ, PMS_2_PSS, PMS_2_PTQ, PMS_delta_PSS, PMS_delta_PTQ)
+# PMDDframe <- data.frame(PMDD_PSS, PMDD_PTQ, PMDD_1_PSS, PMDD_1_PTQ, PMDD_2_PSS, PMDD_2_PTQ, PMDD_delta_PSS, PMDD_delta_PTQ)
+# 
+# library(corrplot)
+# noPMScor<- cor(noPMSframe)
+# corrplot(noPMScor, method = 'number')
+# PMScor <- cor(PMSframe)
+# corrplot(PMScor, method='number')
+# PMDDcor <- cor (PMDDframe)
+# corrplot(PMDDcor, method='number')
+
+# voor ggscatter: maak dataframe, zet per kolom de waarden?
+library(ggpubr)
+
+dataframe <- data.frame(noPMS_PSS, noPMS_PTQ)
+ggscatter(dataframe, x = "noPMS_PSS", y = "noPMS_PTQ",
+          add='reg.line', fullrange=TRUE,
+          conf.int=TRUE,
+          cor.coef=TRUE, cor.method='pearson',
+          xlab='noPMS_PSS', ylab='noPMS_PTQ')+
+  geom_segment(aes(x = -4, y = -4, xend = 40, yend = 40), size= 1, colour='red')
+
+dataframe <- data.frame(PMS_PSS, PMS_PTQ)
+ggscatter(dataframe, x = "PMS_PSS", y = "PMS_PTQ",
+          add='reg.line', fullrange=TRUE,
+          conf.int=TRUE,
+          cor.coef=TRUE, cor.method='pearson',
+          xlab='PMS_PSS', ylab='PMS_PTQ')+
+  geom_segment(aes(x = -4, y = -4, xend = 40, yend = 40), size= 1, colour='red')
+
+dataframe <- data.frame(PMDD_PSS, PMDD_PTQ)
+ggscatter(dataframe, x = "PMDD_PSS", y = "PMDD_PTQ",
+          add='reg.line', fullrange=TRUE,
+          conf.int=TRUE,
+          cor.coef=TRUE, cor.method='pearson',
+          xlab='PMDD_PSS', ylab='PMDD_PTQ')+
+  geom_segment(aes(x = -4, y = -4, xend = 40, yend = 40), size= 1, colour='red')
+
+
+
+  #no PMScorrelate change: delta (change in value)PTQ to delta PSS.
+  dataframe <- data.frame(noPMS_delta_PSS, noPMS_delta_PTQ)
+  ggscatter(dataframe, x = "noPMS_delta_PSS", y = "noPMS_delta_PTQ",
+                      add='reg.line', fullrange=TRUE,
+                  conf.int=TRUE,
+                  cor.coef=TRUE, cor.method='pearson',
+                  xlab='noPMS_delta_PSS', ylab='noPMS_delta_PTQ')+
+        geom_segment(aes(x = -20, y = -20, xend = 30, yend = 30), size= 1, colour='red')
+
+  dataframe <- data.frame(PMS_delta_PSS, PMS_delta_PTQ)
+  ggscatter(dataframe, x = "PMS_delta_PSS", y = "PMS_delta_PTQ",
+            add='reg.line', fullrange=TRUE,
+            conf.int=TRUE,
+            cor.coef=TRUE, cor.method='pearson',
+            xlab='PMS_delta_PSS', ylab='PMS_delta_PTQ')+
+    geom_segment(aes(x = -20, y = -20, xend = 30, yend = 30), size= 1, colour='red')
+  
+  dataframe <- data.frame(delta_PSS, delta_PTQ)
+  ggscatter(dataframe, x = "delta_PSS", y = "delta_PTQ",
+            add='reg.line', fullrange=TRUE,
+            conf.int=TRUE,
+            cor.coef=TRUE, cor.method='pearson',
+            xlab='delta_PSS', ylab='delta_PTQ')+
+    geom_segment(aes(x = -20, y = -20, xend = 30, yend = 43), size= 1, colour='red')
+  

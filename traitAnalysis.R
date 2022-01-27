@@ -8,6 +8,7 @@ library(emmeans)
 library(tidyverse)
 library(car)
 library(ggplot2)
+library(ltm)
 
 if (!dir.exists("figures"))
   dir.create("figures")
@@ -49,11 +50,16 @@ data$Order <- factor(data$Order)
 
 # Exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
 data_allcontraception <- data # Backup the data prior to exclusion
-data <- data[data$Contraception == "Natural", ] # Only looking at non-hormonal contraceptives, so kick out all other data
+data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contraception=="Hor. Coil"|data$Contraception=="Hor.Coil"),] # Only looking at non-hormonal contraceptives, so kick out all other data
 
 data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
 
 ##### ##### Statistics Time ##### ##### 
+
+#Cronbach's Alpha
+
+cronbach.alpha(data, CI=TRUE)
+
 ##### DASS ##### 
 ##### DASS: Depression #####
 formula <- 'DASS_Depression ~ PMS + Age'
@@ -86,8 +92,8 @@ plot <- traitplot(data, emm0.1, "DASS_Depression",'DASS:Depression') +
     annotate('text', x=2.5, y=max_y+ 1.3, label='*', size=7)+
     geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
     annotate('text', x=2, y=max_y+2.3, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "DASS_Depression_Plot.jpeg"), width = 2000, height = 1500, dpi = 300, units = "px")
-plot
+ggsave(plot, file=paste0(plotPrefix, "DASS_Depression_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+# plot
 
 ##### DASS: Anxiety ##### 
 formula <- 'DASS_Anxiety ~ PMS + Age'
@@ -117,11 +123,11 @@ plot <- traitplot(data, emm0.1, "DASS_Anxiety",'DASS:Anxiety') +
   geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)+
   annotate('text', x=1.5, y=max_y+0.3, label='***', size=7)+
   geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+
-  annotate('text', x=2.5, y=max_y+ 1.3, label='**', size=7)+
+  annotate('text', x=2.5, y=max_y+ 1.3, label='*', size=7)+
   geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
   annotate('text', x=2, y=max_y+2.3, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "DASS_Anxiety.jpeg"), width = 2000, height = 1500, dpi = 300, units = "px")
-plot
+ggsave(plot, file=paste0(plotPrefix, "DASS_Anxiety.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+# plot
 
 ##### DASS: Stress ##### 
 formula <- 'DASS_Stress ~ PMS + Age' # No effects found for Order - so removed as random intercept
@@ -154,8 +160,8 @@ plot <- traitplot(data, emm0.1, "DASS_Stress",'DASS:Stress') +
   annotate('text', x=2.5, y=max_y+ 1.3, label='**', size=7)+
   geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
   annotate('text', x=2, y=max_y+2.3, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "DASS_Stress.jpeg"), width = 2000, height = 1500, dpi = 300, units = "px")
-plot 
+ggsave(plot, file=paste0(plotPrefix, "DASS_Stress.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+# plot 
 
 ##### RRS ##### 
 formula <- 'RRS ~ PMS + Age' # No effects found for Order - so removed as random intercept
@@ -183,10 +189,10 @@ emmeans0.1$contrasts
 max_y<-max(data$RRS)
 plot <- traitplot(data, emm0.1, "RRS",'RRS') +
   geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)+
-  annotate('text', x=1.5, y=max_y+0.3, label='***', size=7)+
-  geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+
-  annotate('text', x=2.5, y=max_y+ 1.3, label='**', size=7)+
-  geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
-  annotate('text', x=2, y=max_y+2.3, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "RRS.jpeg"), width = 2000, height = 1500, dpi = 300, units = "px")
+  annotate('text', x=1.5, y=max_y+ max_y/100, label='***', size=7)+
+  geom_segment(aes(x = 2, y=max_y+max_y/50, xend= 3, yend=max_y+max_y/50), size= 1)+
+  annotate('text', x=2.5, y=max_y+max_y/50+max_y/100, label='***', size=7)+
+  geom_segment(aes(x = 1, y=max_y+max_y/15, xend= 3, yend=max_y+max_y/15), size= 1)+
+  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
+ggsave(plot, file=paste0(plotPrefix, "RRS.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot
