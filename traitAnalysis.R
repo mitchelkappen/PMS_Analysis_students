@@ -8,10 +8,11 @@ library(emmeans)
 library(tidyverse)
 library(car)
 library(ggplot2)
+library(ltm)
+library(lsr) #for calculating cohen's d
 
-if (!dir.exists("figures")){
+if (!dir.exists("figures"))
   dir.create("figures")
-}
 #####  General settings ##### 
 nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1ù
 vpn = 1 # Set to 1 if using VPN
@@ -48,16 +49,68 @@ names(data)[names(data) == "allRRS"] = "RRS" # Rename column
 data$ID <- factor(data$ID)
 data$Order <- factor(data$Order)
 
-# Exclude everyone on the pill/other: only those with Natural Contraception are left included
+# Exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
 data_allcontraception <- data # Backup the data prior to exclusion
 data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contraception=="Hor. Coil"|data$Contraception=="Hor.Coil"),] # Only looking at non-hormonal contraceptives, so kick out all other data
 
 data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
 
 ##### ##### Statistics Time ##### ##### 
+
+
+#### Cohen's d (effect size)
+
+### Depression
+
+noPMS_mu <-mean(data$DASS_Depression[data$PMS=='noPMS'], na.rm=TRUE)
+PMS_mu <-mean(data$DASS_Depression[data$PMS=='PMS'], na.rm=TRUE)
+
+PMS_f <- as.numeric(as.character(data$DASS_Depression[data$PMS=='PMS']))
+PMDD_f <- as.numeric(as.character(data$DASS_Depression[data$PMS=='PMDD']))
+
+cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
+cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
+cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+
+### Anxiety
+noPMS_mu <-mean(data$DASS_Anxiety[data$PMS=='noPMS'], na.rm=TRUE)
+PMS_mu <-mean(data$DASS_Anxiety[data$PMS=='PMS'], na.rm=TRUE)
+
+PMS_f <- as.numeric(as.character(data$DASS_Anxiety[data$PMS=='PMS']))
+PMDD_f <- as.numeric(as.character(data$DASS_Anxiety[data$PMS=='PMDD']))
+
+cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
+cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
+cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+
+
+### Stress
+noPMS_mu <-mean(data$DASS_Stress[data$PMS=='noPMS'], na.rm=TRUE)
+PMS_mu <-mean(data$DASS_Stress[data$PMS=='PMS'], na.rm=TRUE)
+
+PMS_f <- as.numeric(as.character(data$DASS_Stress[data$PMS=='PMS']))
+PMDD_f <- as.numeric(as.character(data$DASS_Stress[data$PMS=='PMDD']))
+
+cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
+cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
+cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+
+
+### RSS
+noPMS_mu <-mean(data$RRS[data$PMS=='noPMS'], na.rm=TRUE)
+PMS_mu <-mean(data$RRS[data$PMS=='PMS'], na.rm=TRUE)
+
+PMS_f <- as.numeric(as.character(data$RRS[data$PMS=='PMS']))
+PMDD_f <- as.numeric(as.character(data$RRS[data$PMS=='PMDD']))
+
+cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
+cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
+cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+
+
 ##### DASS ##### 
 ##### DASS: Depression #####
-formula <- 'DASS_Depression ~ PMS' # No added value for Age nor contracepion # anova(d0.31, d0.3, test="Chisq")
+formula <- 'DASS_Depression ~ PMS + Age'
 
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
@@ -84,14 +137,14 @@ plot <- traitplot(data, emm0.1, "DASS_Depression",'DASS:Depression') +
   geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)+
     annotate('text', x=1.5, y=max_y+0.3, label='***', size=7)+
     geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+
-    annotate('text', x=2.5, y=max_y+ 1.3, label='**', size=7)+
+    annotate('text', x=2.5, y=max_y+ 1.3, label='*', size=7)+
     geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
     annotate('text', x=2, y=max_y+2.3, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "DASS_Depression.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+ggsave(plot, file=paste0(plotPrefix, "DASS_Depression_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 # plot
 
 ##### DASS: Anxiety ##### 
-formula <- 'DASS_Anxiety ~ PMS + Age' # Age was included due to a significant effect for model including it, Contraception gave no added value # anova(d0.2, d0.21, test="Chisq")
+formula <- 'DASS_Anxiety ~ PMS + Age'
 
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
@@ -118,14 +171,14 @@ plot <- traitplot(data, emm0.1, "DASS_Anxiety",'DASS:Anxiety') +
   geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)+
   annotate('text', x=1.5, y=max_y+0.3, label='***', size=7)+
   geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+
-  annotate('text', x=2.5, y=max_y+ 1.3, label='**', size=7)+
+  annotate('text', x=2.5, y=max_y+ 1.3, label='*', size=7)+
   geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
   annotate('text', x=2, y=max_y+2.3, label='***', size=7)
 ggsave(plot, file=paste0(plotPrefix, "DASS_Anxiety.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 # plot
 
 ##### DASS: Stress ##### 
-formula <- 'DASS_Stress ~ PMS + Age' # Age was included since it was a significant contribution to the model } Contraception was not # anova(d0.3, d0.31, test="Chisq")
+formula <- 'DASS_Stress ~ PMS + Age' # No effects found for Order - so removed as random intercept
 
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
@@ -159,7 +212,7 @@ ggsave(plot, file=paste0(plotPrefix, "DASS_Stress.jpeg"), width = 2500, height =
 # plot 
 
 ##### RRS ##### 
-formula <- 'RRS ~ PMS + Age' # Age was added to model, being signifcant contributor | Contraception was not # anova(d0.2, d0.21, test="Chisq")
+formula <- 'RRS ~ PMS + Age' # No effects found for Order - so removed as random intercept
 
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
@@ -190,4 +243,4 @@ plot <- traitplot(data, emm0.1, "RRS",'RRS') +
   geom_segment(aes(x = 1, y=max_y+max_y/15, xend= 3, yend=max_y+max_y/15), size= 1)+
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
 ggsave(plot, file=paste0(plotPrefix, "RRS.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
-#plot
+plot
