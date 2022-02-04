@@ -10,12 +10,9 @@ library(car)
 library(ggplot2)
 library(lsr) #for calculating cohen's d
 
-
 #####  General settings #####
 nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1
 vpn = 1 # Set to 1 if using VPN
-
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #Set WD to script location
 
 # Get and declare functions
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #Set WD to script location - Else it can't find functions.R
@@ -51,6 +48,7 @@ data$PMS <- ordered(data$PMS, levels = c('noPMS', 'PMS', 'PMDD')) # Factorize an
 data$ID <- factor(data$ID)
 data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
 data$Moment <- factor(data$Moment)
+data$Contraception <- factor(data$Contraception)
 
 # Exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
 data_allcontraception <- data # Backup the data prior to exclusion
@@ -153,18 +151,20 @@ cohensD(fol, mu=lut)
 
 ##### States #####
 ##### State: PSS #####
-formula <- 'PSS ~ PMS * Moment + Age + Order + (1|newid)' #
+formula <- 'PSS ~ PMS * Moment + Age + (1|newid)' # No added effect for contraception, yes for age. # anova(d0.1, d0.2, test="Chisq")
+
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 d0.1 <- lmer(formula,data=dataModel)
+
 modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
 # Model Selection
 tabel <- cbind(AIC(d0.1))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 
-Anova(chosenModel[[1]], type = 'III') # Jens always uses anova() in stead of Anova() for lmer, but when doing so it ignores 'type' parameter. Need to figure out..
+Anova(chosenModel[[1]], type = 'III')
 
 # Between groups at time points
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response") #we don't adjust because we do this later
@@ -199,15 +199,16 @@ plot <- stateplot(data, emm0.2,'PSS', 'PSS') +
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+# top line
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
 ggsave(plot, file=paste0(plotPrefix, "PSS_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
-  plot
+plot
 
 ##### State: BSRI #####
-formula <- 'BSRI ~ PMS * Moment + Age + Order + (1|newid)' # Order had zero effect so was removed from the model | Age showed no effect and was removed from model
+formula <- 'BSRI ~ PMS * Moment + (1|newid)' # No added value to the model for Age nor contraception # anova(d0.1, d0.2, test="Chisq")
 
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 d0.1 <- lmer(formula,data=dataModel)
+
 modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
 # Model Selection
@@ -230,21 +231,25 @@ emmeans0.2$contrasts
 max_y<-max(data$BSRI)
 plot <- stateplot(data, emm0.2, 'BSRI', 'BSRI') +
   # Follicular
+  geom_segment(aes(x =0.9, y = max_y, xend = 1, yend = max_y), size= 1)+ # line bottom first
+  annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=7)+ # star
   geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='**', size=7)+
   # Luteal
+  geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+ #bottom first line
+  annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
 ggsave(plot, file=paste0(plotPrefix, "BSRI_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot
 
 ##### State: PTQ #####
-formula <- 'PTQ ~ PMS * Moment + Age + Order + (1|newid) ' # Age no effect |  Order had zero effect so was removed from the model | First Menstrual showed no effect and was removed from model || ranef(d0.1)
+formula <- 'PTQ ~ PMS * Moment + (1|newid)' # No effect for age, no effect for contraception
 
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
-d0.1 <- lmer(formula,data=dataModel)#ranef(d0.1)
+d0.1 <- lmer(formula,data=dataModel)
 
 modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
@@ -283,7 +288,7 @@ ggsave(plot, file=paste0(plotPrefix, "PTQ_Plot.jpeg"), width = 2500, height = 15
 # plot
 
 
-
+##### Correlation stuff Sofie @Sofie, will you clean this up and comment properly? #####
 # #Doe correllaties BSRI en PSS per group overall, binnen follicular, binnen luteal, en tusssen luteal en follicular
 # # correlaties voor dataframe
 
