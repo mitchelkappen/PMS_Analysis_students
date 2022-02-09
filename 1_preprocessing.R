@@ -92,7 +92,6 @@ DataFrameClean <- cbind(DataFrameClean, participantNo, Order, Exclusie, TrueFoll
 SymptomsData <- DataFrame[ , grepl( "Symptoms.PST" , names( DataFrame ) ) ] # Make dataset with only Symtoms variables
 SymptomsData <- cbind(SymptomsData, Symptoms.PST04=c(DataFrame$Symptoms.SPST04))
 
-
 SymptomsData <- SymptomsData[,c(1,2,3,14,4,5,6,7,8,9,10,11,12,13)]
 
 allSymptoms = 0
@@ -238,7 +237,6 @@ for (i in 1:nrow(DataFrame)){ #loop over all participants
 PMSData <- cbind(PMSScore, DataFrame) #Add columns with PMSScore to DataFrame
 
 DataFrameClean <- cbind(DataFrameClean, PMSScore)
-
 ########################### VISUALIZATION ###########################
 
 
@@ -485,6 +483,10 @@ BSRI <- data.frame(BSRI1 = matrix(NA, nrow = nrow(DataFrameClean), ncol = 1), BS
 PTQ <- data.frame(PTQ1 = matrix(NA, nrow = nrow(DataFrameClean), ncol = 1), PTQ2 = matrix(NA, nrow = nrow(DataFrameClean), ncol = 1))
 temp = 0
 
+PSSitems <- data.frame(PSS1 = matrix(NA, nrow = nrow(DataFrameClean), ncol = 10), PSS2 = matrix(NA, nrow = nrow(DataFrameClean), ncol = 10))
+BSRIitems <- data.frame(BSRI1 = matrix(NA, nrow = nrow(DataFrameClean), ncol = 8), BSRI2 = matrix(NA, nrow = nrow(DataFrameClean), ncol = 8))
+PTQitems <- data.frame(PTQ1 = matrix(NA, nrow = nrow(DataFrameClean), ncol = 15), PTQ2 = matrix(NA, nrow = nrow(DataFrameClean), ncol = 15))
+
 for (i in 1:nrow(DataFrameClean)){ # Loop over all participant rows that filled out screening completely
   # DataMoment1
   loc = which(dataMoment1$ParticipantNo == DataFrameClean$participantNo[i]) # Check at what location every specific participantNumber is present
@@ -496,12 +498,19 @@ for (i in 1:nrow(DataFrameClean)){ # Loop over all participant rows that filled 
     PSS$PSS1[i] <- dataMoment1$PSS[loc]
     BSRI$BSRI1[i] <- dataMoment1$BSRI[loc]
     PTQ$PTQ1[i] <- dataMoment1$PTQ[loc]
-    # print(dataMoment1$BSRI[loc])
-  } else {
+    # save individual items
+    PSSitems[i,1:10] <- as.numeric(substrRight(unlist(dataMoment1[ , grepl("PSS.P", names(dataMoment1))][loc,1:10]),1)) -1
+    BSRIitems[i,1:8] <- as.numeric(unlist(dataMoment1[ , grepl("BSRI.B", names(dataMoment1))][loc,1:8]))
+    PTQitems[i,1:15] <- as.numeric(substrRight(unlist(dataMoment1[ , grepl("PTQ.P", names(dataMoment1))][loc,1:15]),1)) -1
+  } else { # this else is obsolete, everything could be loc[length(loc)], but for completeness sake
     # If there are multiple entries for one participant, we take the last entry #check this later #@Mitchel get back here some time
     PSS$PSS1[i] <- dataMoment1$PSS[loc[length(loc)]]
     BSRI$BSRI1[i] <- dataMoment1$BSRI[loc[length(loc)]]
     PTQ$PTQ1[i] <- dataMoment1$PTQ[loc[length(loc)]]
+    # save individual items
+    PSSitems[i,1:10] <- as.numeric(substrRight(unlist(dataMoment1[ , grepl("PSS.P", names(dataMoment1))][loc[length(loc)],1:10]),1)) -1
+    BSRIitems[i,1:8] <- as.numeric(unlist(dataMoment1[ , grepl("BSRI.B", names(dataMoment1))][loc[length(loc)],1:8]))
+    PTQitems[i,1:15] <- as.numeric(substrRight(unlist(dataMoment1[ , grepl("PTQ.P", names(dataMoment1))][loc[length(loc)],1:15]),1)) -1
   }
   # DataMoment2
   loc = which(dataMoment2$ParticipantNo == DataFrameClean$participantNo[i]) # Check at what location every specific participantNumber is present
@@ -511,15 +520,33 @@ for (i in 1:nrow(DataFrameClean)){ # Loop over all participant rows that filled 
     PSS$PSS2[i] <- dataMoment2$PSS[loc]
     BSRI$BSRI2[i] <- dataMoment2$BSRI[loc]
     PTQ$PTQ2[i] <- dataMoment2$PTQ[loc]
-    # print(dataMoment1$BSRI[loc])
+    # save individual items
+    PSSitems[i,11:20] <- as.numeric(substrRight(unlist(dataMoment2[ , grepl("PSS.P", names(dataMoment2))][loc,1:10]),1)) -1
+    BSRIitems[i,9:16] <- as.numeric(unlist(dataMoment2[ , grepl("BSRI.B", names(dataMoment2))][loc,1:8]))
+    PTQitems[i,16:30] <- as.numeric(substrRight(unlist(dataMoment2[ , grepl("PTQ.P", names(dataMoment2))][loc,1:15]),1)) -1
   } else {
     # If there are multiple entries for one participant, we take the last entry #check this later #@Mitchel get back here some time
     PSS$PSS2[i] <- dataMoment1$PSS[loc[length(loc)]]
     BSRI$BSRI2[i] <- dataMoment1$BSRI[loc[length(loc)]]
     PTQ$PTQ2[i] <- dataMoment1$PTQ[loc[length(loc)]]
+    # save individual items
+    PSSitems[i,11:20] <- as.numeric(substrRight(unlist(dataMoment2[ , grepl("PSS.P", names(dataMoment2))][loc[length(loc)],1:10]),1)) -1
+    BSRIitems[i,9:16] <- as.numeric(unlist(dataMoment2[ , grepl("BSRI.B", names(dataMoment2))][loc[length(loc)],1:8]))
+    PTQitems[i,16:30] <- as.numeric(substrRight(unlist(dataMoment2[ , grepl("PTQ.P", names(dataMoment2))][loc[length(loc)],1:15]),1)) -1
   }
 }
+# Reverse score individual items
+PSSitems$PSS1.4 = 4 - PSSitems$PSS1.4
+PSSitems$PSS1.5 = 4 - PSSitems$PSS1.5
+PSSitems$PSS1.7 = 4 - PSSitems$PSS1.7
+PSSitems$PSS1.8 = 4 - PSSitems$PSS1.8
 
+PSSitems$PSS2.4 = 4 - PSSitems$PSS2.4
+PSSitems$PSS2.5 = 4 - PSSitems$PSS2.5
+PSSitems$PSS2.7 = 4 - PSSitems$PSS2.7
+PSSitems$PSS2.8 = 4 - PSSitems$PSS2.8
+
+# Declare empty target columns
 DataFrameClean$folliculairPSS = ''
 DataFrameClean$folliculairBSRI = ''
 DataFrameClean$folliculairPTQ = ''
@@ -530,8 +557,36 @@ rownames(DataFrameClean) <- NULL # Wat easier for debugging
 
 DataFrameClean$Order[DataFrameClean$Order == ""] = 'xx'
 
+
+# Create a dataframe that also contains all individual items
+DataFrameExtensive <- DataFrameClean
+## Trait questionnaires
+# PMS Symptoms
+SymptomsDataNumeric <- SymptomsData
+SymptomsDataNumeric[,1:ncol(SymptomsDataNumeric)] = as.numeric(substrRight(unlist(SymptomsData[,1:ncol(SymptomsDataNumeric)]),1))
+DataFrameExtensive <- cbind(DataFrameExtensive, SymptomsDataNumeric)
+# PMS Disturbance
+DisturbanceDataNumeric <- DisturbanceData
+DisturbanceDataNumeric[,1:ncol(DisturbanceDataNumeric)] = as.numeric(substrRight(unlist(DisturbanceData[,1:ncol(DisturbanceDataNumeric)]),1))
+DataFrameExtensive <- cbind(DataFrameExtensive, DisturbanceDataNumeric)
+# RRS
+RRSDataNumeric <- RRSData
+RRSDataNumeric[,1:ncol(RRSDataNumeric)] = as.numeric(substrRight(unlist(RRSData[,1:ncol(RRSDataNumeric)]),1))
+DataFrameExtensive <- cbind(DataFrameExtensive, RRSDataNumeric)
+# DASS
+DASSDataNumeric <- DASSDataframe
+DASSDataNumeric[,1:ncol(DASSDataNumeric)] = as.numeric(substrRight(unlist(DASSDataframe[,1:ncol(DASSDataNumeric)]),1))
+DataFrameExtensive <- cbind(DataFrameExtensive, DASSDataNumeric)
+
+## State questionnaires
+# PSS BSRI and PTQ happen in next forloop - but predeclare for correct naming as well
+DataFrameExtensive <- cbind(DataFrameExtensive, data.frame(PSS_folliculair = matrix(NA, nrow = nrow(DataFrameClean), ncol = 10), PSS_luteaal = matrix(NA, nrow = nrow(DataFrameClean), ncol = 10)))
+DataFrameExtensive <- cbind(DataFrameExtensive, data.frame(BSRI_folliculair = matrix(NA, nrow = nrow(DataFrameClean), ncol = 8), BSRI_luteaal = matrix(NA, nrow = nrow(DataFrameClean), ncol = 8)))
+DataFrameExtensive <- cbind(DataFrameExtensive, data.frame(PTQ_folliculair = matrix(NA, nrow = nrow(DataFrameClean), ncol = 15), PTQ_luteaal = matrix(NA, nrow = nrow(DataFrameClean), ncol = 15)))
+
 # Add the data to the dataFrame for right spot
-for (i in 1:nrow(DataFrameClean)){ 
+for (i in 1:nrow(DataFrameClean)){
+# for (i in 30){
   if (DataFrameClean$Order[i] == "A-B"){
     DataFrameClean$folliculairPSS[i] = PSS$PSS1[i]
     DataFrameClean$folliculairBSRI[i] = BSRI$BSRI1[i]
@@ -540,6 +595,10 @@ for (i in 1:nrow(DataFrameClean)){
     DataFrameClean$luteaalPSS[i] = PSS$PSS2[i]
     DataFrameClean$luteaalBSRI[i] = BSRI$BSRI2[i]
     DataFrameClean$luteaalPTQ[i] = PTQ$PTQ2[i]
+    
+    # individual items
+    DataFrameExtensive[i,1:156] <- cbind(DataFrameExtensive[i,1:90], PSSitems[i,1:10], BSRIitems[i,1:8], PTQitems[i,1:15], PSSitems[i,11:20], BSRIitems[i,9:16], PTQitems[i,16:30])
+    # DataFrameExtensive[i,] <- cbind(DataFrameExtensive[i,], PSSitems[i,11:20], BSRIitems[i,9:16], PTQitems[i,16:30])
   } else if (DataFrameClean$Order[i] == "B-A"){
     DataFrameClean$folliculairPSS[i] = PSS$PSS2[i]
     DataFrameClean$folliculairBSRI[i] = BSRI$BSRI2[i]
@@ -548,6 +607,9 @@ for (i in 1:nrow(DataFrameClean)){
     DataFrameClean$luteaalPSS[i] = PSS$PSS1[i]
     DataFrameClean$luteaalBSRI[i] = BSRI$BSRI1[i]
     DataFrameClean$luteaalPTQ[i] = PTQ$PTQ1[i]
+    # individual items
+    DataFrameExtensive[i,1:156] <- cbind(DataFrameExtensive[i,1:90], PSSitems[i,11:20], BSRIitems[i,9:16], PTQitems[i,16:30], PSSitems[i,1:10], BSRIitems[i,1:8], PTQitems[i,1:15])
+    # DataFrameExtensive[i,] <- cbind(DataFrameExtensive[i,], PSSitems[i,1:10], BSRIitems[i,1:8], PTQitems[i,1:15])
   } else if (DataFrameClean$Order[i] == 'xx') { # For some reason doesn't have an order assigned yet
     DataFrameClean$folliculairPSS[i] = NA
     DataFrameClean$folliculairBSRI[i] = NA
@@ -566,7 +628,7 @@ for (i in 1:nrow(DataFrameClean)){
 # dateDir = "02032021//"
 
 write.csv(DataFrameClean, paste0(dataDir,dateDir,"cleanData.csv"), row.names = FALSE)
-
+write.csv(DataFrameExtensive, paste0(dataDir,dateDir,"cleanData_allItems.csv"), row.names = FALSE)
 # backup <- as.data.frame(read.csv(file = paste0(dataDir, dateDir,"cleanData_backup.csv"), head = TRUE, sep=",",  stringsAsFactors=FALSE)) # Testing if bugs in code got fixed
 
 IsalaSet = DataFrameClean[DataFrameClean$Isala != "",]
