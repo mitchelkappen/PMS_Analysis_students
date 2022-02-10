@@ -85,14 +85,43 @@ cronbach.alpha(dataC, CI=TRUE)
 #PTQ
 dataC <- data.frame(select(data, matches("PTQ")))
 dataC <- dataC[,!(names(dataC)%in% c("folliculairPTQ", 'luteaalPTQ'))]
--
-cronbach.alpha(dataC, CI=TRUE)
+
+cronbach.alpha(dataC, CI=TRUE, na.rm=T)
 
 #PSS
 dataC <- data.frame(select(data, matches("PSS")))
 dataC <- dataC[,!(names(dataC)%in% c("folliculairPSS", 'luteaalPSS'))]
 
+
+for (i in randn){ #check if they are correctly calculated
+  s1<- data$folliculairPSS[i]
+  s2<- data.frame(select(data, matches("PSS_folliculair")))
+  s2 <-as.integer(rowSums(s2)[i])
+  if (s1 != s2){print('Error!')}
+}
+
+cronbach.alpha(dataC, CI=TRUE, na.rm=T)
+
+#PSST
+dataC <- data.frame(select(data, matches("PST")))
 cronbach.alpha(dataC, CI=TRUE)
 
 
 
+
+
+
+getPSS <- function(data) {
+  tempData <- data[ , grepl("PSS.P", names(data))] # Make dataset with only RRS variables
+  allPSS = 0
+  
+  for(i in 1:nrow(data)) { # loop through participants
+    PSSScore <- 0
+    for(t in 1:ncol(tempData)){ # loop through questions
+      temp = as.numeric(substrRight(unlist(tempData[t])[i],1)) # Take value i (participant) from RRSDATA, unlist, then take last character and turn it into a number (double)
+      PSSScore <- PSSScore + temp
+    }
+    allPSS[i] <- PSSScore
+  }
+  return(allPSS)
+}
