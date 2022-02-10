@@ -36,10 +36,9 @@ data <-
   read.csv(paste0(Dir, "06102021\\cleanData_allItems.csv"),
            header = TRUE,
            sep = ) #upload data
-
-
 #contains all individual items. 
-#sanity check: count up items to see if scores are the same
+
+
 
 ##### Clean data up a bit #####
 data$PMS[data$PMSScore == 0] = 'noPMS'
@@ -49,35 +48,50 @@ data$PMS[data$PMSScore == 2] = 'PMDD'
 # Factorize and rename columns
 data$PMS <- ordered(data$PMS, levels = c('noPMS', 'PMS', 'PMDD')) # Factorize and turn into ordered levels
 names(data)[names(data) == "allRRS"] = "RRS" # Rename column
-data$ID <- factor(data$ID)
 data$Order <- factor(data$Order)
 
 # Exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
 data_allcontraception <- data # Backup the data prior to exclusion
 data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contraception=="Hor. Coil"|data$Contraception=="Hor.Coil"),] # Only looking at non-hormonal contraceptives, so kick out all other data
 
-data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
 
-#Cronbach's Alpha
 
-head(data)
+###### Cronbach's Alpha
 
+randn <-floor(runif(3, min=0, max=101)) #random numbers for sanity check
+
+#DASS
 dataC <- data.frame(select(data, matches("DASS21")))
+for (i in randn){ #check if they are correctly calculated
+  s1 <- data$DASS.Total[i]
+  s2 <-as.integer(rowSums(dataC)[i])
+  if (s1 != s2){print('Error!')}
+}
+
 cronbach.alpha(dataC, CI=TRUE)
 
+#RRS
 dataC <- data.frame(select(data, matches("RRS.R")))
+
 cronbach.alpha(dataC, CI=TRUE)
 
+#BSRI
 dataC <- data.frame(select(data, matches("BSRI")))
 dataC <- dataC[,!(names(dataC)%in% c("folliculairBSRI", 'luteaalBSRI'))]
+-
 cronbach.alpha(dataC, CI=TRUE)
 
+
+#PTQ
 dataC <- data.frame(select(data, matches("PTQ")))
 dataC <- dataC[,!(names(dataC)%in% c("folliculairPTQ", 'luteaalPTQ'))]
+-
 cronbach.alpha(dataC, CI=TRUE)
 
+#PSS
 dataC <- data.frame(select(data, matches("PSS")))
 dataC <- dataC[,!(names(dataC)%in% c("folliculairPSS", 'luteaalPSS'))]
+
 cronbach.alpha(dataC, CI=TRUE)
 
 
