@@ -623,7 +623,12 @@ for (i in 1:nrow(DataFrameClean)){
     break
   }
 }
-
+DataFrameExtensive$folliculairPSS <- DataFrameClean$folliculairPSS
+DataFrameExtensive$folliculairBSRI <- DataFrameClean$folliculairBSRI
+DataFrameExtensive$folliculairPTQ <- DataFrameClean$folliculairPTQ
+DataFrameExtensive$luteaalPSS <- DataFrameClean$luteaalPSS
+DataFrameExtensive$luteaalBSRI <- DataFrameClean$luteaalBSRI
+DataFrameExtensive$luteaalPTQ <- DataFrameClean$luteaalPTQ
 # dataDir = "Z:/ghepmk_data/2020_Kappen_PMS//"
 # dateDir = "02032021//"
 
