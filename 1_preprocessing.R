@@ -597,8 +597,7 @@ for (i in 1:nrow(DataFrameClean)){
     DataFrameClean$luteaalPTQ[i] = PTQ$PTQ2[i]
     
     # individual items
-    DataFrameExtensive[i,1:156] <- cbind(DataFrameExtensive[i,1:90], PSSitems[i,1:10], BSRIitems[i,1:8], PTQitems[i,1:15], PSSitems[i,11:20], BSRIitems[i,9:16], PTQitems[i,16:30])
-    # DataFrameExtensive[i,] <- cbind(DataFrameExtensive[i,], PSSitems[i,11:20], BSRIitems[i,9:16], PTQitems[i,16:30])
+    DataFrameExtensive[i,1:156] <- cbind(DataFrameExtensive[i,1:90], PSSitems[i,1:10], PSSitems[i,11:20], BSRIitems[i,1:8], BSRIitems[i,9:16], PTQitems[i,1:15], PTQitems[i,16:30])
   } else if (DataFrameClean$Order[i] == "B-A"){
     DataFrameClean$folliculairPSS[i] = PSS$PSS2[i]
     DataFrameClean$folliculairBSRI[i] = BSRI$BSRI2[i]
@@ -608,8 +607,7 @@ for (i in 1:nrow(DataFrameClean)){
     DataFrameClean$luteaalBSRI[i] = BSRI$BSRI1[i]
     DataFrameClean$luteaalPTQ[i] = PTQ$PTQ1[i]
     # individual items
-    DataFrameExtensive[i,1:156] <- cbind(DataFrameExtensive[i,1:90], PSSitems[i,11:20], BSRIitems[i,9:16], PTQitems[i,16:30], PSSitems[i,1:10], BSRIitems[i,1:8], PTQitems[i,1:15])
-    # DataFrameExtensive[i,] <- cbind(DataFrameExtensive[i,], PSSitems[i,1:10], BSRIitems[i,1:8], PTQitems[i,1:15])
+    DataFrameExtensive[i,1:156] <- cbind(DataFrameExtensive[i,1:90], PSSitems[i,11:20], PSSitems[i,1:10], BSRIitems[i,9:16], BSRIitems[i,1:8], PTQitems[i,16:30], PTQitems[i,1:15])
   } else if (DataFrameClean$Order[i] == 'xx') { # For some reason doesn't have an order assigned yet
     DataFrameClean$folliculairPSS[i] = NA
     DataFrameClean$folliculairBSRI[i] = NA
