@@ -10,6 +10,7 @@ library(car)
 library(ggplot2)
 library(ltm)
 library(lsr) #for calculating cohen's d
+library(pwr)
 
 if (!dir.exists("figures"))
   dir.create("figures")
@@ -108,6 +109,21 @@ cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
 cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
 
 
+##### POWER ######
+
+pwr.t.test(n = , d = , sig.level = , power = , type = c("two.sample", "one.sample", "paired"))
+
+power.anova.test(groups = 3, n = 380,
+                 between.var = NULL, within.var = NULL,
+                 sig.level = 0.05, power = NULL)
+
+Anova(formula)["Residuals", "Mean Sq"]
+
+Anova(formula)["group", "Mean Sq"]
+
+
+
+
 ##### DASS ##### 
 ##### DASS: Depression #####
 formula <- 'DASS_Depression ~ PMS + Age'
@@ -131,6 +147,26 @@ emmeans0.1 <- emmeans(d0.3, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
 
+# Power
+
+Anova(d0.3)["Residuals", "Mean Sq"]
+
+Anova(formula)["group", "Mean Sq"]
+
+power.anova.test(groups = 3, n = 380,
+                 between.var = NULL, within.var = NULL,
+                 sig.level = 0.05, power = NULL)
+
+
+library("Superpower")
+simple_condition_effects <- emmeans(
+  exact_result$emmeans$emmeans,
+  specs = ~ condition | voice
+)
+
+emmeans_power(pairs(simple_condition_effects))
+
+
 ## Visualisation
 max_y<-max(data$DASS_Depression)
 plot <- traitplot(data, emm0.1, "DASS_Depression",'DASS:Depression') +
@@ -141,7 +177,8 @@ plot <- traitplot(data, emm0.1, "DASS_Depression",'DASS:Depression') +
     geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+
     annotate('text', x=2, y=max_y+2.3, label='***', size=7)
 ggsave(plot, file=paste0(plotPrefix, "DASS_Depression_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
-# plot
+
+
 
 ##### DASS: Anxiety ##### 
 formula <- 'DASS_Anxiety ~ PMS + Age'

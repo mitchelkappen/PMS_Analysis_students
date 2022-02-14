@@ -57,10 +57,6 @@ data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contrac
 
 
 
-#Cronbach's Alpha
-
-cronbach.alpha(data, CI=TRUE)
-
 
 ###### Cohen's d (effect size) 
 
