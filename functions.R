@@ -184,7 +184,7 @@ stateplot <-function(data, emmean_dataframe, var, title){
                       labels=c(paste0('noPMS \n n=', as.character(sum(data$PMS == "noPMS")/2)), paste0('PMS \n n=', as.character(sum(data$PMS == "PMS")/2)), paste0('PMDD \n n=',as.character(sum(data$PMS == "PMDD")/2))))+ #labels names
     guides(fill = guide_legend(reverse=TRUE))+ # show labels in different order 
     labs(y=title)+
-    scale_x_discrete(labels=c("Follicular", "Luteal"))
+    scale_x_discrete(labels=c("Follicular", "Luteal"))+
     theme(
       legend.key.size=unit(1.3, 'cm'), # make keys of legend bigger
       legend.text=element_text(size=13), # text legend bigger
@@ -194,6 +194,7 @@ stateplot <-function(data, emmean_dataframe, var, title){
       axis.line = element_line(colour = "black"), # axis lines black
       panel.grid.major.y = element_line( size=.1, color="#dedede" ), #slight grey horizontal lines
       axis.text.x=element_text(size=rel(2)), #size x axis title
+      axis.text.y=element_text(size=rel(1.3)),
       axis.title.y=element_text(size=rel(1.5)), #size y axis title
       axis.title.x = element_blank()) # leave away extra x title (only 'foll' and 'lut')
 }
