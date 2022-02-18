@@ -184,6 +184,7 @@ stateplot <-function(data, emmean_dataframe, var, title){
                       labels=c(paste0('noPMS \n n=', as.character(sum(data$PMS == "noPMS")/2)), paste0('PMS \n n=', as.character(sum(data$PMS == "PMS")/2)), paste0('PMDD \n n=',as.character(sum(data$PMS == "PMDD")/2))))+ #labels names
     guides(fill = guide_legend(reverse=TRUE))+ # show labels in different order 
     labs(y=title)+
+    scale_x_discrete(labels=c("Follicular", "Luteal"))
     theme(
       legend.key.size=unit(1.3, 'cm'), # make keys of legend bigger
       legend.text=element_text(size=13), # text legend bigger
