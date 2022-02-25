@@ -228,92 +228,44 @@ overall_corr(PSS, PTQ, x_lab, y_lab)
 
 
 
-
   
   ##### Cohen's d (effect size) #####
   
-  # using full formula:
-  PSS_noPMS_mu <-mean(data$PSS[data$PMS=='noPMS'], na.rm=TRUE)
-  PSS_PMS_mu<- mean(data$PSS[data$PMS=='PMS'], na.rm=TRUE)
-  PSS_PMS_SD<- sd(data$PSS[data$PMS=='PMS'], na.rm=TRUE)
-  (PSS_noPMS_mu-PSS_PMS_mu)/PSS_PMS_SD # d for PMS-noPMS =  -0.3663
-  
-  ### PSS ###
-  
-  
-  ### Moment=Fol
-  noPMS_mu <-mean(data$PSS[data$PMS=='noPMS' & data$Moment=='Foll'], na.rm=TRUE)
-  PMS_mu <-mean(data$PSS[data$PMS=='PMS'& data$Moment=='Foll'], na.rm=TRUE)
-  
-  PMS_f <- as.numeric(as.character(data$PSS[data$PMS=='PMS'& data$Moment=='Foll']))
-  PMDD_f <- as.numeric(as.character(data$PSS[data$PMS=='PMDD'& data$Moment=='Foll']))
-  
-  cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
+  ## PSS
+  # Moment=Fol
+  cohens_d_function (data$PSS, 'Fol')
+  cohensD(PMS_f, mu= noPMS_mu)# PMS - noPMS
   cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
   cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-  
-  ### Moment=Lut
-  noPMS_mu <-mean(data$PSS[data$PMS=='noPMS' & data$Moment=='Lut'], na.rm=TRUE)
-  PMS_mu <-mean(data$PSS[data$PMS=='PMS'& data$Moment=='Lut'], na.rm=TRUE)
-  
-  PMS_f <- as.numeric(as.character(data$PSS[data$PMS=='PMS'& data$Moment=='Lut']))
-  PMDD_f <- as.numeric(as.character(data$PSS[data$PMS=='PMDD'& data$Moment=='Lut']))
-  
-  cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
+  # Moment=Lut
+  cohens_d_function (data$PSS, 'Lut')
+  cohensD(PMS_f, mu= noPMS_mu)# PMS-noPMS
   cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
   cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-  
-  ### FOll-Lut
-  
-  #noPMS
-  lut <- mean(data$PSS[data$PMS=='noPMS' & data$Moment=='Lut'])
-  fol <- as.numeric(as.character(data$PSS[data$PMS=='noPMS'& data$Moment=='Foll']))
+  # FOll-Lut
+  foll_lut(data$PSS, 'noPMS')
   cohensD(fol, mu=lut)
-  #PMS
-  lut <- mean(data$PSS[data$PMS=='PMS' & data$Moment=='Lut'])
-  fol <- as.numeric(as.character(data$PSS[data$PMS=='PMS'& data$Moment=='Foll']))
+  foll_lut(data$PSS, 'PMS')
   cohensD(fol, mu=lut)
-  #PMDD
-  lut <- mean(data$PSS[data$PMS=='PMDD' & data$Moment=='Lut'])
-  fol <- as.numeric(as.character(data$PSS[data$PMS=='PMDD'& data$Moment=='Foll']))
+  foll_lut(data$PSS, 'PMDD')
   cohensD(fol, mu=lut)
   
   
-  ### PTQ ###
-  
-  ### Moment=Fol
-  noPMS_mu <-mean(data$PTQ[data$PMS=='noPMS' & data$Moment=='Foll'], na.rm=TRUE)
-  PMS_mu <-mean(data$PTQ[data$PMS=='PMS'& data$Moment=='Foll'], na.rm=TRUE)
-  
-  PMS_f <- as.numeric(as.character(data$PTQ[data$PMS=='PMS'& data$Moment=='Foll']))
-  PMDD_f <- as.numeric(as.character(data$PTQ[data$PMS=='PMDD'& data$Moment=='Foll']))
-  
-  cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
+  ## PTQ 
+  # Moment=Fol
+  cohens_d_function (data$PTQ, 'Fol')
+  cohensD(PMS_f, mu= noPMS_mu)# PMS - noPMS
   cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
   cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-  
-  ### Moment=Lut
-  noPMS_mu <-mean(data$PTQ[data$PMS=='noPMS' & data$Moment=='Lut'], na.rm=TRUE)
-  PMS_mu <-mean(data$PTQ[data$PMS=='PMS'& data$Moment=='Lut'], na.rm=TRUE)
-  
-  PMS_f <- as.numeric(as.character(data$PTQ[data$PMS=='PMS'& data$Moment=='Lut']))
-  PMDD_f <- as.numeric(as.character(data$PTQ[data$PMS=='PMDD'& data$Moment=='Lut']))
-  
-  cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
+  # Moment=Lut
+  cohens_d_function (data$PTQ, 'Lut')
+  cohensD(PMS_f, mu= noPMS_mu)# PMS-noPMS
   cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
   cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-  
-  
-  ### FOll-Lut
-  #noPMS
-  lut <- mean(data$PTQ[data$PMS=='noPMS' & data$Moment=='Lut'])
-  fol <- as.numeric(as.character(data$PTQ[data$PMS=='noPMS'& data$Moment=='Foll']))
+  # FOll-Lut
+  foll_lut(data$PTQ,'noPMS')
   cohensD(fol, mu=lut)
-  #PMS
-  lut <- mean(data$PTQ[data$PMS=='PMS' & data$Moment=='Lut'])
-  fol <- as.numeric(as.character(data$PTQ[data$PMS=='PMS'& data$Moment=='Foll']))
+  foll_lut(data$PTQ, 'PMS')
   cohensD(fol, mu=lut)
-  #PMDD
-  lut <- mean(data$PTQ[data$PMS=='PMDD' & data$Moment=='Lut'])
-  fol <- as.numeric(as.character(data$PTQ[data$PMS=='PMDD'& data$Moment=='Foll']))
+  foll_lut(data$PTQ,'PMDD')
   cohensD(fol, mu=lut)
