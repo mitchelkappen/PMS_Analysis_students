@@ -211,4 +211,29 @@ overall_corr <- function(PSS, PTQ, x_lab, y_lab) {
     geom_segment(aes(x = -4, y = -4, xend = 40, yend = 40), size= 1, colour='red')
 }
 
+#cohen's d for traits
 
+cohens_d_trait <- function (var){
+  noPMS_mu <-mean(data$var[data$PMS=='noPMS'], na.rm=TRUE)
+  PMS_mu <-mean(data$var[data$PMS=='PMS'], na.rm=TRUE)
+  
+  PMS_f <- as.numeric(as.character(data$var[data$PMS=='PMS']))
+  PMDD_f <- as.numeric(as.character(data$var[data$PMS=='PMDD']))
+}
+
+#cohen's d calculations Fol en Lut
+
+cohens_d_function <- function (var, testmoment){
+  noPMS_mu <-mean(var[data$PMS=='noPMS' & data$Moment==testmoment], na.rm=TRUE)
+  PMS_mu <-mean(var[data$PMS=='PMS'& data$Moment==testmoment], na.rm=TRUE)
+  
+  PMS_f <- as.numeric(as.character(var[data$PMS=='PMS'& data$Moment==testmoment]))
+  PMDD_f <- as.numeric(as.character(var[data$PMS=='PMDD'& data$Moment==testmoment]))
+}
+
+#cohen's d foll - lut
+
+foll_lut <- function(var, PMSgroup){
+  lut <- mean(var[data$PMS==PMSgroup & data$Moment=='Lut'])
+  fol <- as.numeric(as.character(var[data$PMS==PMSgroup& data$Moment=='Foll']))
+}
