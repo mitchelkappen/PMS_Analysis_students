@@ -7,7 +7,6 @@ dev.off() # Clear plot window
 list.of.packages <- c("lme4",'emmeans','tidyverse', 'car', 'ggplot2', 'lsr', 'ggpubr')
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
-
 library(lme4) #linear models
 library(emmeans) # estimated marginal means
 library(tidyverse) # transform data
@@ -15,6 +14,8 @@ library(car) # anova
 library(ggplot2) # figures
 library(lsr) # cohen's d
 library(ggpubr) #correlations
+
+
 
 #####  General settings #####
 nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1
@@ -44,6 +45,8 @@ if (!dir.exists("figures")) #create map for storing the figures
 plotPrefix <- paste0(Dir, "figures/")
 plotPrefix <- paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/figures paper/")
 
+
+
 ##### Data Cleaning #####
 data$PMS[data$PMSScore == 0] = 'noPMS'
 data$PMS[data$PMSScore == 1] = 'PMS'
@@ -62,18 +65,12 @@ data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contrac
 
 
 
-
-
-##### States #####
-
 ### State: PSS ###
-formula <- 'PSS ~ PMS * Moment + Age + (1|newid)' # No added effect for contraception, yes for age. # anova(d0.1, d0.2, test="Chisq")
-
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
+formula <- 'PSS ~ PMS * Moment + Age + (1|newid)' # No added effect for contraception, yes for age. # anova(d0.1, d0.2, test="Chisq")
 d0.1 <- lmer(formula,data=dataModel)
-
 modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
 # Model Selection
@@ -98,32 +95,26 @@ plot <- stateplot(data, emm0.2,'PSS', 'PSS') +
   # Follicular
   geom_segment(aes(x =0.9, y = max_y, xend = 1, yend = max_y), size= 1)+ # line bottom first
   annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=7)+ # star
-  # geom_segment(aes(x =1, y = max_y+max_y/50, xend = 1.1, yend = max_y+max_y/50), size= 1)+ # line bottom second
-  # annotate('text', x=1.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+ # star
   geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
-  annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='***', size=7)+
+  annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='***', size=7)+ # star
   # Luteal  
   geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+ #bottom first line
-  annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+
+  annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+ # star
   geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+ # bottom second line
-  annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+
+  annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+ # star
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+# top line
-  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)+
-  geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+ # bottom second line
-  annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+
-  geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+# top line
-  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "PSS_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)+ # star
+ggsave(plot, file=paste0(plotPrefix, "PSS_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
 plot
 
-##### State: BSRI #####
-formula <- 'BSRI ~ PMS * Moment + (1|newid)' # No added value to the model for Age nor contraception # anova(d0.1, d0.2, test="Chisq")
 
+
+##### State: BSRI #####
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
+formula <- 'BSRI ~ PMS * Moment + (1|newid)' # No added value to the model for Age nor contraception # anova(d0.1, d0.2, test="Chisq")
 d0.1 <- lmer(formula,data=dataModel)
-
 modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
 # Model Selection
@@ -149,23 +140,23 @@ plot <- stateplot(data, emm0.2, 'BSRI', 'BSRI') +
   geom_segment(aes(x =0.9, y = max_y, xend = 1, yend = max_y), size= 1)+ # line bottom first
   annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=7)+ # star
   geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
-  annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='**', size=7)+
+  annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='**', size=7)+ # tar
   # Luteal
   geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+ #bottom first line
-  annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+
+  annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+ # star
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
-  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "BSRI_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7) # star
+ggsave(plot, file=paste0(plotPrefix, "BSRI_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
 plot
 
-##### State: PTQ #####
-formula <- 'PTQ ~ PMS * Moment + (1|newid)' # No effect for age, no effect for contraception
 
+
+##### State: PTQ #####
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
+formula <- 'PTQ ~ PMS * Moment + (1|newid)' # No effect for age, no effect for contraception
 d0.1 <- lmer(formula,data=dataModel)
-
 modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
 # Model Selection
@@ -188,21 +179,22 @@ emmeans0.2$contrasts
 max_y<-max(data$PTQ)
 plot <- stateplot(data, emm0.2, "PTQ", 'PTQ') +
   # Follicular
-  geom_segment(aes(x =1, y = max_y+max_y/50, xend = 1.1, yend = max_y+max_y/50), size= 1)+
+  geom_segment(aes(x =1, y = max_y+max_y/50, xend = 1.1, yend = max_y+max_y/50), size= 1)+ # bottom second line
   annotate('text', x=1.05, y=max_y + max_y/100+max_y/50, label='**', size=7)+
   geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='***', size=7)+
   # Luteal
-  geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+
+  geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+ # bottom first line 
   annotate('text', x=1.95, y=max_y+max_y/100, label='*', size=7)+
-  geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+
+  geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+ # bottom second line 
   annotate('text', x=2.05, y=max_y + max_y/100+max_y/50, label='***', size=7)+
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
 ggsave(plot, file=paste0(plotPrefix, "PTQ_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
-# plot
+ plot
 
 
+ 
 ##### Correlations #####
 
 ## noPMS 
@@ -228,44 +220,43 @@ overall_corr(PSS, PTQ, x_lab, y_lab)
 
 
 
-  
-  ##### Cohen's d (effect size) #####
-  
-  ## PSS
-  # Moment=Fol
-  cohens_d_function (data$PSS, 'Fol')
-  cohensD(PMS_f, mu= noPMS_mu)# PMS - noPMS
-  cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-  cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-  # Moment=Lut
-  cohens_d_function (data$PSS, 'Lut')
-  cohensD(PMS_f, mu= noPMS_mu)# PMS-noPMS
-  cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-  cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-  # FOll-Lut
-  foll_lut(data$PSS, 'noPMS')
-  cohensD(fol, mu=lut)
-  foll_lut(data$PSS, 'PMS')
-  cohensD(fol, mu=lut)
-  foll_lut(data$PSS, 'PMDD')
-  cohensD(fol, mu=lut)
-  
-  
-  ## PTQ 
-  # Moment=Fol
-  cohens_d_function (data$PTQ, 'Fol')
-  cohensD(PMS_f, mu= noPMS_mu)# PMS - noPMS
-  cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-  cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-  # Moment=Lut
-  cohens_d_function (data$PTQ, 'Lut')
-  cohensD(PMS_f, mu= noPMS_mu)# PMS-noPMS
-  cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-  cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-  # FOll-Lut
-  foll_lut(data$PTQ,'noPMS')
-  cohensD(fol, mu=lut)
-  foll_lut(data$PTQ, 'PMS')
-  cohensD(fol, mu=lut)
-  foll_lut(data$PTQ,'PMDD')
-  cohensD(fol, mu=lut)
+##### Cohen's d (effect size) #####
+
+## PSS
+# Moment=Fol
+cohens_d_function (data$PSS, 'Fol')
+cohensD(PMS_f, mu= noPMS_mu)# PMS - noPMS
+cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
+cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+# Moment=Lut
+cohens_d_function (data$PSS, 'Lut')
+cohensD(PMS_f, mu= noPMS_mu)# PMS-noPMS
+cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
+cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+# FOll-Lut
+foll_lut(data$PSS, 'noPMS')
+cohensD(fol, mu=lut)
+foll_lut(data$PSS, 'PMS')
+cohensD(fol, mu=lut)
+foll_lut(data$PSS, 'PMDD')
+cohensD(fol, mu=lut)
+
+
+## PTQ 
+# Moment=Fol
+cohens_d_function (data$PTQ, 'Fol')
+cohensD(PMS_f, mu= noPMS_mu)# PMS - noPMS
+cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
+cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+# Moment=Lut
+cohens_d_function (data$PTQ, 'Lut')
+cohensD(PMS_f, mu= noPMS_mu)# PMS-noPMS
+cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
+cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+# FOll-Lut
+foll_lut(data$PTQ,'noPMS')
+cohensD(fol, mu=lut)
+foll_lut(data$PTQ, 'PMS')
+cohensD(fol, mu=lut)
+foll_lut(data$PTQ,'PMDD')
+cohensD(fol, mu=lut)
