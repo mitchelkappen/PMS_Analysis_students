@@ -199,3 +199,16 @@ stateplot <-function(data, emmean_dataframe, var, title){
       axis.title.x = element_blank()) # leave away extra x title (only 'foll' and 'lut')
 }
 
+# overall correlation plot
+
+overall_corr <- function(PSS, PTQ, x_lab, y_lab) {
+  dataframe <- data.frame(PSS, PTQ)
+  ggscatter(dataframe, x = "PSS", y = "PTQ",
+            add='reg.line', fullrange=TRUE,
+            conf.int=TRUE,
+            cor.coef=TRUE, cor.method='pearson',
+            xlab=x_lab, ylab=y_lab)+
+    geom_segment(aes(x = -4, y = -4, xend = 40, yend = 40), size= 1, colour='red')
+}
+
+

@@ -3,12 +3,18 @@ rm(list = ls()) # Clear environment
 cat("\014") # Clear console
 dev.off() # Clear plot window
 
-library(lme4)
-library(emmeans)
-library(tidyverse)
-library(car)
-library(ggplot2)
-library(lsr) #for calculating cohen's d
+#install packages
+list.of.packages <- c("lme4",'emmeans','tidyverse', 'car', 'ggplot2', 'lsr', 'ggpubr')
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+
+library(lme4) #linear models
+library(emmeans) # estimated marginal means
+library(tidyverse) # transform data
+library(car) # anova
+library(ggplot2) # figures
+library(lsr) # cohen's d
+library(ggpubr) #correlations
 
 #####  General settings #####
 nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1
@@ -22,7 +28,7 @@ source("functions.R") # This is a file in the same directory where you can stash
 if (vpn == 1) {
   Dir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\" #data from VPN folder
 } else {
-  Dir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\" #data from github dir
+  Dir = " " #data from github dir
 }
 setwd(Dir)
 
@@ -58,95 +64,9 @@ data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contrac
 
 
 
-###### Cohen's d (effect size) 
-
-# using full formula:
-PSS_noPMS_mu <-mean(data$PSS[data$PMS=='noPMS'], na.rm=TRUE)
-PSS_PMS_mu<- mean(data$PSS[data$PMS=='PMS'], na.rm=TRUE)
-PSS_PMS_SD<- sd(data$PSS[data$PMS=='PMS'], na.rm=TRUE)
-(PSS_noPMS_mu-PSS_PMS_mu)/PSS_PMS_SD # d for PMS-noPMS =  -0.3663
-
-#### PSS  ######
-
-
-### Moment=Fol
-noPMS_mu <-mean(data$PSS[data$PMS=='noPMS' & data$Moment=='Foll'], na.rm=TRUE)
-PMS_mu <-mean(data$PSS[data$PMS=='PMS'& data$Moment=='Foll'], na.rm=TRUE)
-
-PMS_f <- as.numeric(as.character(data$PSS[data$PMS=='PMS'& data$Moment=='Foll']))
-PMDD_f <- as.numeric(as.character(data$PSS[data$PMS=='PMDD'& data$Moment=='Foll']))
-
-cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
-cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-
-#### Moment=Lut
-noPMS_mu <-mean(data$PSS[data$PMS=='noPMS' & data$Moment=='Lut'], na.rm=TRUE)
-PMS_mu <-mean(data$PSS[data$PMS=='PMS'& data$Moment=='Lut'], na.rm=TRUE)
-
-PMS_f <- as.numeric(as.character(data$PSS[data$PMS=='PMS'& data$Moment=='Lut']))
-PMDD_f <- as.numeric(as.character(data$PSS[data$PMS=='PMDD'& data$Moment=='Lut']))
-
-cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
-cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-
-### FOll-Lut
-#noPMS
-lut <- mean(data$PSS[data$PMS=='noPMS' & data$Moment=='Lut'])
-fol <- as.numeric(as.character(data$PSS[data$PMS=='noPMS'& data$Moment=='Foll']))
-cohensD(fol, mu=lut)
-#PMS
-lut <- mean(data$PSS[data$PMS=='PMS' & data$Moment=='Lut'])
-fol <- as.numeric(as.character(data$PSS[data$PMS=='PMS'& data$Moment=='Foll']))
-cohensD(fol, mu=lut)
-#PMDD
-lut <- mean(data$PSS[data$PMS=='PMDD' & data$Moment=='Lut'])
-fol <- as.numeric(as.character(data$PSS[data$PMS=='PMDD'& data$Moment=='Foll']))
-cohensD(fol, mu=lut)
-
-
-#PTQ
-#Moment=Fol
-noPMS_mu <-mean(data$PTQ[data$PMS=='noPMS' & data$Moment=='Foll'], na.rm=TRUE)
-PMS_mu <-mean(data$PTQ[data$PMS=='PMS'& data$Moment=='Foll'], na.rm=TRUE)
-
-PMS_f <- as.numeric(as.character(data$PTQ[data$PMS=='PMS'& data$Moment=='Foll']))
-PMDD_f <- as.numeric(as.character(data$PTQ[data$PMS=='PMDD'& data$Moment=='Foll']))
-
-cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
-cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-
-#Moment=Lut
-noPMS_mu <-mean(data$PTQ[data$PMS=='noPMS' & data$Moment=='Lut'], na.rm=TRUE)
-PMS_mu <-mean(data$PTQ[data$PMS=='PMS'& data$Moment=='Lut'], na.rm=TRUE)
-
-PMS_f <- as.numeric(as.character(data$PTQ[data$PMS=='PMS'& data$Moment=='Lut']))
-PMDD_f <- as.numeric(as.character(data$PTQ[data$PMS=='PMDD'& data$Moment=='Lut']))
-
-cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
-cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-
-
-### FOll-Lut
-#noPMS
-lut <- mean(data$PTQ[data$PMS=='noPMS' & data$Moment=='Lut'])
-fol <- as.numeric(as.character(data$PTQ[data$PMS=='noPMS'& data$Moment=='Foll']))
-cohensD(fol, mu=lut)
-#PMS
-lut <- mean(data$PTQ[data$PMS=='PMS' & data$Moment=='Lut'])
-fol <- as.numeric(as.character(data$PTQ[data$PMS=='PMS'& data$Moment=='Foll']))
-cohensD(fol, mu=lut)
-#PMDD
-lut <- mean(data$PTQ[data$PMS=='PMDD' & data$Moment=='Lut'])
-fol <- as.numeric(as.character(data$PTQ[data$PMS=='PMDD'& data$Moment=='Foll']))
-cohensD(fol, mu=lut)
-
-
 ##### States #####
-##### State: PSS #####
+
+### State: PSS ###
 formula <- 'PSS ~ PMS * Moment + Age + (1|newid)' # No added effect for contraception, yes for age. # anova(d0.1, d0.2, test="Chisq")
 
 dataModel = data
@@ -166,7 +86,6 @@ Anova(chosenModel[[1]], type = 'III')
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response") #we don't adjust because we do this later
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
-
 
 # Between timepoints for groups
 emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
@@ -284,121 +203,117 @@ ggsave(plot, file=paste0(plotPrefix, "PTQ_Plot.jpeg"), width = 2500, height = 15
 # plot
 
 
-##### Correlation stuff Sofie @Sofie, will you clean this up and comment properly? #####
-# #Doe correllaties BSRI en PSS per group overall, binnen follicular, binnen luteal, en tusssen luteal en follicular
-# # correlaties voor dataframe
+##### Correlations #####
 
-#noPMS overall
-noPMS_PSS <- data$PSS[data$PMS=='noPMS']
-noPMS_PTQ <- data$PTQ[data$PMS=='noPMS']
-#noPMS moment 1
-noPMS_1_PSS<- data$PSS[data$PMS=='noPMS'& data$Moment =='Foll']
-noPMS_1_PTQ <- data$PTQ[data$PMS=='noPMS'& data$Moment =='Foll']
-#noPMS moment 2
-noPMS_2_PSS <-data$PSS[data$PMS=='noPMS'& data$Moment =='Lut']
-noPMS_2_PTQ <- data$PTQ[data$PMS=='noPMS'& data$Moment =='Lut']
-#noPMS change or 'delta'
-noPMS_delta_PSS <- data$PSS[data$PMS=='noPMS'&data$Moment=='Lut']-data$PSS[data$PMS=='noPMS'&data$Moment=='Foll']
-noPMS_delta_PTQ <- data$PTQ[data$PMS=='noPMS'&data$Moment=='Lut']-data$PSS[data$PMS=='noPMS'&data$Moment=='Foll']
+## noPMS 
+PSS <- data$PSS[data$PMS=='noPMS']
+PTQ <- data$PTQ[data$PMS=='noPMS']
+x_lab= 'noPMS_PSS'
+y_lab='noPMS_PTQ'
+overall_corr(PSS, PTQ, x_lab, y_lab)
 
-#PMS overall
-PMS_PSS <- data$PSS[data$PMS=='PMS']
-PMS_PTQ <- data$PTQ[data$PMS=='PMS']
-# PMS moment 1
-PMS_1_PSS<- data$PSS[data$PMS=='PMS'& data$Moment =='Foll']
-PMS_1_PTQ <- data$PTQ[data$PMS=='PMS'& data$Moment =='Foll']
-#  PMS moment 2
-PMS_2_PSS <-data$PSS[data$PMS=='PMS'& data$Moment =='Lut']
-PMS_2_PTQ <- data$PTQ[data$PMS=='PMS'& data$Moment =='Lut']
-# PMS change
-PMS_delta_PSS <- data$PSS[data$PMS=='PMS'&data$Moment=='Lut']-data$PSS[data$PMS=='PMS'&data$Moment=='Foll']
-PMS_delta_PTQ <- data$PTQ[data$PMS=='PMS'&data$Moment=='Lut']-data$PSS[data$PMS=='PMS'&data$Moment=='Foll']
+## PMS
+PSS <- data$PSS[data$PMS=='PMS']
+PTQ <- data$PTQ[data$PMS=='PMS']
+x_lab= 'PMS_PSS'
+y_lab='PMS_PTQ'
+overall_corr(PSS, PTQ, x_lab, y_lab)
 
-#PMDD overall
+## PMDD
 PMDD_PSS <- data$PSS[data$PMS=='PMDD']
 PMDD_PTQ <- data$PTQ[data$PMS=='PMDD']
-# PMDD moment 1
-PMDD_1_PSS<- data$PSS[data$PMS=='PMDD'& data$Moment =='Foll']
-PMDD_1_PTQ <- data$PTQ[data$PMS=='PMDD'& data$Moment =='Foll']
-# PMDD moment 2
-PMDD_2_PSS <-data$PSS[data$PMS=='PMDD'& data$Moment =='Lut']
-PMDD_2_PTQ <- data$PTQ[data$PMS=='PMDD'& data$Moment =='Lut']
-# PMDD change
-PMDD_delta_PSS <- data$PSS[data$PMS=='PMDD'&data$Moment=='Lut']-data$PSS[data$PMS=='PMDD'&data$Moment=='Foll']
-PMDD_delta_PTQ <- data$PTQ[data$PMS=='PMDD'&data$Moment=='Lut']-data$PSS[data$PMS=='PMDD'&data$Moment=='FOll']
-
-library(plotrix)
-library(effectsizes)
-
-(mean(noPMS_1_PSS) - mean(PMS_1_PSS))/std.error(noPMS_1_PSS)
-
-# # voor corplots: maak dataframe
-# noPMSframe <- data.frame (noPMS_PSS, noPMS_PTQ, noPMS_1_PSS, noPMS_1_PTQ, noPMS_2_PSS, noPMS_2_PTQ
-#                           # m noPMS_delta_PSS, noPMS_delta_PTQ
-#                           )
-# PMSframe <- data.frame(PMS_PSS, PMS_PTQ, PMS_1_PSS, PMS_1_PTQ, PMS_2_PSS, PMS_2_PTQ, PMS_delta_PSS, PMS_delta_PTQ)
-# PMDDframe <- data.frame(PMDD_PSS, PMDD_PTQ, PMDD_1_PSS, PMDD_1_PTQ, PMDD_2_PSS, PMDD_2_PTQ, PMDD_delta_PSS, PMDD_delta_PTQ)
-# 
-# library(corrplot)
-# noPMScor<- cor(noPMSframe)
-# corrplot(noPMScor, method = 'number')
-# PMScor <- cor(PMSframe)
-# corrplot(PMScor, method='number')
-# PMDDcor <- cor (PMDDframe)
-# corrplot(PMDDcor, method='number')
-
-# voor ggscatter: maak dataframe, zet per kolom de waarden?
-library(ggpubr)
-
-dataframe <- data.frame(noPMS_PSS, noPMS_PTQ)
-ggscatter(dataframe, x = "noPMS_PSS", y = "noPMS_PTQ",
-          add='reg.line', fullrange=TRUE,
-          conf.int=TRUE,
-          cor.coef=TRUE, cor.method='pearson',
-          xlab='noPMS_PSS', ylab='noPMS_PTQ')+
-  geom_segment(aes(x = -4, y = -4, xend = 40, yend = 40), size= 1, colour='red')
-
-dataframe <- data.frame(PMS_PSS, PMS_PTQ)
-ggscatter(dataframe, x = "PMS_PSS", y = "PMS_PTQ",
-          add='reg.line', fullrange=TRUE,
-          conf.int=TRUE,
-          cor.coef=TRUE, cor.method='pearson',
-          xlab='PMS_PSS', ylab='PMS_PTQ')+
-  geom_segment(aes(x = -4, y = -4, xend = 40, yend = 40), size= 1, colour='red')
-
-dataframe <- data.frame(PMDD_PSS, PMDD_PTQ)
-ggscatter(dataframe, x = "PMDD_PSS", y = "PMDD_PTQ",
-          add='reg.line', fullrange=TRUE,
-          conf.int=TRUE,
-          cor.coef=TRUE, cor.method='pearson',
-          xlab='PMDD_PSS', ylab='PMDD_PTQ')+
-  geom_segment(aes(x = -4, y = -4, xend = 40, yend = 40), size= 1, colour='red')
+x_lab= 'PMDD_PSS'
+y_lab='PMDD_PTQ'
+overall_corr(PSS, PTQ, x_lab, y_lab)
 
 
 
-  #no PMScorrelate change: delta (change in value)PTQ to delta PSS.
-  dataframe <- data.frame(noPMS_delta_PSS, noPMS_delta_PTQ)
-  ggscatter(dataframe, x = "noPMS_delta_PSS", y = "noPMS_delta_PTQ",
-                      add='reg.line', fullrange=TRUE,
-                  conf.int=TRUE,
-                  cor.coef=TRUE, cor.method='pearson',
-                  xlab='noPMS_delta_PSS', ylab='noPMS_delta_PTQ')+
-        geom_segment(aes(x = -20, y = -20, xend = 30, yend = 30), size= 1, colour='red')
 
-  dataframe <- data.frame(PMS_delta_PSS, PMS_delta_PTQ)
-  ggscatter(dataframe, x = "PMS_delta_PSS", y = "PMS_delta_PTQ",
-            add='reg.line', fullrange=TRUE,
-            conf.int=TRUE,
-            cor.coef=TRUE, cor.method='pearson',
-            xlab='PMS_delta_PSS', ylab='PMS_delta_PTQ')+
-    geom_segment(aes(x = -20, y = -20, xend = 30, yend = 30), size= 1, colour='red')
   
-  dataframe <- data.frame(delta_PSS, delta_PTQ)
-  ggscatter(dataframe, x = "delta_PSS", y = "delta_PTQ",
-            add='reg.line', fullrange=TRUE,
-            conf.int=TRUE,
-            cor.coef=TRUE, cor.method='pearson',
-            xlab='delta_PSS', ylab='delta_PTQ')+
-    geom_segment(aes(x = -20, y = -20, xend = 30, yend = 43), size= 1, colour='red')
+  ##### Cohen's d (effect size) #####
+  
+  # using full formula:
+  PSS_noPMS_mu <-mean(data$PSS[data$PMS=='noPMS'], na.rm=TRUE)
+  PSS_PMS_mu<- mean(data$PSS[data$PMS=='PMS'], na.rm=TRUE)
+  PSS_PMS_SD<- sd(data$PSS[data$PMS=='PMS'], na.rm=TRUE)
+  (PSS_noPMS_mu-PSS_PMS_mu)/PSS_PMS_SD # d for PMS-noPMS =  -0.3663
+  
+  ### PSS ###
   
   
+  ### Moment=Fol
+  noPMS_mu <-mean(data$PSS[data$PMS=='noPMS' & data$Moment=='Foll'], na.rm=TRUE)
+  PMS_mu <-mean(data$PSS[data$PMS=='PMS'& data$Moment=='Foll'], na.rm=TRUE)
+  
+  PMS_f <- as.numeric(as.character(data$PSS[data$PMS=='PMS'& data$Moment=='Foll']))
+  PMDD_f <- as.numeric(as.character(data$PSS[data$PMS=='PMDD'& data$Moment=='Foll']))
+  
+  cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
+  cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
+  cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+  
+  ### Moment=Lut
+  noPMS_mu <-mean(data$PSS[data$PMS=='noPMS' & data$Moment=='Lut'], na.rm=TRUE)
+  PMS_mu <-mean(data$PSS[data$PMS=='PMS'& data$Moment=='Lut'], na.rm=TRUE)
+  
+  PMS_f <- as.numeric(as.character(data$PSS[data$PMS=='PMS'& data$Moment=='Lut']))
+  PMDD_f <- as.numeric(as.character(data$PSS[data$PMS=='PMDD'& data$Moment=='Lut']))
+  
+  cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
+  cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
+  cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+  
+  ### FOll-Lut
+  
+  #noPMS
+  lut <- mean(data$PSS[data$PMS=='noPMS' & data$Moment=='Lut'])
+  fol <- as.numeric(as.character(data$PSS[data$PMS=='noPMS'& data$Moment=='Foll']))
+  cohensD(fol, mu=lut)
+  #PMS
+  lut <- mean(data$PSS[data$PMS=='PMS' & data$Moment=='Lut'])
+  fol <- as.numeric(as.character(data$PSS[data$PMS=='PMS'& data$Moment=='Foll']))
+  cohensD(fol, mu=lut)
+  #PMDD
+  lut <- mean(data$PSS[data$PMS=='PMDD' & data$Moment=='Lut'])
+  fol <- as.numeric(as.character(data$PSS[data$PMS=='PMDD'& data$Moment=='Foll']))
+  cohensD(fol, mu=lut)
+  
+  
+  ### PTQ ###
+  
+  ### Moment=Fol
+  noPMS_mu <-mean(data$PTQ[data$PMS=='noPMS' & data$Moment=='Foll'], na.rm=TRUE)
+  PMS_mu <-mean(data$PTQ[data$PMS=='PMS'& data$Moment=='Foll'], na.rm=TRUE)
+  
+  PMS_f <- as.numeric(as.character(data$PTQ[data$PMS=='PMS'& data$Moment=='Foll']))
+  PMDD_f <- as.numeric(as.character(data$PTQ[data$PMS=='PMDD'& data$Moment=='Foll']))
+  
+  cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
+  cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
+  cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+  
+  ### Moment=Lut
+  noPMS_mu <-mean(data$PTQ[data$PMS=='noPMS' & data$Moment=='Lut'], na.rm=TRUE)
+  PMS_mu <-mean(data$PTQ[data$PMS=='PMS'& data$Moment=='Lut'], na.rm=TRUE)
+  
+  PMS_f <- as.numeric(as.character(data$PTQ[data$PMS=='PMS'& data$Moment=='Lut']))
+  PMDD_f <- as.numeric(as.character(data$PTQ[data$PMS=='PMDD'& data$Moment=='Lut']))
+  
+  cohensD(PMS_f, mu= noPMS_mu)# effect size between PMS and noPMS group = 0.3663
+  cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
+  cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+  
+  
+  ### FOll-Lut
+  #noPMS
+  lut <- mean(data$PTQ[data$PMS=='noPMS' & data$Moment=='Lut'])
+  fol <- as.numeric(as.character(data$PTQ[data$PMS=='noPMS'& data$Moment=='Foll']))
+  cohensD(fol, mu=lut)
+  #PMS
+  lut <- mean(data$PTQ[data$PMS=='PMS' & data$Moment=='Lut'])
+  fol <- as.numeric(as.character(data$PTQ[data$PMS=='PMS'& data$Moment=='Foll']))
+  cohensD(fol, mu=lut)
+  #PMDD
+  lut <- mean(data$PTQ[data$PMS=='PMDD' & data$Moment=='Lut'])
+  fol <- as.numeric(as.character(data$PTQ[data$PMS=='PMDD'& data$Moment=='Foll']))
+  cohensD(fol, mu=lut)
