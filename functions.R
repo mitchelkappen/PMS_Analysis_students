@@ -129,22 +129,18 @@ overall_corr <- function(PSS, PTQ, x_lab, y_lab) {
 }
 
 #cohen's d for traits
-cohens_d_trait <- function (var){
-  noPMS_mu <-mean(data$var[data$PMS=='noPMS'], na.rm=TRUE)
-  PMS_mu <-mean(data$var[data$PMS=='PMS'], na.rm=TRUE)
-  
-  PMS_f <- as.numeric(as.character(data$var[data$PMS=='PMS']))
-  PMDD_f <- as.numeric(as.character(data$var[data$PMS=='PMDD']))
+cohens_d_trait <- function (var, group1, group2){
+  group1_mu <-mean(data$var[data$PMS==group1], na.rm=TRUE)
+  group2_f <- as.numeric(as.character(data$var[data$PMS==group2]))
+  return(cohensD(group1_mu, group2_f))
 }
 
-#cohen's d calculations Fol en Lut
+#cohen's d for states
 
-cohens_d_function <- function (var, testmoment){
-  noPMS_mu <-mean(var[data$PMS=='noPMS' & data$Moment==testmoment], na.rm=TRUE)
-  PMS_mu <-mean(var[data$PMS=='PMS'& data$Moment==testmoment], na.rm=TRUE)
-  
-  PMS_f <- as.numeric(as.character(var[data$PMS=='PMS'& data$Moment==testmoment]))
-  PMDD_f <- as.numeric(as.character(var[data$PMS=='PMDD'& data$Moment==testmoment]))
+cohens_d_function <- function (var, testmoment, group1, group2){
+  group1_mu <-mean(var[data$PMS==group1 & data$Moment==testmoment], na.rm=TRUE)
+  group2_f <- as.numeric(as.character(var[data$PMS==group2& data$Moment==testmoment]))
+  return(cohensD(group1_mu, group2_f))
 }
 
 #cohen's d foll - lut
@@ -152,4 +148,5 @@ cohens_d_function <- function (var, testmoment){
 foll_lut <- function(var, PMSgroup){
   lut <- mean(var[data$PMS==PMSgroup & data$Moment=='Lut'])
   fol <- as.numeric(as.character(var[data$PMS==PMSgroup& data$Moment=='Foll']))
+  return(cohensD(fol, lut))
 }

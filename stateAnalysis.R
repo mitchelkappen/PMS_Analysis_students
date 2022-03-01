@@ -28,9 +28,7 @@ source("functions.R") # This is a file in the same directory where you can stash
 # Set WD
 if (vpn == 1) {
   Dir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\" #data from VPN folder
-} else {
-  Dir = " " #data from github dir
-}
+} 
 setwd(Dir)
 
 # Get data
@@ -103,7 +101,7 @@ plot <- stateplot(data, emm0.2,'PSS', 'PSS') +
   geom_segment(aes(x =2, y = max_y+max_y/50, xend = 2.1, yend = max_y+max_y/50), size= 1)+ # bottom second line
   annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+ # star
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+# top line
-  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)+ # star
+  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7) # star
 ggsave(plot, file=paste0(plotPrefix, "PSS_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
 plot
 
@@ -224,39 +222,29 @@ overall_corr(PSS, PTQ, x_lab, y_lab)
 
 ## PSS
 # Moment=Fol
-cohens_d_function (data$PSS, 'Fol')
-cohensD(PMS_f, mu= noPMS_mu)# PMS - noPMS
-cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+cohens_d_function (data$PSS, 'Foll', 'PMS', 'noPMS') #PMS-noPMS
+cohens_d_function (data$PSS, 'Foll', 'PMDD', 'noPMS')
+cohens_d_function (data$PSS, 'Foll', 'PMS', 'PMDD')
 # Moment=Lut
-cohens_d_function (data$PSS, 'Lut')
-cohensD(PMS_f, mu= noPMS_mu)# PMS-noPMS
-cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+cohens_d_function (data$PSS, 'Lut', 'PMS', 'noPMS') 
+cohens_d_function (data$PSS, 'Lut', 'PMDD', 'noPMS')
+cohens_d_function (data$PSS, 'Lut', 'PMS', 'PMDD')
 # FOll-Lut
 foll_lut(data$PSS, 'noPMS')
-cohensD(fol, mu=lut)
 foll_lut(data$PSS, 'PMS')
-cohensD(fol, mu=lut)
 foll_lut(data$PSS, 'PMDD')
-cohensD(fol, mu=lut)
 
 
 ## PTQ 
 # Moment=Fol
-cohens_d_function (data$PTQ, 'Fol')
-cohensD(PMS_f, mu= noPMS_mu)# PMS - noPMS
-cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+cohens_d_function (data$PTQ, 'Foll', 'PMS', 'noPMS') #PMS-noPMS
+cohens_d_function (data$PTQ, 'Foll', 'PMDD', 'noPMS')
+cohens_d_function (data$PTQ, 'Foll', 'PMS', 'PMDD')
 # Moment=Lut
-cohens_d_function (data$PTQ, 'Lut')
-cohensD(PMS_f, mu= noPMS_mu)# PMS-noPMS
-cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
+cohens_d_function (data$PTQ, 'Lut', 'PMS', 'noPMS') 
+cohens_d_function (data$PTQ, 'Lut', 'PMDD', 'noPMS')
+cohens_d_function (data$PTQ, 'Lut', 'PMS', 'PMDD')
 # FOll-Lut
-foll_lut(data$PTQ,'noPMS')
-cohensD(fol, mu=lut)
+foll_lut(data$PTQ, 'noPMS')
 foll_lut(data$PTQ, 'PMS')
-cohensD(fol, mu=lut)
-foll_lut(data$PTQ,'PMDD')
-cohensD(fol, mu=lut)
+foll_lut(data$PTQ, 'PMDD')
