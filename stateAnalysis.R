@@ -4,7 +4,7 @@ cat("\014") # Clear console
 dev.off() # Clear plot window
 
 #install packages
-list.of.packages <- c("lme4",'emmeans','tidyverse', 'car', 'ggplot2', 'lsr', 'ggpubr')
+list.of.packages <- c("lme4",'emmeans','tidyverse', 'car', 'ggplot2', 'lsr', 'ggpubr', 'effectsize')
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 library(lme4) #linear models
@@ -14,6 +14,7 @@ library(car) # anova
 library(ggplot2) # figures
 library(lsr) # cohen's d
 library(ggpubr) #correlations
+library(effectsize)#phi
 
 
 
@@ -71,21 +72,36 @@ formula <- 'PSS ~ PMS * Moment + Age + (1|newid)' # No added effect for contrace
 d0.1 <- lmer(formula,data=dataModel)
 modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
-# Model Selection
+## Model Selection
 tabel <- cbind(AIC(d0.1))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
+# Anova
+a<-Anova(chosenModel[[1]], type = 'III')
+a
+# phi, effect size
+phi_from_chisq(a, 237)
 
-Anova(chosenModel[[1]], type = 'III')
-
-# Between groups at time points
+## Between groups at time points
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response") #we don't adjust because we do this later
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
+# cohen's d Moment=Fol
+cohens_d_function (data$PSS, 'Foll', 'PMS', 'noPMS') #PMS-noPMS
+cohens_d_function (data$PSS, 'Foll', 'PMDD', 'noPMS')
+cohens_d_function (data$PSS, 'Foll', 'PMS', 'PMDD')
+# Moment=Lut
+cohens_d_function (data$PSS, 'Lut', 'PMS', 'noPMS') 
+cohens_d_function (data$PSS, 'Lut', 'PMDD', 'noPMS')
+cohens_d_function (data$PSS, 'Lut', 'PMS', 'PMDD')
 
-# Between timepoints for groups
+## Between timepoints for groups
 emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
 emm0.2 <- summary(emmeans0.2)$emmeans
 emmeans0.2$contrasts
+# cohen's d for FOll-Lut
+foll_lut(data$PSS, 'noPMS')
+foll_lut(data$PSS, 'PMS')
+foll_lut(data$PSS, 'PMDD')
 
 ## Visualisation
 max_y<-max(data$PSS)
@@ -107,48 +123,6 @@ plot
 
 
 
-##### State: BSRI #####
-dataModel = data
-rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
-
-formula <- 'BSRI ~ PMS * Moment + (1|newid)' # No added value to the model for Age nor contraception # anova(d0.1, d0.2, test="Chisq")
-d0.1 <- lmer(formula,data=dataModel)
-modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
-
-# Model Selection
-tabel <- cbind(AIC(d0.1))
-chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
-
-Anova(chosenModel[[1]], type = 'III')
-
-# Between groups at time points
-emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response")
-emm0.1 <- summary(emmeans0.1)$emmeans
-emmeans0.1$contrasts
-
-# Between timepoints for groups
-emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
-emm0.2 <- summary(emmeans0.2)$emmeans
-emmeans0.2$contrasts
-
-## Visualisation
-max_y<-max(data$BSRI)
-plot <- stateplot(data, emm0.2, 'BSRI', 'BSRI') +
-  # Follicular
-  geom_segment(aes(x =0.9, y = max_y, xend = 1, yend = max_y), size= 1)+ # line bottom first
-  annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=7)+ # star
-  geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
-  annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='**', size=7)+ # tar
-  # Luteal
-  geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+ #bottom first line
-  annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+ # star
-  geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
-  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7) # star
-ggsave(plot, file=paste0(plotPrefix, "BSRI_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
-plot
-
-
-
 ##### State: PTQ #####
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
@@ -157,21 +131,36 @@ formula <- 'PTQ ~ PMS * Moment + (1|newid)' # No effect for age, no effect for c
 d0.1 <- lmer(formula,data=dataModel)
 modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
-# Model Selection
+## Model Selection
 tabel <- cbind(AIC(d0.1))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
+# Anova
+a<-Anova(chosenModel[[1]], type = 'III')
+a
+# phi, effect size
+phi_from_chisq(a, 237)
 
-Anova(chosenModel[[1]], type = 'III')
-
-# Between groups at time points
+## Between groups at time points
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment , adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
+# Cohen's d, Moment=Fol
+cohens_d_function (data$PTQ, 'Foll', 'PMS', 'noPMS') #PMS-noPMS
+cohens_d_function (data$PTQ, 'Foll', 'PMDD', 'noPMS')
+cohens_d_function (data$PTQ, 'Foll', 'PMS', 'PMDD')
+# Moment=Lut
+cohens_d_function (data$PTQ, 'Lut', 'PMS', 'noPMS') 
+cohens_d_function (data$PTQ, 'Lut', 'PMDD', 'noPMS')
+cohens_d_function (data$PTQ, 'Lut', 'PMS', 'PMDD')
 
-# Between timepoints for groups
+## Between timepoints for groups
 emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
 emm0.2 <- summary(emmeans0.2)$emmeans
 emmeans0.2$contrasts
+# Cohen's d, FOll-Lut
+foll_lut(data$PTQ, 'noPMS')
+foll_lut(data$PTQ, 'PMS')
+foll_lut(data$PTQ, 'PMDD')
 
 ## Visualisation
 max_y<-max(data$PTQ)
@@ -218,33 +207,42 @@ overall_corr(PSS, PTQ, x_lab, y_lab)
 
 
 
-##### Cohen's d (effect size) #####
+##### State: BSRI #####
+dataModel = data
+rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
-## PSS
-# Moment=Fol
-cohens_d_function (data$PSS, 'Foll', 'PMS', 'noPMS') #PMS-noPMS
-cohens_d_function (data$PSS, 'Foll', 'PMDD', 'noPMS')
-cohens_d_function (data$PSS, 'Foll', 'PMS', 'PMDD')
-# Moment=Lut
-cohens_d_function (data$PSS, 'Lut', 'PMS', 'noPMS') 
-cohens_d_function (data$PSS, 'Lut', 'PMDD', 'noPMS')
-cohens_d_function (data$PSS, 'Lut', 'PMS', 'PMDD')
-# FOll-Lut
-foll_lut(data$PSS, 'noPMS')
-foll_lut(data$PSS, 'PMS')
-foll_lut(data$PSS, 'PMDD')
+formula <- 'BSRI ~ PMS * Moment + (1|newid)' # No added value to the model for Age nor contraception # anova(d0.1, d0.2, test="Chisq")
+d0.1 <- lmer(formula,data=dataModel)
+modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being present
 
+## Model Selection
+tabel <- cbind(AIC(d0.1))
+chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 
-## PTQ 
-# Moment=Fol
-cohens_d_function (data$PTQ, 'Foll', 'PMS', 'noPMS') #PMS-noPMS
-cohens_d_function (data$PTQ, 'Foll', 'PMDD', 'noPMS')
-cohens_d_function (data$PTQ, 'Foll', 'PMS', 'PMDD')
-# Moment=Lut
-cohens_d_function (data$PTQ, 'Lut', 'PMS', 'noPMS') 
-cohens_d_function (data$PTQ, 'Lut', 'PMDD', 'noPMS')
-cohens_d_function (data$PTQ, 'Lut', 'PMS', 'PMDD')
-# FOll-Lut
-foll_lut(data$PTQ, 'noPMS')
-foll_lut(data$PTQ, 'PMS')
-foll_lut(data$PTQ, 'PMDD')
+Anova(chosenModel[[1]], type = 'III')
+
+## Between groups at time points
+emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response")
+emm0.1 <- summary(emmeans0.1)$emmeans
+emmeans0.1$contrasts
+
+## Between timepoints for groups
+emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
+emm0.2 <- summary(emmeans0.2)$emmeans
+emmeans0.2$contrasts
+
+## Visualisation
+max_y<-max(data$BSRI)
+plot <- stateplot(data, emm0.2, 'BSRI', 'BSRI') +
+  # Follicular
+  geom_segment(aes(x =0.9, y = max_y, xend = 1, yend = max_y), size= 1)+ # line bottom first
+  annotate('text', x=0.95, y=max_y + max_y/100, label='*', size=7)+ # star
+  geom_segment(aes(x =0.9, y = max_y+max_y/15, xend = 1.1, yend = max_y+max_y/15), size= 1)+ # top line
+  annotate('text', x=1, y=max_y+max_y/15+max_y/100, label='**', size=7)+ # tar
+  # Luteal
+  geom_segment(aes(x =1.9, y = max_y, xend = 2, yend = max_y), size= 1)+ #bottom first line
+  annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+ # star
+  geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
+  annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7) # star
+ggsave(plot, file=paste0(plotPrefix, "BSRI_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
+plot

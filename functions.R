@@ -136,7 +136,6 @@ cohens_d_trait <- function (var, group1, group2){
 }
 
 #cohen's d for states
-
 cohens_d_function <- function (var, testmoment, group1, group2){
   group1_mu <-mean(var[data$PMS==group1 & data$Moment==testmoment], na.rm=TRUE)
   group2_f <- as.numeric(as.character(var[data$PMS==group2& data$Moment==testmoment]))
@@ -144,9 +143,13 @@ cohens_d_function <- function (var, testmoment, group1, group2){
 }
 
 #cohen's d foll - lut
-
 foll_lut <- function(var, PMSgroup){
   lut <- mean(var[data$PMS==PMSgroup & data$Moment=='Lut'])
   fol <- as.numeric(as.character(var[data$PMS==PMSgroup& data$Moment=='Foll']))
   return(cohensD(fol, lut))
+}
+
+#phi (effect size for anova)
+phi_from_chisq <- function(anovatable,  N){
+  round(sqrt(anovatable[1] / N),2)
 }
