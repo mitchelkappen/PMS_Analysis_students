@@ -11,6 +11,9 @@ cat("\014") # Clear console
 dev.off() # Clear plot window
 
 ###### Declare workspace and load data #####
+list.of.packages <- c("dplyr",'tidyr') # All relevant packages
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])] # Check if any of these packages are not yet installed
+if(length(new.packages)) install.packages(new.packages) # If any packages are not yet installed, install them
 library(dplyr)
 library(tidyr)
 
@@ -192,7 +195,7 @@ ContraData$Overview[ContraData$`natural` == 'Y'] = 'Natural'
 ContraData$Overview[ContraData$other != ''] = 'other'
 ContraData$Overview <- as.factor(ContraData$Overview) # Factorize this variable
 
-DataFrameClean <- cbind(DataFrameClean, ContraData$Overview) # Add to clean dataframe
+DataFrameClean <- cbind(DataFrameClean, Contraception = ContraData$Overview) # Add to clean dataframe
 
 # Some people responded something else than 'other' when using Nuvaring, so should be set to other (however it seems like they are already set to 'other' so probably changed in Excel file)
 DataFrameClean$Contraception[DataFrame$EMail == 'axxxboels@gmail.com'] = 'other' # axxxboels@gmail.com

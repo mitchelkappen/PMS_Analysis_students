@@ -9,13 +9,13 @@
 
 library(ggplot2) # figures
 
-##### Functions for preprocessingData.R
+##### Functions for preprocessingData.R #####
 # A function that takes the last n characters of a string
 substrRight <- function(x, n){ 
   substr(x, nchar(x)-n+1, nchar(x))}
 
 # Extracting total questionnaire scores from dataframes 
-### PSS ###
+### PSS ####
 getPSS <- function(data) {
   tempData <- data[ , grepl("PSS.P", names(data))] # Make dataset with only PSS variables
   allPSS = 0
@@ -66,9 +66,8 @@ getPTQ <- function(data) {
   return(allPTQ)
 }
 
-##### General Plot functions
-### violin functions
-
+##### Visualisations #####
+### Violin plot ####
 geom_flat_violin <-
   function(mapping = NULL,
            data = NULL,
@@ -135,8 +134,7 @@ GeomFlatViolin <- ggproto(
   required_aes = c("x", "y")
 )
 
-
-# Trait viz
+### Trait viz ####
 traitplot <-function(data, emmean_dataframe, var, title){
   ggplot(data, aes(x = PMS, y = .data[[var]])) +
     geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), alpha=.5, adjust = 1.5, colour = NA)+
@@ -160,7 +158,7 @@ traitplot <-function(data, emmean_dataframe, var, title){
       axis.title.x = element_blank())
 }
 
-# State Viz
+### State Viz #####
 stateplot <-function(data, emmean_dataframe, var, title){
   ggplot()+ 
     geom_flat_violin(data= data, aes(x= Moment, y= .data[[var]], fill=PMS),position = position_nudge(x =.3, y = 0), adjust = 1.5, alpha = .5, colour = NA)+ # flat violin distribution, .3 points to the right. alpha=.5 so see-through
@@ -186,7 +184,7 @@ stateplot <-function(data, emmean_dataframe, var, title){
       axis.title.x = element_blank()) # leave away extra x title (only 'foll' and 'lut')
 }
 
-# overall correlation plot
+### Correlation plot ####
 overall_corr <- function(PSS, PTQ, x_lab, y_lab) {
   dataframe <- data.frame(PSS, PTQ)
   ggscatter(dataframe, x = "PSS", y = "PTQ",
@@ -197,28 +195,29 @@ overall_corr <- function(PSS, PTQ, x_lab, y_lab) {
     geom_segment(aes(x = -4, y = -4, xend = 40, yend = 40), size= 1, colour='red')
 }
 
-#cohen's d for traits
+###### Statistics ######
+### Cohen's d for traits ####
 cohens_d_trait <- function (var, group1, group2){
   group1_mu <-mean(data$var[data$PMS==group1], na.rm=TRUE)
   group2_f <- as.numeric(as.character(data$var[data$PMS==group2]))
   return(cohensD(group1_mu, group2_f))
 }
 
-#cohen's d for states
-cohens_d_function <- function (var, testmoment, group1, group2){
+### Cohen's d for states - between groups ####
+cohens_d_state <- function (var, testmoment, group1, group2){
   group1_mu <-mean(var[data$PMS==group1 & data$Moment==testmoment], na.rm=TRUE)
   group2_f <- as.numeric(as.character(var[data$PMS==group2& data$Moment==testmoment]))
   return(cohensD(group1_mu, group2_f))
 }
 
-#cohen's d foll - lut
-foll_lut <- function(var, PMSgroup){
+### Cohen's d fir states - between moment ####
+cohens_d_moments <- function(var, PMSgroup){
   lut <- mean(var[data$PMS==PMSgroup & data$Moment=='Lut'])
   fol <- as.numeric(as.character(var[data$PMS==PMSgroup& data$Moment=='Foll']))
   return(cohensD(fol, lut))
 }
 
-#phi (effect size for anova)
+### Phi (effect size for anova) ####
 phi_from_chisq <- function(anovatable,  N){
   round(sqrt(anovatable[1] / N),2)
 }
