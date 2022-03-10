@@ -238,23 +238,43 @@ ggsave(plot, file=paste0(plotPrefix, "BSRI_Plot.jpeg"), width = 2500, height = 1
 plot
 
 ##### Correlations #####
-## noPMS 
+
+## PSS vs. PTQ
+# noPMS 
 PSS <- data$PSS[data$PMS=='noPMS']
 PTQ <- data$PTQ[data$PMS=='noPMS']
 x_lab= 'noPMS_PSS'
 y_lab='noPMS_PTQ'
 overall_corr(PSS, PTQ, x_lab, y_lab)
-
-## PMS
+# PMS
 PSS <- data$PSS[data$PMS=='PMS']
 PTQ <- data$PTQ[data$PMS=='PMS']
 x_lab= 'PMS_PSS'
 y_lab='PMS_PTQ'
 overall_corr(PSS, PTQ, x_lab, y_lab)
-
-## PMDD
+# PMDD
 PSS <- data$PSS[data$PMS=='PMDD']
 PTQ <- data$PTQ[data$PMS=='PMDD']
 x_lab= 'PMDD_PSS'
 y_lab='PMDD_PTQ'
+overall_corr(PSS, PTQ, x_lab, y_lab)
+
+## delta
+# noPMS
+PSS <- data$PSS[data$PMS=='noPMS'&data$Moment=='Foll']-data$PSS[data$PMS=='noPMS'&data$Moment=='Lut']
+PTQ <- data$PTQ[data$PMS=='noPMS'&data$Moment=='Foll']-data$PTQ[data$PMS=='noPMS'&data$Moment=='Lut']
+x_lab = 'noPMS_delta_PSS'
+y_lab = 'noPMS_delta_PTQ'
+overall_corr(PSS, PTQ, x_lab, y_lab)
+# PMS
+PSS <- data$PSS[data$PMS=='PMS'&data$Moment=='Foll']-data$PSS[data$PMS=='PMS'&data$Moment=='Lut']
+PTQ <- data$PTQ[data$PMS=='PMS'&data$Moment=='Foll']-data$PTQ[data$PMS=='PMS'&data$Moment=='Lut']
+x_lab = 'PMS_delta_PSS'
+y_lab = 'PMS_delta_PTQ'
+overall_corr(PSS, PTQ, x_lab, y_lab)
+#PMDD
+PSS <- data$PSS[data$PMS=='PMDD'&data$Moment=='Foll']-data$PSS[data$PMS=='PMDD'&data$Moment=='Lut']
+PTQ <- data$PTQ[data$PMS=='PMDD'&data$Moment=='Foll']-data$PTQ[data$PMS=='PMDD'&data$Moment=='Lut']
+x_lab = 'PMDD_delta_PSS'
+y_lab = 'PMDD_delta_PTQ'
 overall_corr(PSS, PTQ, x_lab, y_lab)
