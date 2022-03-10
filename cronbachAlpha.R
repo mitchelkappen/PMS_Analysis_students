@@ -1,6 +1,4 @@
-
-  
-#Cronbach alpha's for PMS study MItchel Kappen
+#Cronbach alpha's for PMS study Mitchel Kappen
 #code by Sofie Raeymakers
 
 ##### Set environment #####
@@ -54,8 +52,6 @@ data$Order <- factor(data$Order)
 data_allcontraception <- data # Backup the data prior to exclusion
 data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contraception=="Hor. Coil"|data$Contraception=="Hor.Coil"),] # Only looking at non-hormonal contraceptives, so kick out all other data
 
-
-
 ###### Cronbach's Alpha #########
 
 randn <-floor(runif(3, min=0, max=101)) #random numbers for sanity check
@@ -89,7 +85,6 @@ for (i in randn){ #check if they are correctly calculated
 }
 cronbach.alpha(dataC, CI=TRUE, na.rm=T)
 
-
 #PTQ
 dataC <- data.frame(select(data, matches("PTQ")))
 dataC <- dataC[,!(names(dataC)%in% c("folliculairPTQ", 'luteaalPTQ'))]
@@ -117,5 +112,3 @@ cronbach.alpha(dataC, CI=TRUE, na.rm=T)
 #PSST
 dataC <- data.frame(select(data, matches("PST")))
 cronbach.alpha(dataC, CI=TRUE)
-
-

@@ -1,3 +1,16 @@
+#############################
+#                           #
+##  Function corresponding ##
+#     to PMS study code     #
+#############################
+# Collection of functions used in preprocessingData.R & stateAnalysis.R & traitAnalysis.R & cronbachAlpha.R
+# Author: Mitchel Kappen
+# 10-3-2022
+
+##### Functions for preprocessingData.R
+
+
+##### General Plot functions
 ### violin functions
 
 geom_flat_violin <-

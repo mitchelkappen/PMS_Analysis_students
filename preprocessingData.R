@@ -1,7 +1,11 @@
 #############################
 #                           #
 ##  PreProcessing PMS data ##
+#                           #
 #############################
+# This code gets raw data and turns it into usable csv files - see ReadMe.md
+# Author: Mitchel Kappen
+# 10-3-2022
 rm(list = ls()) # Clear environment
 cat("\014") # Clear console
 dev.off() # Clear plot window
@@ -10,15 +14,13 @@ dev.off() # Clear plot window
 
 library(dplyr)
 
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))# Set working directory to current directory
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #Set WD to script location - Else it can't find functions.R
+source("functions.R") # This is a file in the same directory where you can stash your functions so you can save them there and have them together
 
 dataDir = "Z:/shares/ghepmk_data/2020_Kappen_PMS//"
-# dateDir = "24082021//"
 dateDir = "06102021//"
 
-DataFrame <- as.data.frame(read.csv(file = paste0(dataDir, dateDir,"results-survey987313.csv"), head = TRUE, sep=",",  stringsAsFactors=FALSE))
-# DataFrameCOMPLETE <- as.data.frame(read.csv(file = paste0(dataDir, dateDir,"allPMSdata.csv"), head = TRUE, sep=",",  stringsAsFactors=FALSE))
-
+DataFrame <- as.data.frame(read.csv(file = paste0(dataDir, dateDir,"results-survey987313.csv"), head = TRUE, sep=",",  stringsAsFactors=FALSE)) # Load csv from Screening moment
 DataFrame <- select(DataFrame, -c(lastpage, startlanguage, startdate, datestamp, IFC1, IFC2, IFC3, IFC4, IFC5, IFC6, auto1.SQ001., AgeValidation.SQ001., AgeValidation.SQ002., interviewtime, groupTime17, IFC1Time, IFC2Time, IFC3Time, IFC4Time, IFC5Time, IFC6Time, auto1Time, groupTime13, GenderTime, AgeTime, MenstruationTime, FirstMenstrualTime, RegularMentrualTime, MenopauseTime, PregnantTime, PostPregnantTime, ContraceptiveTime, DutchTime, HormonesTime, MentalTime, LaptopTime, MenstrualToelichtTime, CurrentMensesTime, MenstrualStartTime, MenstrualEndTime, MenstrualEndExpectedTime, MenstrualDurationTime, AgeValidationTime, EMailTime, groupTime16, SymptomsTime, DisturbanceTime, SymptomsPRETime, groupTime14, RRSTime, groupTime15, DASS21Time )) #Remove columns with irrelevant data
 
 isala = DataFrame$Isala[DataFrame$Isala != ""]
