@@ -196,21 +196,27 @@ overall_corr <- function(PSS, PTQ, x_lab, y_lab) {
 }
 
 ###### Statistics ######
-### Cohen's d for traits ####
+### Cohen's d for traits - between groups ####
+# cohens_d_trait <- function (var, group1, group2){
+#   group1_mu <-mean(data$var[data$PMS==group1], na.rm=TRUE)
+#   group2_f <- as.numeric(as.character(data$var[data$PMS==group2]))
+#   return(cohensD(group1_mu, group2_f))
+# }
+
 cohens_d_trait <- function (var, group1, group2){
-  group1_mu <-mean(data$var[data$PMS==group1], na.rm=TRUE)
-  group2_f <- as.numeric(as.character(data$var[data$PMS==group2]))
-  return(cohensD(group1_mu, group2_f))
+  group1 <- var[data$PMS==group1]
+  group2 <- var[data$PMS==group2]
+  return(cohensD(group1, group2))
 }
 
 ### Cohen's d for states - between groups ####
 cohens_d_state <- function (var, testmoment, group1, group2){
-  group1_mu <-mean(var[data$PMS==group1 & data$Moment==testmoment], na.rm=TRUE)
+  group1_mu <- mean(var[data$PMS==group1 & data$Moment==testmoment], na.rm=TRUE)
   group2_f <- as.numeric(as.character(var[data$PMS==group2& data$Moment==testmoment]))
   return(cohensD(group1_mu, group2_f))
 }
 
-### Cohen's d fir states - between moment ####
+### Cohen's d for states - between moment ####
 cohens_d_moments <- function(var, PMSgroup){
   lut <- mean(var[data$PMS==PMSgroup & data$Moment=='Lut'])
   fol <- as.numeric(as.character(var[data$PMS==PMSgroup& data$Moment=='Foll']))

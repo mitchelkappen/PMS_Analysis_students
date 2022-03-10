@@ -4,7 +4,7 @@
 #         PMS data           #
 #                            #
 #############################
-# This code gets raw data and turns it into usable csv files - see ReadMe.md
+# This code uses premade csv for STATE specific variables and perform analysis and data viz
 # Author: Mitchel Kappen & Sofie Raeymakers
 # 10-3-2022
 ##### Set environment #####
