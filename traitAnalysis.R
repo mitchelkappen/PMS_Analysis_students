@@ -1,3 +1,12 @@
+##############################
+#                            #
+# Analysis of Trait variables#
+#         PMS data           #
+#                            #
+#############################
+# This code uses premade csv for TRAIT specific variables and perform analysis and data viz
+# Author: Mitchel Kappen & Sofie Raeymakers
+# 10-3-2022
 ##### Set environment #####
 rm(list = ls()) # Clear environment
 cat("\014") # Clear console
@@ -14,15 +23,12 @@ library(car) # anova
 library(ggplot2) # figures
 library(lsr) #for calculating cohen's d
 
-
-
-#####  General settings ##### 
-nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1ù
+##### General settings #####
+nAGQ = 1 # Set to 1 for GLMMs to get reliable results
 vpn = 1 # Set to 1 if using VPN
 
-
 # Get and declare functions
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #Set WD to script location so it can find functions
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #Set WD to script location - Else it can't find functions.R
 source("functions.R") # This is a file in the same directory where you can stash your functions so you can save them there and have them together
 
 # Set WD
@@ -32,46 +38,43 @@ if (vpn == 1) {
 setwd(Dir)
 
 # Get data
-data <-
-  read.csv(paste0(Dir, "06102021\\cleanedDataTraits.csv"),
-           header = TRUE,
-           sep = ) #upload data
+data <- read.csv(paste0(Dir, "06102021\\cleanedDataMoments.csv"), header = TRUE, sep = ) #upload data
 
 # save figures
-if (!dir.exists("figures"))
-  dir.create("figures")
-plotPrefix <- paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/figures paper/")
+if (!dir.exists("figures")){ # Create folder for storing the figures if it doesn't exist yet
+  dir.create("figures")}
+plotPrefix <- paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/figures/") # Prefix to easily store figures later
 
-
-
-##### Clean data up a bit #####
+##### Data Cleaning #####
+# Use names for PMS score - easier interpretation and plotting later
 data$PMS[data$PMSScore == 0] = 'noPMS'
 data$PMS[data$PMSScore == 1] = 'PMS'
 data$PMS[data$PMSScore == 2] = 'PMDD'
-
-# Factorize and rename columns
 data$PMS <- ordered(data$PMS, levels = c('noPMS', 'PMS', 'PMDD')) # Factorize and turn into ordered levels
-names(data)[names(data) == "allRRS"] = "RRS" # Rename column
+
+# Factorize the rest of the data where needed
 data$ID <- factor(data$ID)
-data$Order <- factor(data$Order)
-
-# Exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
-data_allcontraception <- data # Backup the data prior to exclusion
-data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contraception=="Hor. Coil"|data$Contraception=="Hor.Coil"),] # Only looking at non-hormonal contraceptives, so kick out all other data
-
 data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
+data$Moment <- factor(data$Moment)
+data$Contraception <- factor(data$Contraception)
+names(data)[names(data) == "allRRS"] = "RRS" # Rename column
+data$Order <- factor(data$Order)
+data$Contraception <- factor(data$Contraception)
 
+# Exclude everyone on the pill/hormonal coil/other: only those with Natural Contraception + copper coil are left included
+data_allcontraception <- data # Backup the data prior to exclusion
+data <- data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contraception=="Hor. Coil"|data$Contraception=="Hor.Coil"),] # Only looking at non-hormonal contraceptives, so kick out all other data
 
-
-
-##### DASS ##### 
-##### DASS: Depression #####
+###### Analysis ######
+##### Trait: DASS ##### 
+##### Trait: DASS - Depression #####
+dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 formula <- 'DASS_Depression ~ PMS + Age'
-d0.1 <- lm(formula,data=data)
-d0.2 <- glm(formula,data=data, family = Gamma(link = "identity"))
-d0.3 <- glm(formula,data=data, family = inverse.gaussian(link = "identity"))
+d0.1 <- lm(formula,data=dataModel)
+d0.2 <- glm(formula,data=dataModel, family = Gamma(link = "identity"))
+d0.3 <- glm(formula,data=dataModel, family = inverse.gaussian(link = "identity"))
 
 modelNames = c('d0.1','d0.2','d0.3')
 
@@ -87,6 +90,10 @@ phi_from_chisq(a, 237)
 emmeans0.1 <- emmeans(d0.3, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
+# Cohen's d 
+sprintf("Cohen's D for DASS-Depression | PMS vs noPMS: %.2f", cohens_d_trait(data$DASS_Depression, "noPMS", "PMS"))
+sprintf("Cohen's D for DASS-Depression | PMDD vs noPMS: %.2f", cohens_d_trait(data$DASS_Depression, "PMDD", "noPMS"))
+sprintf("Cohen's D for DASS-Depression | PMS vs PMDD: %.2f", cohens_d_trait(data$DASS_Depression, "PMS", "PMDD"))
 
 ## Visualisation
 max_y<-max(data$DASS_Depression)
@@ -98,16 +105,16 @@ plot <- traitplot(data, emm0.1, "DASS_Depression",'DASS:Depression') +
     geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+ # top line
     annotate('text', x=2, y=max_y+2.3, label='***', size=7)
 ggsave(plot, file=paste0(plotPrefix, "DASS_Depression_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+plot
 
-
-
-##### DASS: Anxiety ##### 
+##### Trait: DASS - Anxiety #####
+dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 formula <- 'DASS_Anxiety ~ PMS + Age'
-d0.1 <- lm(formula,data=data)
-d0.2 <- glm(formula,data=data, family = Gamma(link = "identity"))
-d0.3 <- glm(formula,data=data, family = inverse.gaussian(link = "identity"))
+d0.1 <- lm(formula,data=dataModel)
+d0.2 <- glm(formula,data=dataModel, family = Gamma(link = "identity"))
+d0.3 <- glm(formula,data=dataModel, family = inverse.gaussian(link = "identity"))
 
 modelNames = c('d0.1','d0.2','d0.3')
 
@@ -123,6 +130,10 @@ phi_from_chisq(a, 237)
 emmeans0.1 <- emmeans(d0.2, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
+# Cohen's d 
+sprintf("Cohen's D for DASS-Anxiety | PMS vs noPMS: %.2f", cohens_d_trait(data$DASS_Anxiety, "noPMS", "PMS"))
+sprintf("Cohen's D for DASS-Anxiety | PMDD vs noPMS: %.2f", cohens_d_trait(data$DASS_Anxiety, "PMDD", "noPMS"))
+sprintf("Cohen's D for DASS-Anxiety | PMS vs PMDD: %.2f", cohens_d_trait(data$DASS_Anxiety, "PMS", "PMDD"))
 
 ## Visualisation
 max_y<-max(data$DASS_Anxiety)
@@ -134,16 +145,16 @@ plot <- traitplot(data, emm0.1, "DASS_Anxiety",'DASS:Anxiety') +
   geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+ # top line 
   annotate('text', x=2, y=max_y+2.3, label='***', size=7)
 ggsave(plot, file=paste0(plotPrefix, "DASS_Anxiety.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+plot
 
-
-
-##### DASS: Stress ##### 
+##### Trait: DASS - Stress ##### 
+dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 formula <- 'DASS_Stress ~ PMS + Age' # No effects found for Order - so removed as random intercept
-d0.1 <- lm(formula,data=data)
-d0.2 <- glm(formula,data=data, family = Gamma(link = "identity"))
-d0.3 <- glm(formula,data=data, family = inverse.gaussian(link = "identity"))
+d0.1 <- lm(formula,data=dataModel)
+d0.2 <- glm(formula,data=dataModel, family = Gamma(link = "identity"))
+d0.3 <- glm(formula,data=dataModel, family = inverse.gaussian(link = "identity"))
 
 modelNames = c('d0.1','d0.2','d0.3')
 
@@ -159,6 +170,10 @@ phi_from_chisq(a, 237)
 emmeans0.1 <- emmeans(d0.3, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
+# Cohen's d 
+sprintf("Cohen's D for DASS-Stress | PMS vs noPMS: %.2f", cohens_d_trait(data$DASS_Stress, "noPMS", "PMS"))
+sprintf("Cohen's D for DASS-Stress | PMDD vs noPMS: %.2f", cohens_d_trait(data$DASS_Stress, "PMDD", "noPMS"))
+sprintf("Cohen's D for DASS-Stress | PMS vs PMDD: %.2f", cohens_d_trait(data$DASS_Stress, "PMS", "PMDD"))
 
 ## Visualisation
 max_y<-max(data$DASS_Stress)
@@ -170,16 +185,16 @@ plot <- traitplot(data, emm0.1, "DASS_Stress",'DASS:Stress') +
   geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+ # top line
   annotate('text', x=2, y=max_y+2.3, label='***', size=7)
 ggsave(plot, file=paste0(plotPrefix, "DASS_Stress.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+plot
 
-
-
-##### RRS ##### 
+##### Trait: RRS #####
+dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 formula <- 'RRS ~ PMS + Age' # No effects found for Order - so removed as random intercept
-d0.1 <- lm(formula,data=data)
-d0.2 <- glm(formula,data=data, family = Gamma(link = "identity"))
-d0.3 <- glm(formula,data=data, family = inverse.gaussian(link = "identity"))
+d0.1 <- lm(formula,data=dataModel)
+d0.2 <- glm(formula,data=dataModel, family = Gamma(link = "identity"))
+d0.3 <- glm(formula,data=dataModel, family = inverse.gaussian(link = "identity"))
 
 modelNames = c('d0.1','d0.2','d0.3')
 
@@ -195,6 +210,10 @@ phi_from_chisq(a, 237)
 emmeans0.1 <- emmeans(d0.2, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
+# Cohen's d 
+sprintf("Cohen's D for RRS | PMS vs noPMS: %.2f", cohens_d_trait(data$RRS, "noPMS", "PMS"))
+sprintf("Cohen's D for RRS | PMDD vs noPMS: %.2f", cohens_d_trait(data$RRS, "PMDD", "noPMS"))
+sprintf("Cohen's D for RRS | PMS vs PMDD: %.2f", cohens_d_trait(data$RRS, "PMS", "PMDD"))
 
 ## Visualisation
 max_y<-max(data$RRS)
@@ -207,29 +226,3 @@ plot <- traitplot(data, emm0.1, "RRS",'RRS') +
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
 ggsave(plot, file=paste0(plotPrefix, "RRS.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot
-
-
-#### Cohen's d (effect size)
-# Depression
-cohens_d_trait(data$DASS_Depression)
-cohensD(PMS_f, mu= noPMS_mu)# PMS-noPMS
-cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-
-# Anxiety
-cohens_d_trait(data$DASS_Anxiety)
-cohensD(PMS_f, mu= noPMS_mu)# PMS-noPMS
-cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-
-# Stress
-cohens_d_trait(data$DASS_Stress)
-cohensD(PMS_f, mu= noPMS_mu)# PMS-noPMS
-cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
-
-# RSS
-cohens_d_trait(data$DASS_RSS)
-cohensD(PMS_f, mu= noPMS_mu)# PMS-noPMS
-cohensD(PMDD_f, mu= noPMS_mu) # PMDD - noPMS
-cohensD(PMDD_f, mu= PMS_mu) #PMDD-PMS
