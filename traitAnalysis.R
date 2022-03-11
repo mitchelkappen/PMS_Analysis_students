@@ -38,7 +38,7 @@ if (vpn == 1) {
 setwd(Dir)
 
 # Get data
-data <- read.csv(paste0(Dir, "06102021\\cleanedDataMoments.csv"), header = TRUE, sep = ) #upload data
+data <- read.csv(paste0(Dir, "06102021\\cleanedDataTraits.csv"), header = TRUE, sep = ) #upload data
 
 # save figures
 if (!dir.exists("figures")){ # Create folder for storing the figures if it doesn't exist yet
