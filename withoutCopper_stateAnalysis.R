@@ -123,7 +123,7 @@ plot <- stateplot(data, emm0.2,'PSS', 'PSS') +
   annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+ # star
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+# top line
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7) # star
-ggsave(plot, file=paste0(plotPrefix, "PSS_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
+ggsave(plot, file=paste0(plotPrefix, "PSS_withoutCop.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
 plot
 
 ##### State: PTQ #####
@@ -178,7 +178,7 @@ plot <- stateplot(data, emm0.2, "PTQ", 'PTQ') +
   annotate('text', x=2.05, y=max_y + max_y/100+max_y/50, label='***', size=7)+
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "PTQ_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+ggsave(plot, file=paste0(plotPrefix, "PTQ_WithoutCop.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot
 
 
@@ -232,7 +232,7 @@ plot <- stateplot(data, emm0.2, 'BSRI', 'BSRI') +
   annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+ # star
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7) # star
-ggsave(plot, file=paste0(plotPrefix, "BSRI_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
+ggsave(plot, file=paste0(plotPrefix, "BSRI_WithoutCop.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
 plot
 
 ##### Correlations #####

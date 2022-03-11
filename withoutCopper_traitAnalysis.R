@@ -103,8 +103,9 @@ plot <- traitplot(data, emm0.1, "DASS_Depression",'DASS:Depression') +
   geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+ # bottom second line 
   annotate('text', x=2.5, y=max_y+ 1.3, label='*', size=7)+
   geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+ # top line
-  annotate('text', x=2, y=max_y+2.3, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "DASS_Depression_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+  annotate('text', x=2, y=max_y+2.3, label='***', size=7)+
+  annotate('text', x=.7, y=max_y+1, label='A', size=7)
+ggsave(plot, file=paste0(plotPrefix, "DASS_Depression_withoutCop.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot
 
 ##### Trait: DASS - Anxiety #####
@@ -143,8 +144,9 @@ plot <- traitplot(data, emm0.1, "DASS_Anxiety",'DASS:Anxiety') +
   geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+ # bottom second line 
   annotate('text', x=2.5, y=max_y+ 1.3, label='*', size=7)+
   geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+ # top line 
-  annotate('text', x=2, y=max_y+2.3, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "DASS_Anxiety.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+  annotate('text', x=2, y=max_y+2.3, label='***', size=7)+
+  annotate('text', x=.7, y=max_y+1, label='B', size=7)
+ggsave(plot, file=paste0(plotPrefix, "DASS_Anxiety_withoutCop.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot
 
 ##### Trait: DASS - Stress ##### 
@@ -183,8 +185,9 @@ plot <- traitplot(data, emm0.1, "DASS_Stress",'DASS:Stress') +
   geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+ # bottom second line 
   annotate('text', x=2.5, y=max_y+ 1.3, label='**', size=7)+
   geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+ # top line
-  annotate('text', x=2, y=max_y+2.3, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "DASS_Stress.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+  annotate('text', x=2, y=max_y+2.3, label='***', size=7)+
+  annotate('text', x=.7, y=max_y+1, label='C', size=7)
+ggsave(plot, file=paste0(plotPrefix, "DASS_Stress_withoutCop.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot
 
 ##### Trait: RRS #####
@@ -224,5 +227,5 @@ plot <- traitplot(data, emm0.1, "RRS",'RRS') +
   annotate('text', x=2.5, y=max_y+max_y/50+max_y/100, label='***', size=7)+
   geom_segment(aes(x = 1, y=max_y+max_y/15, xend= 3, yend=max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "RRS.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+ggsave(plot, file=paste0(plotPrefix, "RRS_withoutCop.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot
