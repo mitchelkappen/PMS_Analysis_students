@@ -1,25 +1,22 @@
-#Cronbach alpha's for PMS study Mitchel Kappen
-#code by Sofie Raeymakers
-
+##############################
+#                            #
+#  Cronbach's Alpha Analysis #
+#         PMS data           #
+#                            #
+#############################
+# This code calculates the Cronbach's Alpha's for all questionnaires in the PMs study
+# Author: Sofie Raeymakers   & Mitchel Kappen
+# 10-3-2022
 ##### Set environment #####
 rm(list = ls()) # Clear environment
 cat("\014") # Clear console
 dev.off() # Clear plot window
 
-
 library(ltm)
 library(dplyr)
 
-if (!dir.exists("figures"))
-  dir.create("figures")
 #####  General settings ##### 
-nAGQ = 1 # When writing code, set to 0, when getting final results, set to 1ù
 vpn = 1 # Set to 1 if using VPN
-
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #Set WD to script location
-
-# Get and declare functions
-source("functions.R") # This is a file in the same directory where you can stash your functions so you can save them there and have them together
 
 # Set WD
 if (vpn == 1) {
@@ -30,85 +27,44 @@ if (vpn == 1) {
 
 setwd(Dir)
 # Get data
-data <-
-  read.csv(paste0(Dir, "06102021\\cleanData_allItems.csv"),
-           header = TRUE,
-           sep = ) #upload data
-#contains all individual items. 
+data <- read.csv(paste0(Dir, "06102021\\cleanData_allItems.csv"), header = TRUE, sep = ) # This datafile contains all individual responses to all individual items of each questionnaire
 
-
-
-##### Clean data up a bit #####
-data$PMS[data$PMSScore == 0] = 'noPMS'
-data$PMS[data$PMSScore == 1] = 'PMS'
-data$PMS[data$PMSScore == 2] = 'PMDD'
-
-# Factorize and rename columns
-data$PMS <- ordered(data$PMS, levels = c('noPMS', 'PMS', 'PMDD')) # Factorize and turn into ordered levels
-names(data)[names(data) == "allRRS"] = "RRS" # Rename column
-data$Order <- factor(data$Order)
-
-# Exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
+##### Data Cleaning #####
+# Exclude everyone on the pill/hormonal coil/other: only those with Natural Contraception + copper coil are left included
 data_allcontraception <- data # Backup the data prior to exclusion
-data<-data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contraception=="Hor. Coil"|data$Contraception=="Hor.Coil"),] # Only looking at non-hormonal contraceptives, so kick out all other data
+data <- data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contraception=="Hor. Coil"|data$Contraception=="Hor.Coil"),] # Only looking at non-hormonal contraceptives, so kick out all other data
 
 ###### Cronbach's Alpha #########
+### DASS ####
+DASSdata <- data.frame(select(data, matches("DASS21"))) # Create dataframe only containing relevant data
+cronbach.alpha(DASSdata, CI=TRUE)
 
-randn <-floor(runif(3, min=0, max=101)) #random numbers for sanity check
+### RRS ####
+RRSdata <- data.frame(select(data, matches("RRS.R"))) # Create dataframe only containing relevant data
+cronbach.alpha(RRSdata, CI=TRUE)
 
-## DASS
-dataC <- data.frame(select(data, matches("DASS21")))
-for (i in randn){ #check if they are correctly calculated
-  s1 <- data$DASS.Total[i]
-  s2 <-as.integer(rowSums(dataC)[i])
-  if (s1 != s2){print('Error!')}
-}
-cronbach.alpha(dataC, CI=TRUE)
+### BSRI ####
+BSRIdata <- data.frame(select(data, matches("BSRI"))) # Create dataframe only containing relevant data
+BSRIdata <- BSRIdata[,!(names(BSRIdata)%in% c("folliculairBSRI", 'luteaalBSRI'))] # Exclude two irrelevant (compounded) scores
+colnames <- c("BSRI1","BSRI2","BSRI3","BSRI4","BSRI5","BSRI6","BSRI7","BSRI8") # Create column name variable to be able to combine two different time moments into one long dataframe
+BSRIdatalong <- rbind(setNames(BSRIdata[,1:8], colnames), setNames(BSRIdata[,9:16], colnames)) # Combine luteal and follicular responses by adding rows under each other with new column names
+cronbach.alpha(BSRIdatalong, CI=TRUE, na.rm=T)
 
-#RRS
-dataC <- data.frame(select(data, matches("RRS.R")))
-for (i in randn){ #check if they are correctly calculated
-  s1 <- data$RRS[i]
-  s2 <-as.integer(rowSums(dataC)[i])
-  if (s1 != s2){print('Error!')}
-}
-cronbach.alpha(dataC, CI=TRUE)
+### PTQ ####
+PTQdata <- data.frame(select(data, matches("PTQ"))) # Create dataframe only containing relevant data
+PTQdata <- PTQdata[,!(names(PTQdata)%in% c("folliculairPTQ", 'luteaalPTQ'))] # Exclude two irrelevant (compounded) scores
+colnames <- c("PTQ1","PTQ2","PTQ3","PTQ4","PTQ5","PTQ6","PTQ7","PTQ8","PTQ9","PTQ10","PTQ11","PTQ12","PTQ13","PTQ14","PTQ15") # Create column name variable to be able to combine two different time moments into one long dataframe
+PTQdatalong <- rbind(setNames(PTQdata[,1:15], colnames), setNames(PTQdata[,16:30], colnames)) # Combine luteal and follicular responses by adding rows under each other with new column names
+cronbach.alpha(PTQdatalong, CI=TRUE, na.rm=T)
+cronbach.alpha(PTQdata, CI=TRUE, na.rm=T)
 
-#BSRI
-dataC <- data.frame(select(data, matches("BSRI")))
-dataC <- dataC[,!(names(dataC)%in% c("folliculairBSRI", 'luteaalBSRI'))]
-for (i in randn){ #check if they are correctly calculated
-  s1<- data$folliculairBSRI[i]
-  s2<- data.frame(select(data, matches("BSRI_folliculair")))
-  s2 <-as.integer(rowSums(s2)[i])
-  if (s1 != s2){print('Error!')}
-}
-cronbach.alpha(dataC, CI=TRUE, na.rm=T)
+### PSS ####
+PSSdata <- data.frame(select(data, matches("PSS"))) # Create dataframe only containing relevant data
+PSSdata <- PSSdata[,!(names(PSSdata)%in% c("folliculairPSS", 'luteaalPSS'))] # Exclude two irrelevant (compounded) scores
+colnames <- c("PSS1","PSS2","PSS3","PSS4","PSS5","PSS6","PSS7","PSS8","PSS9","PSS10")
+PSSdatalong <- rbind(setNames(PSSdata[,1:10], colnames), setNames(PSSdata[,11:20], colnames))
+cronbach.alpha(PSSdatalong, CI=TRUE, na.rm=T)
 
-#PTQ
-dataC <- data.frame(select(data, matches("PTQ")))
-dataC <- dataC[,!(names(dataC)%in% c("folliculairPTQ", 'luteaalPTQ'))]
-for (i in randn){ #check if they are correctly calculated
-  s1<- data$folliculairPTQ[i]
-  s2<- data.frame(select(data, matches("PTQ_folliculair")))
-  s2 <-as.integer(rowSums(s2)[i])
-  if (s1 != s2){print('Error!')}
-}
-cronbach.alpha(dataC, CI=TRUE, na.rm=T)
-
-#PSS
-dataC <- data.frame(select(data, matches("PSS")))
-dataC <- dataC[,!(names(dataC)%in% c("folliculairPSS", 'luteaalPSS'))]
-
-for (i in randn){ #check if they are correctly calculated
-  s1<- data$folliculairPSS[i]
-  s2<- data.frame(select(data, matches("PSS_folliculair")))
-  s2 <-as.integer(rowSums(s2)[i])
-  if (s1 != s2){print('Error!')}
-}
-
-cronbach.alpha(dataC, CI=TRUE, na.rm=T)
-
-#PSST
-dataC <- data.frame(select(data, matches("PST")))
-cronbach.alpha(dataC, CI=TRUE)
+### PSST ####
+PSSTdata <- data.frame(select(data, matches("PST")))
+cronbach.alpha(PSSTdata, CI=TRUE)

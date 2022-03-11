@@ -321,10 +321,10 @@ DataFrameExtensive <- cbind(DataFrameExtensive, DASSDataNumeric)
 DataFrameExtensive <- cbind(DataFrameExtensive, data.frame(PSS_folliculair = matrix(NA, nrow = nrow(DataFrameClean), ncol = 10), PSS_luteaal = matrix(NA, nrow = nrow(DataFrameClean), ncol = 10)))
 DataFrameExtensive <- cbind(DataFrameExtensive, data.frame(BSRI_folliculair = matrix(NA, nrow = nrow(DataFrameClean), ncol = 8), BSRI_luteaal = matrix(NA, nrow = nrow(DataFrameClean), ncol = 8)))
 DataFrameExtensive <- cbind(DataFrameExtensive, data.frame(PTQ_folliculair = matrix(NA, nrow = nrow(DataFrameClean), ncol = 15), PTQ_luteaal = matrix(NA, nrow = nrow(DataFrameClean), ncol = 15)))
-
+# dataframebackup <- DataFrameExtensive
 # Add the data to the dataFrame for right spot
 for (i in 1:nrow(DataFrameClean)){
-# for (i in 30){
+# for (i in 10:30){
   if (DataFrameClean$Order[i] == "A-B"){
     DataFrameClean$folliculairPSS[i] = PSS$PSS1[i]
     DataFrameClean$folliculairBSRI[i] = BSRI$BSRI1[i]
@@ -335,7 +335,7 @@ for (i in 1:nrow(DataFrameClean)){
     DataFrameClean$luteaalPTQ[i] = PTQ$PTQ2[i]
     
     # individual items
-    DataFrameExtensive[i,1:156] <- cbind(DataFrameExtensive[i,1:90], PSSitems[i,1:10], PSSitems[i,11:20], BSRIitems[i,1:8], BSRIitems[i,9:16], PTQitems[i,1:15], PTQitems[i,16:30])
+    DataFrameExtensive[i,1:155] <- cbind(DataFrameExtensive[i,1:89], PSSitems[i,1:10], PSSitems[i,11:20], BSRIitems[i,1:8], BSRIitems[i,9:16], PTQitems[i,1:15], PTQitems[i,16:30])
   } else if (DataFrameClean$Order[i] == "B-A"){
     DataFrameClean$folliculairPSS[i] = PSS$PSS2[i]
     DataFrameClean$folliculairBSRI[i] = BSRI$BSRI2[i]
@@ -345,7 +345,8 @@ for (i in 1:nrow(DataFrameClean)){
     DataFrameClean$luteaalBSRI[i] = BSRI$BSRI1[i]
     DataFrameClean$luteaalPTQ[i] = PTQ$PTQ1[i]
     # individual items
-    DataFrameExtensive[i,1:156] <- cbind(DataFrameExtensive[i,1:90], PSSitems[i,11:20], PSSitems[i,1:10], BSRIitems[i,9:16], BSRIitems[i,1:8], PTQitems[i,16:30], PTQitems[i,1:15])
+    DataFrameExtensive[i,1:155] <- cbind(DataFrameExtensive[i,1:89], PSSitems[i,11:20], PSSitems[i,1:10], BSRIitems[i,9:16], BSRIitems[i,1:8], PTQitems[i,16:30], PTQitems[i,1:15])
+    
   } else if (DataFrameClean$Order[i] == 'xx') { # For some reason doesn't have an order assigned yet - so give NA's
     DataFrameClean$folliculairPSS[i] = NA
     DataFrameClean$folliculairBSRI[i] = NA
@@ -354,6 +355,7 @@ for (i in 1:nrow(DataFrameClean)){
     DataFrameClean$luteaalPSS[i] = NA
     DataFrameClean$luteaalBSRI[i] = NA
     DataFrameClean$luteaalPTQ[i] = NA
+    
   } else { # Checks for non-sensical order assignments
     print("Order error")
     break
