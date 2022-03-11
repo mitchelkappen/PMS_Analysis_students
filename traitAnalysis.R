@@ -103,8 +103,9 @@ plot <- traitplot(data, emm0.1, "DASS_Depression",'DASS:Depression') +
     geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+ # bottom second line 
     annotate('text', x=2.5, y=max_y+ 1.3, label='*', size=7)+
     geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+ # top line
-    annotate('text', x=2, y=max_y+2.3, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "DASS_Depression_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+    annotate('text', x=2, y=max_y+2.3, label='***', size=7)+
+    annotate('text', x= .6, y=max_y+1, label="A", size=10)
+ggsave(plot, file=paste0(plotPrefix, "DASS_A.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot
 
 ##### Trait: DASS - Anxiety #####
@@ -143,8 +144,9 @@ plot <- traitplot(data, emm0.1, "DASS_Anxiety",'DASS:Anxiety') +
   geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+ # bottom second line 
   annotate('text', x=2.5, y=max_y+ 1.3, label='*', size=7)+
   geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+ # top line 
-  annotate('text', x=2, y=max_y+2.3, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "DASS_Anxiety.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+  annotate('text', x=2, y=max_y+2.3, label='***', size=7)+
+  annotate('text', x= .6, y=max_y+1, label="B", size=10)
+ggsave(plot, file=paste0(plotPrefix, "DASS_B.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot
 
 ##### Trait: DASS - Stress ##### 
@@ -183,8 +185,9 @@ plot <- traitplot(data, emm0.1, "DASS_Stress",'DASS:Stress') +
   geom_segment(aes(x = 2, y=max_y+1, xend= 3, yend=max_y+1), size= 1)+ # bottom second line 
   annotate('text', x=2.5, y=max_y+ 1.3, label='**', size=7)+
   geom_segment(aes(x = 1, y=max_y+2, xend= 3, yend=max_y+2), size= 1)+ # top line
-  annotate('text', x=2, y=max_y+2.3, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "DASS_Stress.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+  annotate('text', x=2, y=max_y+2.3, label='***', size=7)+
+  annotate('text', x= .6, y=max_y+1, label="C", size=10)
+ggsave(plot, file=paste0(plotPrefix, "DASS_C.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot
 
 ##### Trait: RRS #####
