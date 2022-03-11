@@ -38,7 +38,7 @@ if (vpn == 1) {
 setwd(Dir)
 
 # Get data
-data <- read.csv(paste0(Dir, "06102021\\cleanedDataMoments.csv"), header = TRUE, sep = ) #upload data
+data <- read.csv(paste0(Dir, "06102021\\cleanedDataTraits.csv"), header = TRUE, sep = ) #upload data
 
 # save figures
 if (!dir.exists("figures")){ # Create folder for storing the figures if it doesn't exist yet
@@ -63,7 +63,7 @@ data$Contraception <- factor(data$Contraception)
 
 # Exclude everyone on the pill/hormonal coil/other: only those with Natural Contraception + copper coil are left included
 data_allcontraception <- data # Backup the data prior to exclusion
-data <- data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contraception=="Hor. Coil"|data$Contraception=="Hor.Coil"),] # Only looking at non-hormonal contraceptives, so kick out all other data
+data <- data[!(data$Contraception=="Pill"|data$Contraception == 'Cop. Coil'|data$Contraception=="other"|data$Contraception=="Hor. Coil"|data$Contraception=="Hor.Coil"),] # Only looking at non-hormonal contraceptives, so kick out all other data
 
 ###### Analysis ######
 ##### Trait: DASS ##### 
