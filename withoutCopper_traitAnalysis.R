@@ -83,9 +83,7 @@ tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 print(paste0("Based on lowest AIC, the best fit was found in model: ", chosenModel))
 
-a<-Anova(d0.3, type = 'III')
-# phi, effect size
-phi_from_chisq(a, 237)
+Anova(d0.3, type = 'III')
 
 emmeans0.1 <- emmeans(d0.3, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
@@ -124,9 +122,7 @@ tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 print(paste0("Based on lowest AIC, the best fit was found in model: ", chosenModel))
 
-a<-Anova(d0.2, type = 'III')
-# phi, effect size
-phi_from_chisq(a, 237)
+Anova(d0.2, type = 'III')
 
 emmeans0.1 <- emmeans(d0.2, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
@@ -165,9 +161,7 @@ tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 print(paste0("Based on lowest AIC, the best fit was found in model: ", chosenModel))
 
-a <-Anova(d0.3, type = 'III')
-# phi, effect size
-phi_from_chisq(a, 237)
+Anova(d0.3, type = 'III')
 
 emmeans0.1 <- emmeans(d0.3, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
@@ -206,9 +200,7 @@ tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 print(paste0("Based on lowest AIC, the best fit was found in model: ", chosenModel))
 
-a<-Anova(d0.2, type = 'III')
-# phi, effect size
-phi_from_chisq(a, 237)
+Anova(d0.2, type = 'III')
 
 emmeans0.1 <- emmeans(d0.2, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans

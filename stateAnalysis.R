@@ -76,15 +76,8 @@ modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being
 ## Model Selection
 tabel <- cbind(AIC(d0.1))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
-# Anova
-anovaTable <- Anova(chosenModel[[1]], type = 'III')
-anovaTable
-# phi, effect size
-phi_from_chisq(anovaTable, 237)
-phi_from_chisq(anovaTable, nrow(dataModel))
 
-phi = chisq_to_phi(anovaTable, nrow(dataModel), 2, 3)
-sprintf("PSS | Phi for PMS: %.2f, Phi for Moment: %.2f, Phi for PMS*Moment: %.2f", phi[2,1], phi[3,1], phi[5,1])
+Anova(chosenModel[[1]], type = 'III')
 
 ### Between groups at time points
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response") #we don't adjust because we do this later
@@ -137,11 +130,8 @@ modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being
 ## Model Selection
 tabel <- cbind(AIC(d0.1))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
-# Anova
-anovaTable <- Anova(chosenModel[[1]], type = 'III')
-anovaTable
-# phi, effect size
-phi_from_chisq(anovaTable, 237)
+
+Anova(chosenModel[[1]], type = 'III')
 
 ## Between groups at time points
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment , adjust ="fdr", type = "response")
