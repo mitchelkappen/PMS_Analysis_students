@@ -162,12 +162,14 @@ traitplot <-function(data, emmean_dataframe, var, title){
 stateplot <-function(data, emmean_dataframe, var, title){
   ggplot()+ 
     geom_flat_violin(data= data, aes(x= Moment, y= .data[[var]], fill=PMS),position = position_nudge(x =.3, y = 0), adjust = 1.5, alpha = .5, colour = NA)+ # flat violin distribution, .3 points to the right. alpha=.5 so see-through
-    geom_boxplot(data= data, aes(x=Moment, y=.data[[var]], fill=PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+ #boxplot, see through, no outline, 
-    geom_point(data= emmean_dataframe, aes(x = Moment, y = emmean, fill=PMS), position= position_dodge(0.3), size=4)+ #points representing the emmeans
-    scale_fill_manual(values = c("blue", 'red', 'purple'), #colours used in plot, repressent PMDD, PMS and noPMS
+    geom_boxplot(data= data, aes(x = Moment, y=.data[[var]], fill=PMS, shape = PMS, color = PMS), outlier.shape=NA, alpha=.5, width=.3, colour='black')+ #boxplot, see through, no outline, 
+    scale_fill_manual(values = c("#56B4E9", "#E69F00", "#009E73"), #colours used in plot, repressent PMDD, PMS and noPMS
                       name='', #legend gets no name
                       labels=c(paste0('noPMS \n n=', as.character(sum(data$PMS == "noPMS")/2)), paste0('PMS \n n=', as.character(sum(data$PMS == "PMS")/2)), paste0('PMDD \n n=',as.character(sum(data$PMS == "PMDD")/2))))+ #labels names
-    guides(fill = guide_legend(reverse=TRUE))+ # show labels in different order 
+    geom_point(data= emmean_dataframe, aes(x = Moment, y = emmean, fill = PMS, shape = PMS), position= position_dodge(0.3), size=4)+ #points representing the emmeans
+    guides(shape = "none")+ # Remove the geom_point shape legend
+    guides(fill = guide_legend(override.aes = list(shape = c(16,17,15),
+                                             reverse = TRUE)))+
     labs(y=title)+
     scale_x_discrete(labels=c("Follicular", "Luteal"))+
     theme(
