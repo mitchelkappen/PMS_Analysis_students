@@ -84,8 +84,6 @@ chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 print(paste0("Based on lowest AIC, the best fit was found in model: ", chosenModel))
 
 a<-Anova(d0.3, type = 'III')
-# phi, effect size
-phi_from_chisq(a, 237)
 
 emmeans0.1 <- emmeans(d0.3, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
@@ -125,8 +123,6 @@ chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 print(paste0("Based on lowest AIC, the best fit was found in model: ", chosenModel))
 
 a<-Anova(d0.2, type = 'III')
-# phi, effect size
-phi_from_chisq(a, 237)
 
 emmeans0.1 <- emmeans(d0.2, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
@@ -166,8 +162,6 @@ chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 print(paste0("Based on lowest AIC, the best fit was found in model: ", chosenModel))
 
 a <-Anova(d0.3, type = 'III')
-# phi, effect size
-phi_from_chisq(a, 237)
 
 emmeans0.1 <- emmeans(d0.3, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
@@ -207,8 +201,6 @@ chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
 print(paste0("Based on lowest AIC, the best fit was found in model: ", chosenModel))
 
 a<-Anova(d0.2, type = 'III')
-# phi, effect size
-phi_from_chisq(a, 237)
 
 emmeans0.1 <- emmeans(d0.2, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
@@ -229,3 +221,4 @@ plot <- traitplot(data, emm0.1, "RRS",'RRS') +
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
 ggsave(plot, file=paste0(plotPrefix, "RRS.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot
+
