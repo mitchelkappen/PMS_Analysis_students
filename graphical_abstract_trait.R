@@ -220,7 +220,7 @@ sprintf("Cohen's D for RRS | PMS vs PMDD: %.2f", cohens_d_trait(data$RRS, "PMS",
 
 ## Visualisation
 max_y<-max(data$RRS)
-plot <- traitplot(data, emm0.1, "RRS",'RRS') +
+plot <- traitplot(data, emm0.1, "RRS",'Rumination') +
   geom_segment(aes(x = 1, y=max_y, xend= 2, yend=max_y), size= 1)+ # bottom first line 
   annotate('text', x=1.5, y=max_y+ max_y/100, label='***', size=7)+
   geom_segment(aes(x = 2, y=max_y+max_y/50, xend= 3, yend=max_y+max_y/50), size= 1)+ # bottom second line 
@@ -229,3 +229,4 @@ plot <- traitplot(data, emm0.1, "RRS",'RRS') +
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
 ggsave(plot, file=paste0(plotPrefix, "RRS.jpeg"), width = 2500, height = 1100, dpi = 300, units = "px")
 plot
+
