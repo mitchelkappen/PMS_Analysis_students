@@ -9,6 +9,9 @@
 
 library(ggplot2) # figures
 
+# Colorblind proof palette with grey - from http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/ :
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
 ##### Functions for preprocessingData.R #####
 # A function that takes the last n characters of a string
 substrRight <- function(x, n){ 
@@ -143,10 +146,8 @@ traitplot <-function(data, emmean_dataframe, var, title){
                       name='',labels=c(paste0('noPMS \n n=', as.character(sum(data$PMS == "noPMS"))), paste0('PMS \n n=', as.character(sum(data$PMS == "PMS"))), paste0('PMDD \n n=', as.character(sum(data$PMS == "PMDD")))))+
     
     geom_point(data= emmean_dataframe, aes(x = PMS, y = emmean, fill=PMS, shape = PMS), size=4)+
-    # guides(fill = guide_legend(reverse=TRUE))+
     guides(shape = "none")+ # Remove the geom_point shape legend
-    guides(fill = guide_legend(override.aes = list(shape = c(16,17,15),
-                                                   reverse = TRUE)))+
+    guides(fill = guide_legend(override.aes = list(shape = c(16,17,15))))+ # Add correct shapes to legend
     labs(y=title)+
     theme(
       legend.key.size=unit(1.3, 'cm'),
@@ -171,8 +172,7 @@ stateplot <-function(data, emmean_dataframe, var, title){
                       labels=c(paste0('noPMS \n n=', as.character(sum(data$PMS == "noPMS")/2)), paste0('PMS \n n=', as.character(sum(data$PMS == "PMS")/2)), paste0('PMDD \n n=',as.character(sum(data$PMS == "PMDD")/2))))+ #labels names
     geom_point(data= emmean_dataframe, aes(x = Moment, y = emmean, fill = PMS, shape = PMS), position= position_dodge(0.3), size=4)+ #points representing the emmeans
     guides(shape = "none")+ # Remove the geom_point shape legend
-    guides(fill = guide_legend(override.aes = list(shape = c(16,17,15),
-                                             reverse = TRUE)))+
+    guides(fill = guide_legend(override.aes = list(shape = c(16,17,15))))+ # Add correct shapes to legend
     labs(y=title)+
     scale_x_discrete(labels=c("Follicular", "Luteal"))+
     theme(
