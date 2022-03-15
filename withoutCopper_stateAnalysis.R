@@ -76,9 +76,8 @@ modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being
 ## Model Selection
 tabel <- cbind(AIC(d0.1))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
-# Anova
-anovaTable <- Anova(chosenModel[[1]], type = 'III')
-anovaTable
+
+Anova(chosenModel[[1]], type = 'III')
 
 ### Between groups at time points
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment, adjust ="fdr", type = "response") #we don't adjust because we do this later
@@ -131,9 +130,8 @@ modelNames = c(d0.1) # Only d0.1 is taken into consideration due to zeroes being
 ## Model Selection
 tabel <- cbind(AIC(d0.1))
 chosenModel = modelNames[which(tabel == min(tabel))] # Get model with lowest AIC
-# Anova
-anovaTable <- Anova(chosenModel[[1]], type = 'III')
-anovaTable
+
+Anova(chosenModel[[1]], type = 'III')
 
 ## Between groups at time points
 emmeans0.1 <- emmeans(chosenModel[[1]], pairwise ~ PMS | Moment , adjust ="fdr", type = "response")
