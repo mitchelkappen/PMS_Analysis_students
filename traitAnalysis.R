@@ -55,7 +55,6 @@ data$PMS <- ordered(data$PMS, levels = c('noPMS', 'PMS', 'PMDD')) # Factorize an
 # Factorize the rest of the data where needed
 data$ID <- factor(data$ID)
 data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
-data$Moment <- factor(data$Moment)
 data$Contraception <- factor(data$Contraception)
 names(data)[names(data) == "allRRS"] = "RRS" # Rename column
 data$Order <- factor(data$Order)

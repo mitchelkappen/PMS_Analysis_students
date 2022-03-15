@@ -139,11 +139,14 @@ traitplot <-function(data, emmean_dataframe, var, title){
   ggplot(data, aes(x = PMS, y = .data[[var]])) +
     geom_flat_violin(aes(fill=PMS),position = position_nudge(x =.2, y = 0), alpha=.5, adjust = 1.5, colour = NA)+
     geom_boxplot(aes(x = PMS, y = .data[[var]], fill = PMS), outlier.shape=NA, alpha= .45, width = .1, colour = "black") +
-    geom_point(data= emmean_dataframe, aes(x = PMS, y = emmean, fill=PMS), size=4)+
-    scale_colour_manual(values = c("blue", "red", "purple"))+
-    scale_fill_manual(values = c("blue", 'red', 'purple'),
+    scale_fill_manual(values = c("#56B4E9", "#E69F00", "#009E73"),
                       name='',labels=c(paste0('noPMS \n n=', as.character(sum(data$PMS == "noPMS"))), paste0('PMS \n n=', as.character(sum(data$PMS == "PMS"))), paste0('PMDD \n n=', as.character(sum(data$PMS == "PMDD")))))+
-    guides(fill = guide_legend(reverse=TRUE))+
+    
+    geom_point(data= emmean_dataframe, aes(x = PMS, y = emmean, fill=PMS, shape = PMS), size=4)+
+    # guides(fill = guide_legend(reverse=TRUE))+
+    guides(shape = "none")+ # Remove the geom_point shape legend
+    guides(fill = guide_legend(override.aes = list(shape = c(16,17,15),
+                                                   reverse = TRUE)))+
     labs(y=title)+
     theme(
       legend.key.size=unit(1.3, 'cm'),
