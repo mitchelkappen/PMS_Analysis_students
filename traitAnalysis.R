@@ -57,7 +57,6 @@ data$ID <- factor(data$ID)
 data$newid = factor(seq(unique(data$ID))) # This creates a new ID variable that takes a logical order from 1-length(ID)
 data$Contraception <- factor(data$Contraception)
 names(data)[names(data) == "allRRS"] = "RRS" # Rename column
-data$Order <- factor(data$Order)
 data$Contraception <- factor(data$Contraception)
 
 # Exclude everyone on the pill/hormonal coil/other: only those with Natural Contraception + copper coil are left included
@@ -70,7 +69,7 @@ data <- data[!(data$Contraception=="Pill"|data$Contraception=="other"|data$Contr
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
-formula <- 'DASS_Depression ~ PMS + Age'
+formula <- 'DASS_Depression ~ PMS'
 d0.1 <- lm(formula,data=dataModel)
 d0.2 <- glm(formula,data=dataModel, family = Gamma(link = "identity"))
 d0.3 <- glm(formula,data=dataModel, family = inverse.gaussian(link = "identity"))
@@ -110,6 +109,7 @@ dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
 formula <- 'DASS_Anxiety ~ PMS + Age'
+
 d0.1 <- lm(formula,data=dataModel)
 d0.2 <- glm(formula,data=dataModel, family = Gamma(link = "identity"))
 d0.3 <- glm(formula,data=dataModel, family = inverse.gaussian(link = "identity"))
@@ -148,7 +148,8 @@ plot
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
-formula <- 'DASS_Stress ~ PMS + Age' # No effects found for Order - so removed as random intercept
+formula <- 'DASS_Stress ~ PMS + Age' 
+
 d0.1 <- lm(formula,data=dataModel)
 d0.2 <- glm(formula,data=dataModel, family = Gamma(link = "identity"))
 d0.3 <- glm(formula,data=dataModel, family = inverse.gaussian(link = "identity"))
@@ -187,7 +188,7 @@ plot
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
-formula <- 'RRS ~ PMS + Age' # No effects found for Order - so removed as random intercept
+formula <- 'RRS ~ PMS + Age' 
 d0.1 <- lm(formula,data=dataModel)
 d0.2 <- glm(formula,data=dataModel, family = Gamma(link = "identity"))
 d0.3 <- glm(formula,data=dataModel, family = inverse.gaussian(link = "identity"))
