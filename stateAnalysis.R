@@ -89,8 +89,8 @@ sprintf("Cohen's D for PSS at Follicular | PMDD vs noPMS: %.2f", cohens_d_state(
 sprintf("Cohen's D for PSS at Follicular | PMS vs PMDD: %.2f", cohens_d_state(data$PSS, 'Foll', 'PMS', 'PMDD'))
 # Cohen's d Moment = Luteal
 sprintf("Cohen's D for PSS at Luteal | PMS vs noPMS: %.2f", cohens_d_state(data$PSS, 'Lut', 'PMS', 'noPMS'))
-sprintf("Cohen's D for PSS at Luteal | PMDD vs noPMS: %.2f", cohens_d_state(data$PSS, 'Lut', 'PMDD', 'noPMS'))
 sprintf("Cohen's D for PSS at Luteal | PMS vs PMDD: %.2f", cohens_d_state(data$PSS, 'Lut', 'PMS', 'PMDD'))
+sprintf("Cohen's D for PSS at Luteal | PMDD vs noPMS: %.2f", cohens_d_state(data$PSS, 'Lut', 'PMDD', 'noPMS'))
 
 ### Between timepoints for groups
 emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
@@ -268,3 +268,4 @@ PTQ <- data$PTQ[data$PMS=='PMDD'&data$Moment=='Foll']-data$PTQ[data$PMS=='PMDD'&
 x_lab = 'PMDD_delta_PSS'
 y_lab = 'PMDD_delta_PTQ'
 overall_corr(PSS, PTQ, x_lab, y_lab)
+
