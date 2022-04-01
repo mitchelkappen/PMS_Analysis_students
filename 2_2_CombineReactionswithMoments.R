@@ -49,6 +49,7 @@ dataEmotions$MomentName[dataEmotions$Order == 'B-A' & dataEmotions$Moment == 'A'
 dataEmotions$PSSNew = ''
 dataEmotions$PTQNew = ''
 dataEmotions$BSRINew = ''
+# dataEmotions$PMSScore = ''
 
 keyvalues = unique(dataMoments[ , c("participantNo", "Moment")])
 for (i in 1:nrow(keyvalues)){
@@ -62,9 +63,13 @@ for (i in 1:nrow(keyvalues)){
   dataEmotions$PSSNew[loc] = dataMoments$PSS[locMoments]
   dataEmotions$PTQNew[loc] = dataMoments$PTQ[locMoments]
   dataEmotions$BSRINew[loc] = dataMoments$BSRI[locMoments]
+  # dataEmotions$PMSScore[loc] = dataMoments$PMSScore[locMoments]
   # break
 }
 
 # Check mismatch between python and R code. Aka; which data was not used in cleanedDataMoments.csv but was use in allPMSdata.csv
 unusedData = dataEmotions[dataEmotions$BSRI != dataEmotions$BSRINew, ] # Only mismatches present because of the lack of a value from cleanedDataMoments. So double check for values is good
 dataEmotions = dataEmotions[dataEmotions$BSRI == dataEmotions$BSRINew, ]
+
+# Write data
+write.csv(dataEmotions, paste0(Dir, "06102021/cleanEmotionReactionData.csv"), row.names = FALSE)
