@@ -1,0 +1,477 @@
+---
+title: "ANOVA One-way and Two-way"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(rhandsontable)
+library(DescTools)
+
+```
+
+```{r,echo=FALSE}
+sidebarPanel(
+  inputPanel(
+  checkboxInput("ex","Uncheck for using your own file",value = TRUE),
+  fileInput("file", "Upload the *.csv file with headers"),
+  uiOutput("vx"),
+  selectInput("antype","Select Type of ANOVA",choices = c("One-way","Two-way","Factorial"),selected = "One-way"),
+   downloadButton("downloadPlot", "Download Plot"),
+   downloadButton("downloaddata2", "Download Example Dataset")
+  
+  ),
+ 
+  inputPanel(
+  h6("Inputs" ),
+  
+  uiOutput("vy"),
+  uiOutput("vxd"),
+  uiOutput("vxd2")
+  
+  
+  ),
+   inputPanel(
+     h6("Mean,SD,n Inputs",width =300),
+     rHandsontableOutput("testdata"),
+     downloadButton("downloaddata", "Download Dataset")
+  )
+  
+  
+ 
+    
+  )
+mainPanel(
+   tabsetPanel(type = "tab",
+                tabPanel("Model", verbatimTextOutput("AD")),
+                tabPanel("Visualization", plotOutput("VP")),
+                tabPanel("Model on aggregate(One-way)",verbatimTextOutput("AN"))
+              
+       ),
+   
+   h6("", tags$img(src ="K.JPG", height= 400, width=400))
+)
+output$AD<-renderPrint({
+   if(input$ex == TRUE)
+     {data("ToothGrowth")
+      data = ToothGrowth
+      data$dose = factor(data$dose)}
+     else{
+  file1 = input$file
+     if(is.null(file1)){return()}
+     
+     data =  read.table(file =  file1$datapath,sep =",",header = TRUE)
+     if(is.null(data())){return()}
+     }
+     ds = data
+     
+     ds = select(ds,input$variablex)
+     cat(sprintf("\nSnapshot of the dataset\n"))
+     print(head(ds))
+    
+     options(scipen = 999)
+    
+     if(input$antype == "One-way")
+   {  
+       cat(sprintf("\nHypotheses for One-way ANOVA\n"))
+       cat(sprintf("\nHo :%s of all categories of %s are same\n",input$variabley,input$variablexd))
+       cat(sprintf("\nHa :%s of not all categories of %s are same\n\n",input$variabley,input$variablexd))
+       
+     mod = paste(input$variabley,"~")
+     mod = paste(mod,input$variablexd)
+     
+   fit <- aov(as.formula(mod), data=ds)
+   print(summary(fit))
+   cat(sprintf("\nPosthoc tests of Least Significant Difference(LSD)\n"))
+   print(PostHocTest(fit, method = "lsd", conf.level=NA))
+     }
+     
+     if(input$antype == "Two-way")
+ { 
+     cat(sprintf("\nHypotheses for Two-way ANOVA\n"))
+      cat(sprintf("\nHo :%s is not influenced by the treatments %s and %s\n",input$variabley,input$variablexd,input$variablexd2))
+    cat(sprintf("\nHa:%s is  influenced by either of the treatments %s and %s\n",input$variabley,input$variablexd,input$variablexd2))   
+      mod = paste(input$variabley,"~")
+   mod = paste(mod,input$variablexd)
+   mod = paste(mod,"+")
+    mod = paste(mod,input$variablexd2)
+   
+  fit <- aov(as.formula(mod), data=ds)
+  print(summary(fit))
+  
+   }
+   
+     if(input$antype == "Factorial")
+ { 
+       
+       cat(sprintf("\nHypotheses for Factorial Design(Two way ANOVA with interaction)\n"))
+      cat(sprintf("\nHo :%s is not influenced by the treatments %s and %s and their interaction\n ",input$variabley,input$variablexd,input$variablexd2))
+    cat(sprintf("\nHa:%s is  influenced by either of the treatments %s and %s and their interaction\n",input$variabley,input$variablexd,input$variablexd2))   
+      mod = paste(input$variabley,"~")
+   mod = paste(mod,input$variablexd)
+   mod = paste(mod,"*")
+    mod = paste(mod,input$variablexd2)
+    
+  fit <- aov(as.formula(mod), data=ds)
+  print(summary(fit))
+  
+   }
+    
+})
+
+output$VP<-renderPlot({
+   if(input$ex == TRUE)
+     {data("ToothGrowth")
+      data = ToothGrowth
+      data$dose = factor(data$dose)}
+     else{
+  file1 = input$file
+     if(is.null(file1)){return()}
+     
+     data =  read.table(file =  file1$datapath,sep =",",header = TRUE)
+     if(is.null(data())){return()}
+     }
+     ds = data
+     
+     ds = select(ds,input$variablex)
+    
+    
+     options(scipen = 999)
+    
+     if(input$antype == "One-way")
+   {  
+       mod = paste(input$variabley,"~")
+      mod = paste(mod,input$variablexd)
+     boxplot(as.formula(mod),data =ds,col = "red",ylab = input$variabley,xlab =input$variablexd,main = "One-way ANOVA Visualization")
+  
+     }
+     
+     if(input$antype == "Two-way")
+ { 
+      mod = paste(input$variabley,"~")
+   mod = paste(mod,input$variablexd)
+   mod = paste(mod,"+")
+    mod = paste(mod,input$variablexd2)
+ boxplot(as.formula(mod),data =ds,col = "red",xlab ="Treatments",ylab = input$variabley,main = "Two-way ANOVA Visualization ")
+  
+  
+   }
+   
+     if(input$antype == "Factorial")
+ { 
+    
+   mod = paste(input$variabley,"~")
+   mod = paste(mod,input$variablexd)
+   mod = paste(mod,"*")
+    mod = paste(mod,input$variablexd2)
+ #   attach(ds)
+  #  interaction.plot(get(input$variablexd),get(input$variablexd2),get(input$variabley#),type ="b",col= c("red","blue"),main = "Interaction between Treatments",xlab = #input$variablexd,ylab = input$variabley,trace.label = input$variablexd2)
+    
+   HH::interaction2wt(as.formula(mod),data = ds)
+   }
+    
+})
+
+
+
+output$vx <- renderUI({
+   
+ if(input$ex == TRUE)
+     {data("ToothGrowth")
+      data = ToothGrowth
+      data$dose = factor(data$dose)}
+     else
+     {
+     
+     file1 = input$file
+     if(is.null(file1)){return()}
+     
+     data =  read.table(file =  file1$datapath,sep =",",header = TRUE)
+     if(is.null(data())){return()}
+    
+     }
+     
+checkboxGroupInput("variablex","Select the variables",choices = colnames(data),selected = colnames(data))
+    
+    
+  
+
+
+  })
+output$vy <- renderUI({
+   
+ if(input$ex == TRUE)
+     {data("ToothGrowth")
+      data = ToothGrowth
+      data$dose = factor(data$dose)}
+     else
+     {
+     
+     file1 = input$file
+     if(is.null(file1)){return()}
+     
+     data =  read.table(file =  file1$datapath,sep =",",header = TRUE)
+     if(is.null(data())){return()}
+     }
+    ds = data
+    ds = select(ds,input$variablex) 
+    ds = select_if(ds,is.numeric)
+     
+    selectInput("variabley","Select the dependent variable",choices = colnames(ds),selected = "" )
+    
+
+
+  })
+output$vxd <- renderUI({
+   
+ if(input$ex == TRUE)
+     {data("ToothGrowth")
+      data = ToothGrowth
+      data$dose = factor(data$dose)}
+     else
+     {
+     
+     file1 = input$file
+     if(is.null(file1)){return()}
+     
+     data =  read.table(file =  file1$datapath,sep =",",header = TRUE)
+     if(is.null(data())){return()}
+     }
+    ds = data
+    ds = select(ds,input$variablex) 
+    ds = select_if(ds,is.factor)
+     
+    selectInput("variablexd","Select the independent variable",choices = colnames(ds),selected = "" )
+    
+
+
+  })
+output$vxd2 <- renderUI({
+   
+ if(input$ex == TRUE)
+     {data("ToothGrowth")
+      data = ToothGrowth
+      data$dose = factor(data$dose)}
+     else
+     {
+     
+     file1 = input$file
+     if(is.null(file1)){return()}
+     
+     data =  read.table(file =  file1$datapath,sep =",",header = TRUE)
+     if(is.null(data())){return()}
+     }
+    ds = data
+    ds = select(ds,input$variablex) 
+    ds = select_if(ds,is.factor)
+     
+    selectInput("variablexd2","Select the 2nd independent variable",choices = colnames(ds),selected = colnames(ds)[2] )
+    
+
+
+  })
+
+output$testdata <- renderRHandsontable({
+  DF = data.frame(Group=c(1,2,3), mean= c(62,52,60), sd = c(6,5,7), n= c(8,8,7))
+
+rhandsontable(DF) 
+  
+  
+})
+
+output$AN <- renderPrint({
+  
+  data_frame  =  data.frame(hot_to_r(input$testdata))
+
+  levels = length(unique(data_frame$n))
+  
+  data_frame1 = select(data_frame,c(n,mean,sd))
+ data_frame1$mean =  as.numeric(data_frame$mean) 
+ data_frame1$sd  =  as.numeric(data_frame$sd)
+  data_frame1$n    =  as.numeric(data_frame$n)
+  
+ rnorm2 = function(n,mean,sd) { mean+ sd*scale(rnorm(n)) }
+ 
+
+ df = mapply(rnorm2,data_frame1[,1],data_frame1[,2],data_frame[,3])
+
+ if(levels > 1)
+{ attributes(df) = list( names = names(df), row.names=1:max(data_frame$n), class = 'data.frame')
+ colnames(df) = 1:ncol(df)
+ 
+ df2 =data.frame(values = unlist(df))
+ row.names(df2)= 1: nrow(df2)
+ 
+ 
+ 
+  data_frame2 =  select(data_frame,c(Group,n))
+ data_frame2$Group = as.factor(data_frame2$Group)
+ dataset1 =  data_frame2
+dataset1 = data.frame(ind = dataset1[rep(seq_len(nrow(dataset1)), dataset1$n) ,1  ])
+row.names(dataset1) = 1:nrow(dataset1)
+
+
+ df2$ind = as.factor(dataset1$ind)
+
+ 
+ }
+ else
+   
+ {
+   df =  data.frame(df)
+   df2 = data.frame(stack(df[1:ncol(df)]))
+  #print(df2)
+ }
+ dataset = df2
+print(summary(aov(as.formula(values~ind),data = dataset)))
+cat(sprintf("\nPost Hoc tests\n"))
+print(PostHocTest(aov(as.formula(values~ind),data = dataset), method = "lsd", conf.level=NA))
+  
+})
+
+
+
+
+
+datasetInput1 <- reactive({
+  
+data_frame  =  data.frame(hot_to_r(input$testdata))
+
+  levels = length(unique(data_frame$n))
+  
+  data_frame1 = select(data_frame,c(n,mean,sd))
+ data_frame1$mean =  as.numeric(data_frame$mean) 
+ data_frame1$sd  =  as.numeric(data_frame$sd)
+  data_frame1$n    =  as.numeric(data_frame$n)
+  
+ rnorm2 = function(n,mean,sd) { mean+ sd*scale(rnorm(n)) }
+ 
+
+ df = mapply(rnorm2,data_frame1[,1],data_frame1[,2],data_frame[,3])
+
+ if(levels > 1)
+{ attributes(df) = list( names = names(df), row.names=1:max(data_frame$n), class = 'data.frame')
+ colnames(df) = 1:ncol(df)
+ 
+ df2 =data.frame(values = unlist(df))
+ row.names(df2)= 1: nrow(df2)
+ 
+ 
+ 
+  data_frame2 =  select(data_frame,c(Group,n))
+ data_frame2$Group = as.factor(data_frame2$Group)
+ dataset1 =  data_frame2
+dataset1 = data.frame(ind = dataset1[rep(seq_len(nrow(dataset1)), dataset1$n) ,1  ])
+row.names(dataset1) = 1:nrow(dataset1)
+
+
+ df2$ind = as.factor(dataset1$ind)
+ }
+else
+   
+ {
+   df =  data.frame(df)
+   df2 = data.frame(stack(df[1:ncol(df)]))
+  #print(df2)
+ }
+ 
+ data = df2
+     
+     
+})
+output$downloaddata <- downloadHandler(
+    filename = function() {
+      filetitle = paste("dataset")
+      paste(filetitle, ".csv", sep = "")
+    },
+    content = function(file) {
+      
+      write.csv(datasetInput1(), file, row.names = FALSE)
+    }
+  )
+
+
+
+output$downloadPlot<- downloadHandler(
+    filename = function() {
+      paste("ANOVAplot", ".png", sep = "")
+    },
+    content = function(file) {
+      png(file)
+
+     if(input$ex == TRUE)
+     {data("ToothGrowth")
+      data = ToothGrowth
+      data$dose = factor(data$dose)}
+     else{
+  file1 = input$file
+     if(is.null(file1)){return()}
+     
+     data =  read.table(file =  file1$datapath,sep =",",header = TRUE)
+     if(is.null(data())){return()}
+     }
+     ds = data
+     
+     ds = select(ds,input$variablex)
+    
+    
+     options(scipen = 999)
+    
+     if(input$antype == "One-way")
+   {  
+       mod = paste(input$variabley,"~")
+      mod = paste(mod,input$variablexd)
+     boxplot(as.formula(mod),data =ds,col = "red",ylab = input$variabley,xlab =input$variablexd,main = "One-way ANOVA Visualization")
+  
+     }
+     
+     if(input$antype == "Two-way")
+ { 
+      mod = paste(input$variabley,"~")
+   mod = paste(mod,input$variablexd)
+   mod = paste(mod,"+")
+    mod = paste(mod,input$variablexd2)
+ boxplot(as.formula(mod),data =ds,col = "red",xlab ="Treatments",ylab = input$variabley,main = "Two-way ANOVA Visualization ")
+  
+  
+   } 
+ if(input$antype == "Factorial")
+{ 
+    
+   mod = paste(input$variabley,"~")
+   mod = paste(mod,input$variablexd)
+   mod = paste(mod,"*")
+    mod = paste(mod,input$variablexd2)
+attach(ds)
+   interaction.plot(get(input$variablexd),get(input$variablexd2),get(input$variabley),type ="b",col= c("red","blue"),main = "Interaction between Treatments",xlab = input$variablexd,ylab = input$variabley,trace.label = input$variablexd2)
+    
+ 
+}
+     
+      dev.off()
+    })
+
+
+datasetInput2 <- reactive({
+      data("ToothGrowth")
+      data = ToothGrowth
+      data$dose = factor(data$dose)
+      data = data
+})
+output$downloaddata2 <- downloadHandler(
+    filename = function() {
+      filetitle = paste("Exampledataset")
+      paste(filetitle, ".csv", sep = "")
+    },
+    content = function(file) {
+      
+      write.csv(datasetInput2(), file, row.names = FALSE)
+    }
+  )
+
+
+
+
+

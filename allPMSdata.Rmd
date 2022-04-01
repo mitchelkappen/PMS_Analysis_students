@@ -1,12 +1,8 @@
 ---
-title: "PMS Study"
-author: "Mitchel Kappen & Sofie Raeymakers"
-date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
-output:
-  html_document: default
-  pdf_document: default
-  html_notebook: default
+runtime: shiny
+output: html_document
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -14,23 +10,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## PMS Study
 
-This is the data processing html for the PMS study
+This is an interactive, Shiny Rmd file for the PMS study
 
 ```{r libraries, include = FALSE}
-# we will first write some pseudocode to describe what we want to do
-#upload files
-#find best linear model to represent data with AI
-
-#     PSS ~ PMSScore*Moment + (1|Subject)
-# 
-#     PSS deppendent variablle
-#     pMS = 1 geen PMS
-#     keer moment: moment v afname
-#     1 out of subject: random effect toevoegen
-#     straks factoren vd PMS score en van moment: hoeveel levels? 
-#       formules van doen
-#     laten weten welke formule beste
-#     
 
     
 #### Settings & Packages #### -----------------------------------------------------
@@ -125,281 +107,37 @@ data = distinct(data)
 # exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
 data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor.Coil")
 
-# Define the formula for the model & check which model fits the data best
-formulas = c('PSS ~ PMSScoreNew*TestMoment') # important! after the ~should be the same every time
+data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
 
-plotTitles = c('PMSScore*TestMoment')
+# Define the formula for the model & check which model fits the data best
 
 data_temp <- data #to get back to
 
-# Define the formula for the model & check which model fits the data best
-for (i in 1){
-
-  Formula <- paste0(formulas[i], ' + (1|Subject)')
-  d0.1 <- lmer(Formula,data=data)
-  d0.2 <- glmer(Formula,data=data, family = gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  d0.3 <- glmer(Formula,data=data, family = gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  
-  d0.4 <- glmer(Formula,data=data, family = Gamma(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  d0.5 <- glmer(Formula,data=data, family = Gamma(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  d0.6 <- glmer(Formula,data=data, family = Gamma(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  
-  d0.7 <- glmer(Formula,data=data, family = inverse.gaussian(link = "identity"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  d0.8 <- glmer(Formula,data=data, family = inverse.gaussian(link = "inverse"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  d0.9 <- glmer(Formula,data=data, family = inverse.gaussian(link = "log"),glmerControl(optimizer= "bobyqa", optCtrl = list(maxfun = 100000)),nAGQ=nAGQ)
-  
-  modelNames = c(d0.1,d0.2,d0.3,d0.4,d0.5,d0.6,d0.7,d0.8,d0.9)
-
-  # Remove the models that produced errors in the line below, the one with the lowest value is the best fitting model
-  tabel <- cbind(AIC(d0.1), AIC(d0.2), AIC(d0.3), AIC(d0.4), AIC(d0.5), AIC(d0.6), AIC(d0.7), AIC(d0.8), AIC(d0.9))
-  #show table in html
-  kable (tabel, caption = "table showing the different AIC")
-  chosenModel = modelNames[which(tabel == min(tabel))]
-
-  
-  Anova(chosenModel[[1]])
-  
-  emmeans(chosenModel[[1]], pairwise ~ PMSScoreNew*TestMoment , adjust ="fdr", type="response")
-
-  
-    # Plotting
-  dpi=600    #pixels per square inch
-  # jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
-  par(mfcol = c(1, 1))
-  plot <- pirateplot(
-    formula = formulas[i],
-    data = data,
-    theme = 1,
-    pal = "info",
-    main = plotTitles[i],
-    bean.f.o = .6, # Bean fill
-    point.o = .3,  # Points
-    inf.f.o = .7,  # Inference fill
-    inf.b.o = .8,  # Inference border
-    avg.line.o = 1,  # Average line
-    # bar.f.o = .5, # Bar
-    inf.f.col = "white",  # Inf fill col
-    inf.b.col = "black",  # Inf border col
-    avg.line.col = "black",  # avg line col
-    bar.f.col = gray(.8),  # bar filling color
-    point.pch = 21,
-    point.bg = "white",
-    point.col = "black",
-    point.cex = .7,
-    
-    xlab = "",
-  )
-  # abline(lm(formulas[i], data=data), lwd=4, lty=2, col = "red")
-}
-
 ```
 
 
-
-
-## Plots
-
-Here are some plots:
-
-```{r Plots, echo=FALSE}
-
-
-
-ggplot(data = data) + 
-  geom_bar(mapping = aes(x = PSS))
-
-##PIRATE PLOT:
-
-# Plotting
-  dpi=600    #pixels per square inch
-  
-# jpeg(paste0(plotPrefix, "Figure", "_", plotTitles[i], ".jpeg"), width=8*dpi, height=4*dpi, res=dpi)
-  par(mfcol = c(1, 1))
-  plotPSS_1 <- pirateplot(
-    formula = PSS ~ TestMoment,
-    data = data,
-    theme = 3,
-    pal = "info",
-    main = "PSS ~ Testmoment",
-    bean.f.o = .6, # Bean fill
-    point.o = .3,  # Points
-    inf.f.o = .7,  # Inference fill
-    inf.b.o = .8,  # Inference border
-    avg.line.o = 1,  # Average line
-    # bar.f.o = .5, # Bar
-    inf.f.col = "white",  # Inf fill col
-    inf.b.col = "black",  # Inf border col
-    avg.line.col = "black",  # avg line col
-    bar.f.col = gray(.8),  # bar filling color
-    point.pch = 21,
-    point.bg = "white",
-    point.col = "black",
-    point.cex = .7,
-   
-    xlab = "",
-  )
-  
-  # Insert visual indicators of significance
-x <- 1:2  # capture x coordinates of bars
-y <- 42  # create the y coordinate of the line
-offset <- 0.2  # set an offset for tick lengths
-lines(c(1.05,1.95),c(y, y))  # draw first horizontal line
-lines(c(1.05,1.05),c(y, y-offset))  # draw ticks
-lines(c(1.95,1.95),c(y, y-offset))
-text(x[1]+((x[2]-x[1])/2),y+offset,"***")  # draw asterics
-
-#Bar2
-y <- 21
-offset <- 0.2
-lines(c(2.1,2.9),c(y, y))
-lines(c(2.1,2.1),c(y, y-offset))
-lines(c(2.9,2.9),c(y, y-offset))
-text(x[2]+((x[3]-x[2])/2),y+offset,"***")
-
-#Bar3
-y <- 22
-offset <- 0.2
-lines(c(1.1,2.9),c(y, y))
-lines(c(1.1,1.1),c(y, y-offset))
-lines(c(2.9,2.9),c(y, y-offset))
-text(x[1]+((x[3]-x[1])/2),y+offset,"***")
-
-################################################
-  
-  plotPSS_2 <- pirateplot(
-    formula = PSS ~ PMSScoreNew*TestMoment,
-    data = data,
-    theme = 3,
-    pal = "info",
-    main = "PSS ~ PMSScoreNew: Testmoment",
-    bean.f.o = .6, # Bean fill
-    point.o = .3,  # Points
-    inf.f.o = .7,  # Inference fill
-    inf.b.o = .8,  # Inference border
-    avg.line.o = 1,  # Average line
-    # bar.f.o = .5, # Bar
-    inf.f.col = "red",  # Inf fill col
-    inf.b.col = "black",  # Inf border col
-    avg.line.col = "black",  # avg line col
-    bar.f.col = grey(.8),  # bar filling color
-    point.pch = 21,
-    point.bg = "grey",
-    point.col = "black",
-    point.cex = .7,
-   
-    xlab = "",
-  )
+```{r echo=FALSE}
 
 ```
-
-with PMSScore=0 and testmoment = 2 there seem to be some outliers
-This means that people with low PMS scores had more outliers on testmoment 2. 
-we might need to remove some of these outliers
+## 
 
 
 
-```{r, echo=FALSE}
-
-ZeroLength<- length(which(data$PMSScoreNew=='noPMS'))
-OneLength <-length(which(data$PMSScoreNew=='PMS'))
-
-
-age_mean <- round(mean(data$Age), 1)
-
-summary(data$PSS)
-
-# count for each participants how many trials are left for each PMSScoreNew by PSS
-trial_count <- as.data.frame(table(data$Subject, data$PMSScoreNew, data$PSS))
-names(trial_count) <- c("subject_id", "PMSScore", "PSS", "count")
-
-trial_mean <- trial_count %>%
-  group_by(PMSScore, PSS) %>%
-  summarize(
-    mean = mean(count),
-    sd = sd(count), 
-    min = min(count),
-    max = max(count)
-  )
+```{r echo=FALSE}
+  df<- data_1x1(array_1=data$PSS, array_2=data$PMSScoreNew, jit_distance=0.09, jit_seed=321)+
+    raincloud_1x1_repmes<- function(
+      data= df(),
+      colors= (c('dodgerblue', 'darkorange')),
+      fills= (c('dodgerblue', 'darkorange')),
+      line_color="gray",
+      line_alpha=.3,
+      size=1,
+      alpha= .6,
+      align_clouds=FALSE)+
+      
+      # scale_x_cntinuous (breaks=c(1,2), labels=c("1", "2"), limits=c(0,3))+
+      # xlab("PMS")+
+      # theme_classic()
+      
 
 ```
-##we have more participants with low PMS score
-
-`r plot(data$PMSScoreNew)`
-
-
-There are `r ZeroLength` people with low PMS score and `r OneLength` people with high PMS score
-
-The mean age is `r age_mean`
-
-```{r, echo= FALSE}
-
-outliers <- boxplot(data$PSS, plot=FALSE)$out
-
-Q <- quantile(data$PSS, probs= c(.25, .75), na.rm=TRUE)
-
-iqr <-IQR(data$PSS, na.rm=TRUE)
-up <- Q[2]+1.5*iqr
-
-low<- Q[1]-1.5*iqr
-
-
-#data$PSS_without_out<-
-PSS_without_out<- data[-which(data$PSS %in% outliers),]
-
-
-```
-## Outliers
-`r boxplot(data$PSS, main="some PSS Outliers")$out`
-`r outliers`
-
-## Q
-`r Q`
-
-## IQR UP
-`r up`
-
-## IQR LOW
-`r low`
-
-
-The End! 
-
-
-############ Hyptothesen en onderzoeksvragen:
-
-TO DO:
-
-
--hoe de markdown images doen (want je maakt de pirateplot en voegt er een stuk code aan toe dat de significantie aangeeft. )
-
-
-
-PMS vs noPMS op het gebied van:
-- PSS
-- BSRI
-
-++ Interactie testmoment
-PMS vs noPMS voor:
-- DASS_alle subschalen
--- Hoeft niet x testmoment
-
-
-------- Voor de stimuli -----------
-Eerste stap:
-- Bekijken Valence en arousal tussen de groepen en testmomenten, over alle stimuli als een geheel
-
-Next:
-- Per stimulus gemiddelden plotten
--- Om erachter te komen of er coherent geantwoord wordt
--- Om te zien of ze niet te veel van elkaar afwijken
---- waarchuwing; ze gaan veel van elkaar afwijken. 
-
-
-Stimuli onderverdelen in negatiev, positief en neutral, om daar een subdivisie analyse op te maken
-*noot: iaos images, ze zijn getagged (zoek op om ze te kunnen onderverdelen). 22, gematched (dus bv naald in arm vs naald in been)
-
----------------- Overig:
-Normgroepen opzoeken voor PSS bij (jonge) vrouwen
-
-
-

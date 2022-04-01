@@ -1,0 +1,400 @@
+---
+title: "PMS STUDY"
+author: "Mitchel Kappen & Sofie Raeymakers"
+date: "`r Sys.setlocale('LC_TIME', 'C'); format(Sys.time(), '%d\\\\. %B %Y')`"
+runtime: shiny
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# PMS Study {.tabset}
+
+This is an interactive, Shiny Rmd file for the PMS study
+
+```{r libraries, include = FALSE}
+
+    
+#### Settings & Packages #### -----------------------------------------------------
+rm(list = ls())
+
+#install packages
+list.of.packages <- c("lme4",'lmerTest','effects','dplyr', 'car', 'Rmisc', 'emmeans','fitdistrplus','ggplot2', 'ggstatsplot','ggsignif', 'ggformula','ggdist','ggpubr','ggeffects', 'gplots', 'gridExtra','tidyverse','pander','stringr','cowplot','lavaan','readr','jpeg','shiny','reshape2', 'yarrr','knitr', 'remotes', 'raincloudplots')
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+
+library(Rmisc)
+library(raincloudplots)
+library(lme4)
+library(lmerTest)
+library(effects)
+library(dplyr)
+library(car)
+library(emmeans)
+library(fitdistrplus)
+library(gplots)
+library(ggplot2)
+library(ggstatsplot)
+library(ggsignif)
+library(ggformula)
+library(ggdist)
+library(ggpubr)
+library(ggeffects)
+library(gridExtra)
+library(tidyverse)
+library(pander)
+library(stringr)
+library(cowplot)
+library(lavaan)
+library(readr)
+library(jpeg)
+library(shiny)
+library(reshape2)
+library (yarrr)
+# library(htmltools)
+library(knitr)
+library(remotes)
+recode <- dplyr::recode
+count <- dplyr::count 
+
+# create folder to save figures
+if (!dir.exists("figures")) dir.create("figures")
+# General settings
+nAGQ = 0 # When writing code, set to 0, when getting final results, set to 1ù
+vpn = 1 # Set to 1 if using VPN
+```
+
+
+```{r load-data, echo=FALSE}
+#### IMPORT data & INSPECTION #### -------------------------------------------------------------
+work_dir<-"Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\"
+setwd(work_dir)
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+if (vpn == 1){
+  dataDir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\RMarkdown\\Data\\"
+} else {
+  dataDir = "Data\\"
+}
+data <- read.csv(paste0(dataDir,"allPMSdata.csv"), header=TRUE, sep=)
+
+# work_dir<-"C:/Users/ASUSTeK/OneDrive/Documenten/GitHub/internship_sofie"
+# setwd(work_dir)
+# data <- read.csv(paste0(dataDir,"allPMSdata.csv"), header=TRUE, sep=)
+
+
+norms <-read.table(paste0(dataDir,"FemaleSubjects_1-20.txt"), header=TRUE, fill=TRUE)
+# norms <-read.table('Data/IAPnormings.txt', header=TRUE, fill=TRUE)
+norms$IAPS <-round(norms$IAPS)
+un<-c('1440', '1463', '1610', '1710', '1722', '1750', '2057', '2070', '2160', '2165', '2340', '2360', '2800', '3261', '4180', '4290', '4490', '4531',  '4550', '4561', '4658', '5030', '5600', '5800', '5982', '6312', '6313', '7182', '7211', '7224', '7238', '7380', '7480', '7481', '9220', '9300', '9320', '9584', '9592', '9594', '9600', '9911', '9920', '9921') # all the unique(data$Stimulus) in a list
+norms<-as.data.frame(norms) # make a dataframe
+norms$row_num <- seq.int(nrow(norms)) # give row numbers
+#move column with names 
+norms <- norms %>%
+  relocate(desc, .after=row_num)
+
+norms<-subset(norms, IAPS%in% un ) #we now have table with the norms for ONLY the stimuli used in this PMS experiment
+
+#we remove the second 1610 because it is double for some reason
+norms<-norms[-c(4),]
+
+
+data$Subject <- factor(data$ID)
+
+levs<-union(data$ID, data$ID)
+data$newid <- factor(data$ID, levels=levs, labels=seq_along(levs)) #this code replaces the '627, 534 IDs with 1, 2, 3, )
+
+#we make a new variable that has value 1 for the first TestMoment and 2 for the second TestMoment
+#These moments were counterbalanced
+#when the order was B-A and the moment is B, this means it is the first test moment
+#and vice versa for A-B and moment A. 
+
+# TestMoment 1 == Follicular phase
+# TestMoment 2 == Luteal phase
+data$TestMoment[data$Order == "A-B" & data$Moment == "A"] = 1
+data$TestMoment[data$Order == "B-A" & data$Moment == "A"] = 2
+data$TestMoment[data$Order == "A-B" & data$Moment == "B"] = 2
+data$TestMoment[data$Order == "B-A" & data$Moment == "B"] = 1
+#check if there are still values missing (NA)
+#sum(is.na(data$TestMoment))
+
+# new variable PMSSCORE NEW iedereen pms 0 ook 0 iedereen die 1 OF 2 heeft wordt 1, 
+data$PMSScoreNew[data$PMSScore==0] = 'noPMS'
+data$PMSScoreNew[data$PMSScore==1] = 'PMS'
+data$PMSScoreNew[data$PMSScore==2] = 'PMS' #PMDD, mr niet officiële diagnose dus gewoon PMS
+#sum(is.na(data$PMSScoreNew))
+
+#put rt in sec instead of ms
+data$rt= data$rt/1000
+
+# Check whether R recognizes the variable types correctly
+#we make factors of the independable variables
+
+data$PMSScore <- factor(data$PMSScore)
+data$PMSScoreNew <- factor(data$PMSScoreNew)
+data$Moment <- factor(data$TestMoment) # This removes "A and B", A == 1, B == 2 now
+
+# Exclude data?
+
+data_allcontraception <-data
+# exclude everyone on the pill/copper spiral/other: only those with Natural Contraception are left included
+data<-subset(data, Contraception!="Pill" & Contraception!="other" & Contraception!="Cop. Coil" & Contraception!="Hor. Coil" & Contraception!='Hor.Coil')
+
+dataBig = data # Saved all the data here
+data = data[, -which(names(data) == "X" | names(data) == "Stimulus" | names(data) == "Valence" | names(data) == "Arousal" | names(data) == "rt")] #removes these columns
+data= distinct(data)
+
+
+data <- subset(data,BSRI!=0 ) #remove datapoints where BSRI = 0
+
+# Define the formula for the model & check which model fits the data best
+
+data_temp <- data #to get back to
+dataBig_out<-dataBig #the dataBig with the rt outliers
+#Dit zijn de data waar de rt outliers uitgehaald zijn! 
+dataBig2 <- subset(dataBig, rt < 16)
+
+#now we add the sd and means from these data to this dataframe
+# https://stackoverflow.com/questions/21982987/mean-per-group-in-a-data-frame
+# norms$valmn_pms<- mean(dataBig2$Valence)
+
+norms<-cbind(norms, round(ddply(dataBig2, .(Stimulus), summarize,  valmn_pms=mean(Valence))[2])/10)
+
+norms<-cbind(norms, round(ddply(dataBig2, .(Stimulus), summarize,  aromn_pms=mean(Arousal))[2])/10)
+
+norms<-cbind(norms, round(ddply(dataBig2, .(Stimulus), summarize,  valsd_pms=sd(Valence))[2])/10)
+
+norms<-cbind(norms, round(ddply(dataBig2, .(Stimulus), summarize,  arosd_pms=mean(Arousal))[2])/10)
+
+#make all columns unique!
+colnames(norms)<-make.unique(names(norms))
+
+# group stimuli depending on whether they are part of group A or group B in exp
+
+A<-unique(dataBig2$Stimulus[dataBig2$Order=='A-B' & dataBig2$Moment==1])
+B <-unique(dataBig2$Stimulus[dataBig2$Order=='B-A' & dataBig2$Moment==1])
+
+norms$group[norms$IAPS %in% A]='A'
+norms$group[norms$IAPS %in% B]='B'
+
+```
+
+```{r functions, echo=FALSE, results='asis'}
+
+  # violin function
+
+    geom_flat_violin <- function(mapping = NULL, data = NULL, stat = "ydensity",
+                                 position = "dodge", trim = TRUE, scale = "area",
+                                 show.legend = NA, inherit.aes = TRUE, ...) {
+      layer(
+      data = data,
+      mapping = mapping,
+      stat = stat,
+      geom = GeomFlatViolin,
+      position = position,
+      show.legend = show.legend,
+      inherit.aes = inherit.aes,
+      params = list(
+        trim = trim,
+        scale = scale,
+        ...
+     )
+    )
+    }
+GeomFlatViolin <-
+  ggproto("GeomFlatViolin", Geom,
+          setup_data = function(data, params) {
+            data$width <- data$width %||%
+              params$width %||% (resolution(data$x, FALSE) * 0.9)
+            
+            # ymin, ymax, xmin, and xmax define the bounding rectangle for each group
+            data %>%
+              group_by(group) %>%
+              mutate(ymin = min(y),
+                     ymax = max(y),
+                     xmin = x,
+                     xmax = x + width / 2)
+            
+          },
+          
+          draw_group = function(data, panel_scales, coord) {
+            # Find the points for the line to go all the way around
+            data <- transform(data, xminv = x,
+                              xmaxv = x + violinwidth * (xmax - x))
+            
+            # Make sure it's sorted properly to draw the outline
+            newdata <- rbind(plyr::arrange(transform(data, x = xminv), y),
+                             plyr::arrange(transform(data, x = xmaxv), -y))
+            
+            # Close the polygon: set first and last point the same
+            # Needed for coord_polar and such
+            newdata <- rbind(newdata, newdata[1,])
+            
+            ggplot2:::ggname("geom_flat_violin", GeomPolygon$draw_panel(newdata, panel_scales, coord))
+          },
+          
+          draw_key = draw_key_polygon,
+          
+          default_aes = aes(weight = 1, colour = "grey20", fill = "white", size = 0.5,
+                            alpha = NA, linetype = "solid"),
+          
+          required_aes = c("x", "y")
+)
+    
+    #standard error function
+    standard_error <- function(x) sd(x)/sqrt(length(x))
+    
+    
+    
+#function for split violin
+    GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
+                           draw_group = function(self, data, ..., draw_quantiles = NULL) {
+  data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
+  grp <- data[1, "group"]
+  newdata <- plyr::arrange(transform(data, x = if (grp %% 2 == 1) xminv else xmaxv), if (grp %% 2 == 1) y else -y)
+  newdata <- rbind(newdata[1, ], newdata, newdata[nrow(newdata), ], newdata[1, ])
+  newdata[c(1, nrow(newdata) - 1, nrow(newdata)), "x"] <- round(newdata[1, "x"])
+
+  if (length(draw_quantiles) > 0 & !scales::zero_range(range(data$y))) {
+    stopifnot(all(draw_quantiles >= 0), all(draw_quantiles <=
+      1))
+    quantiles <- ggplot2:::create_quantile_segment_frame(data, draw_quantiles)
+    aesthetics <- data[rep(1, nrow(quantiles)), setdiff(names(data), c("x", "y")), drop = FALSE]
+    aesthetics$alpha <- rep(1, nrow(quantiles))
+    both <- cbind(quantiles, aesthetics)
+    quantile_grob <- GeomPath$draw_panel(both, ...)
+    ggplot2:::ggname("geom_split_violin", grid::grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))
+  }
+  else {
+    ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
+  }
+})
+
+geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., 
+                              draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, 
+                              show.legend = NA, inherit.aes = TRUE) {
+  layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, 
+        position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
+        params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
+}
+
+```
+
+## Intro
+
+
+A lot of the people that get their periods feel unwell during the premenstrual phase of their cyclus. 
+This study looked into stress, rumination and emotion expression during the premenstrual phase with both healthy women and women who have PMS, or Pre Menstrual Syndrome.
+
+#### PMS
+
+PMS is a clinical disorder that is characterized by behavioral and physical symptoms that occur during the luteal phase, which we will call the 'premenstrual phase' during this presentation
+
+
+!["Image Source: https://helloclue.com/articles/cycle-a-z/the-menstrual-cycle-more-than-just-the-period"](figures/MC.png){width=80%}
+The symptoms disappear 2-3 days into menstruation.
+
+##### Symptoms
+
+- decreased serotonin levels
+
+- etiology and symptoms of PMS and depression are linked
+
+### pMDD
+
+PMDD (Premenstrual Dysphoric Disorder) has recently been added to the DSM, this is a more severe version of PMS.
+
+##### Prevalence
+
+- 75% of women experience some symptoms
+
+- 20-30%: moderate to severe symptoms
+
+- 5-8% PMDD levels of symptoms
+
+
+### STUDY
+
+##### Screening
+
+![](figures/screening.png){width=80%}
++ screening tool for premenstrual symptoms: 
+
+- no/mild
+
+- medium-severe
+
+
+#### TestMoment
+
+* determined per participant, based on cycle
+
+* invitation via e-mail + 24 h reminder
+
+* execution via LimeSurvey
+
+* counterbalanced across participants
+
+#### Measures
+
+- PSS: Perceived Stress Scale
+
+- Rating of 22 IAPS images while webcam records
+  +  counterbalanced across TestMoment: e.g. during moment 1 a puppy, during moment 2 a different puppy. this order (serie A of images and serie B of images)
+
+- Report experienced Valence, Arousal
+
+![](figures/screening.png){width=80%}
+
+- question on webcam usability and comfort
+
+### Hypotheses
+
+#### control vs premenstrual phase:
+
+- higher stress?
+
+- more rumination? 
+
+- more negative responses? explicit: ratings, implicit: video emotion expressions
+
+### TODAY:
+
+** implicit measures **
+
+
+
+## PMS, TestMoment, PSS and BSRI
+
+* #### PMS: 
+three groups originally: low and high PMS and what counts as ... on the questionnaire. 
+These two last groups were taken together to form the 'no PMS' and 'PMS' groups
+
+
+
+
+
+* #### PSS
+Perceived Stress Scale
+
+add image norms
+
+
+* #### BSRI:
+Brief State RUmination Index
+
+!["Altan-Atalay et al., 2020"](figures/BSRI_norms2.png){width=80%}
+
+image norms
+
+Marchetti et al. The Brief State Rumination Inventory (BSRI): Validation and Psychometric Evaluation
+
+add image norms
+
+
+### Research Question: PMS vs no PMS: 
+- PSS
+- BSRI
++ Interactie testmoment

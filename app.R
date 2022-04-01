@@ -1,18 +1,27 @@
 library(shiny)
 
 ui<- fluidPage( # makes the User Interface
-  selectInput("formula_choice", label="Which Formula:",
-              choices= c('PSS ~ TestMoment', 'BSRI ~ TestMoment', 'PSS~PMSScoreNew*TestMoment'),
-              selected='PSS ~ TestMoment'), # puts the choices in the first element which is accessed via input$formula_choice
-  plotOutput(outputId="vis")
+
+  sliderInput(inputId= "num", label="choose a number", value=25, min=1, max=100),
+  plotOutput(outputId="hist")
 )
 
-server <- function (input, output){ 
-  output$vis<- renderPrint({ 
-    title <- "The chosen formula" 
-    print(input$formula_choice)
+server <- function (input, output){ #we have to add this to the server
+  output$hist<- renderPlot({ # here we say what we want to do with output$hist and make it with render
+    title <- "100 random normal values" #you can add as many code as you want between these braces
+    hist(rnorm(input$num))
     })
 }
+
+#use server function to assemple inputs into outputs. 3 rules:
+# -save output that you build to output$
+# - build the output with a render*() function()
+# -access input values with input$
+shinyApp(ui=ui, server=server)
+
+##you MUST use the name app.R if you want to share it on the web. 
+#shinyapps.io free website that allows you to run your app on a distant server
+
 
 
 shinyApp(ui=ui, server=server)
