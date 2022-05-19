@@ -24,26 +24,20 @@ library(ggplot2) # figures
 library(lsr) #for calculating cohen's d
 
 ##### General settings #####
-nAGQ = 1 # Set to 1 for GLMMs to get reliable results
-vpn = 1 # Set to 1 if using VPN
-
 # Get and declare functions
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #Set WD to script location - Else it can't find functions.R
 source("functions.R") # This is a file in the same directory where you can stash your functions so you can save them there and have them together
 
 # Set WD
-if (vpn == 1) {
-  Dir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\" #data from VPN folder
-}
-setwd(Dir)
+Dir = "Data/" #data from VPN folder
 
 # Get data
-data <- read.csv(paste0(Dir, "06102021\\cleanedDataTraits.csv"), header = TRUE, sep = ) #upload data
+data <- read.csv(paste0(Dir, "cleanedDataTraits.csv"), header = TRUE, sep = ) #upload data
 
 # save figures
-if (!dir.exists("figures")){ # Create folder for storing the figures if it doesn't exist yet
-  dir.create("figures")}
-plotPrefix <- paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/figures/") # Prefix to easily store figures later
+if (!dir.exists("Figures")){ # Create folder for storing the figures if it doesn't exist yet
+  dir.create("Figures")}
+plotPrefix <- paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/Figures/") # Prefix to easily store figures later
 
 ##### Data Cleaning #####
 # Use names for PMS score - easier interpretation and plotting later
@@ -137,7 +131,7 @@ plot1 <- traitplot(data, emm0.1, "DASS_Depression",'DASS:Depression') +
     annotate('text', x=2.5, y=max_y1+ 1.3, label='**', size=7)+
     geom_segment(aes(x = 1, y=max_y1+2, xend= 3, yend=max_y1+2), size= 1)+ # top line
     annotate('text', x=2, y=max_y1+2.3, label='***', size=7)
-ggsave(plot1, file=paste0(plotPrefix, "DASS_A.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+ggsave(plot1, file=paste0(plotPrefix, "DASS_Depression.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot1
 
 ##### Trait: DASS - Anxiety #####
@@ -176,7 +170,7 @@ plot2 <- traitplot(data, emm0.1, "DASS_Anxiety",'DASS:Anxiety') +
   annotate('text', x=2.5, y=max_y2+ 1.3, label='**', size=7)+
   geom_segment(aes(x = 1, y=max_y2+2, xend= 3, yend=max_y2+2), size= 1)+ # top line
   annotate('text', x=2, y=max_y2+2.3, label='***', size=7)
-ggsave(plot2, file=paste0(plotPrefix, "DASS_B.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+ggsave(plot2, file=paste0(plotPrefix, "DASS_Anxiety.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot2
 
 ##### Trait: DASS - Stress #####
@@ -215,18 +209,18 @@ plot3 <- traitplot(data, emm0.1, "DASS_Stress",'DASS:Stress') +
   annotate('text', x=2.5, y=max_y3+ 1.3, label='**', size=7)+
   geom_segment(aes(x = 1, y=max_y3+2, xend= 3, yend=max_y3+2), size= 1)+ # top line
   annotate('text', x=2, y=max_y3+2.3, label='***', size=7)
-ggsave(plot3, file=paste0(plotPrefix, "DASS_C.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+ggsave(plot3, file=paste0(plotPrefix, "DASS_Stress.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot3
 
-# Combined DASS Visualisation
+##### Combined all DASS Visualizations ##### 
 library(patchwork)
-
-layout <- "
+# Create layout for combining the DASS plots
+layout <- " 
 ###AAAAAA#D#
 BBBBBBCCCCCC
 "
 
-fullDASSplot <- plot1 + plot2 + plot3 + guide_area() + plot_layout(design = layout, guides = "collect") + plot_annotation(tag_levels = c("A"))
+fullDASSplot <- plot1 + plot2 + plot3 + guide_area() + plot_layout(design = layout, guides = "collect") + plot_annotation(tag_levels = c("A")) # Create plot
 
-ggsave(fullDASSplot, file=paste0(plotPrefix, "DASS_all.jpeg"), width = 5000, height = 3000, dpi = 300, units = "px")
-fullDASSplot
+ggsave(fullDASSplot, file=paste0(plotPrefix, "DASS_all.jpeg"), width = 5000, height = 3500, dpi = 300, units = "px") # Save plot
+fullDASSplot # Render plot

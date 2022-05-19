@@ -26,26 +26,20 @@ library(ggpubr) #correlations
 library(effectsize)#phi
 
 ##### General settings #####
-nAGQ = 1 # Set to 1 for GLMMs to get reliable results
-vpn = 1 # Set to 1 if using VPN
-
 # Get and declare functions
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #Set WD to script location - Else it can't find functions.R
 source("functions.R") # This is a file in the same directory where you can stash your functions so you can save them there and have them together
 
 # Set WD
-if (vpn == 1) {
-  Dir = "Z:\\shares\\ghepmk_data\\2020_Kappen_PMS\\" #data from VPN folder
-} 
-setwd(Dir)
+Dir = "Data/" #data from VPN folder
 
 # Get data
-data <- read.csv(paste0(Dir, "06102021\\cleanedDataMoments.csv"), header = TRUE, sep = ) #upload data
+data <- read.csv(paste0(Dir, "cleanedDataMoments.csv"), header = TRUE, sep = ) #upload data
 
 # save figures
-if (!dir.exists("figures")){ # Create folder for storing the figures if it doesn't exist yet
-  dir.create("figures")}
-plotPrefix <- paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/figures/") # Prefix to easily store figures later
+if (!dir.exists("Figures")){ # Create folder for storing the figures if it doesn't exist yet
+  dir.create("Figures")}
+plotPrefix <- paste0(dirname(rstudioapi::getSourceEditorContext()$path),"/Figures/") # Prefix to easily store figures later
 
 ##### Data Cleaning #####
 # Use names for PMS score - easier interpretation and plotting later
@@ -116,10 +110,10 @@ plot <- stateplot(data, emm0.2,'PSS', 'PSS') +
   annotate('text', x=2.05, y=max_y+max_y/50+max_y/100, label='*', size=7)+ # star
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+# top line
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7) # star
-ggsave(plot, file=paste0(plotPrefix, "PSS_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
+ggsave(plot, file=paste0(plotPrefix, "PSS.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
 plot
 
-##### State: PTQ #####
+#### State: PTQ ####
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
 
@@ -170,11 +164,11 @@ plot <- stateplot(data, emm0.2, "PTQ", 'PTQ') +
   annotate('text', x=2.05, y=max_y + max_y/100+max_y/50, label='***', size=7)+
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7)
-ggsave(plot, file=paste0(plotPrefix, "PTQ_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
+ggsave(plot, file=paste0(plotPrefix, "PTQ.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px")
 plot
 
-
 ###### Supplemental Analysis ######
+supDir = 'Supplemental/Figures/'
 ##### State: BSRI #####
 dataModel = data
 rm(d0.1, d0.2, d0.3) # Just to be sure you're not comparing former models for this comparison
@@ -224,48 +218,53 @@ plot <- stateplot(data, emm0.2, 'BSRI', 'BSRI') +
   annotate('text', x=1.95, y=max_y + max_y/100, label='*', size=7)+ # star
   geom_segment(aes(x =1.9, y = max_y+max_y/15, xend = 2.1, yend = max_y+max_y/15), size= 1)+ # top line
   annotate('text', x=2, y=max_y+max_y/15+max_y/100, label='***', size=7) # star
-ggsave(plot, file=paste0(plotPrefix, "BSRI_Plot.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
+ggsave(plot, file=paste0(supDir,"BSRI.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
 plot
 
 ##### Correlations #####
-
 ## PSS vs. PTQ
 # noPMS 
 PSS <- data$PSS[data$PMS=='noPMS']
 PTQ <- data$PTQ[data$PMS=='noPMS']
 x_lab= 'noPMS_PSS'
 y_lab='noPMS_PTQ'
-overall_corr(PSS, PTQ, x_lab, y_lab)
+corr_PSS_PTQ_noPMS = overall_corr(PSS, PTQ, x_lab, y_lab)
+ggsave(corr_PSS_PTQ_noPMS, file=paste0(supDir,"corr_PSS_PTQ_noPMS.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
 # PMS
 PSS <- data$PSS[data$PMS=='PMS']
 PTQ <- data$PTQ[data$PMS=='PMS']
 x_lab= 'PMS_PSS'
 y_lab='PMS_PTQ'
-overall_corr(PSS, PTQ, x_lab, y_lab)
+corr_PSS_PTQ_PMS = overall_corr(PSS, PTQ, x_lab, y_lab)
+ggsave(corr_PSS_PTQ_PMS, file=paste0(supDir,"corr_PSS_PTQ_PMS.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
 # PMDD
 PSS <- data$PSS[data$PMS=='PMDD']
 PTQ <- data$PTQ[data$PMS=='PMDD']
 x_lab= 'PMDD_PSS'
 y_lab='PMDD_PTQ'
-overall_corr(PSS, PTQ, x_lab, y_lab)
+corr_PSS_PTQ_PMDD = overall_corr(PSS, PTQ, x_lab, y_lab)
+ggsave(corr_PSS_PTQ_PMDD, file=paste0(supDir,"corr_PSS_PTQ_PMDD.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
 
-## delta
+## Delta
 # noPMS
 PSS <- data$PSS[data$PMS=='noPMS'&data$Moment=='Foll']-data$PSS[data$PMS=='noPMS'&data$Moment=='Lut']
 PTQ <- data$PTQ[data$PMS=='noPMS'&data$Moment=='Foll']-data$PTQ[data$PMS=='noPMS'&data$Moment=='Lut']
 x_lab = 'noPMS_delta_PSS'
 y_lab = 'noPMS_delta_PTQ'
-overall_corr(PSS, PTQ, x_lab, y_lab)
+corr_delta_PSS_PTQ_noPMS = overall_corr(PSS, PTQ, x_lab, y_lab)
+ggsave(corr_delta_PSS_PTQ_noPMS, file=paste0(supDir,"corr_delta_PSS_PTQ_noPMS.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
 # PMS
 PSS <- data$PSS[data$PMS=='PMS'&data$Moment=='Foll']-data$PSS[data$PMS=='PMS'&data$Moment=='Lut']
 PTQ <- data$PTQ[data$PMS=='PMS'&data$Moment=='Foll']-data$PTQ[data$PMS=='PMS'&data$Moment=='Lut']
 x_lab = 'PMS_delta_PSS'
 y_lab = 'PMS_delta_PTQ'
-overall_corr(PSS, PTQ, x_lab, y_lab)
+corr_delta_PSS_PTQ_PMS = overall_corr(PSS, PTQ, x_lab, y_lab)
+ggsave(corr_delta_PSS_PTQ_PMS, file=paste0(supDir,"corr_delta_PSS_PTQ_PMS.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
 #PMDD
 PSS <- data$PSS[data$PMS=='PMDD'&data$Moment=='Foll']-data$PSS[data$PMS=='PMDD'&data$Moment=='Lut']
 PTQ <- data$PTQ[data$PMS=='PMDD'&data$Moment=='Foll']-data$PTQ[data$PMS=='PMDD'&data$Moment=='Lut']
 x_lab = 'PMDD_delta_PSS'
 y_lab = 'PMDD_delta_PTQ'
-overall_corr(PSS, PTQ, x_lab, y_lab)
+corr_delta_PSS_PTQ_PMDD = overall_corr(PSS, PTQ, x_lab, y_lab)
+ggsave(corr_delta_PSS_PTQ_PMDD, file=paste0(supDir,"corr_delta_PSS_PTQ_PMDD.jpeg"), width = 2500, height = 1500, dpi = 300, units = "px") # save plot
 
