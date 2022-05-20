@@ -29,6 +29,7 @@ library(effectsize)#phi
 # Get and declare functions
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) #Set WD to script location - Else it can't find functions.R
 source("functions.R") # This is a file in the same directory where you can stash your functions so you can save them there and have them together
+options(contrasts = c("contr.sum","contr.poly")) # Important for coding of categorical variables in interactions
 
 # Set WD
 Dir = "Data/" #data from VPN folder
