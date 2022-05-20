@@ -81,9 +81,14 @@ emmeans0.1 <- emmeans(d0.2, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
 # Cohen's d
-sprintf("Cohen's D for RRS | PMS vs noPMS: %.2f", cohens_d_trait(data$RRS, "noPMS", "PMS"))
-sprintf("Cohen's D for RRS | PMS vs PMDD: %.2f", cohens_d_trait(data$RRS, "PMS", "PMDD"))
-sprintf("Cohen's D for RRS | PMDD vs noPMS: %.2f", cohens_d_trait(data$RRS, "PMDD", "noPMS"))
+print("Cohen's D for RRS | PMS vs noPMS:")
+cohens_d_trait(data, "RRS", "noPMS", "PMS" )
+
+print("Cohen's D for RRS | PMS vs PMDD:")
+cohens_d_trait(data, "RRS", "PMS", "PMDD")
+
+print("Cohen's D for RRS | PMDD vs noPMS:")
+cohens_d_trait(data, "RRS", "PMDD", "noPMS")
 
 ## Visualisation
 max_y<-max(data$RRS)
@@ -119,9 +124,14 @@ emmeans0.1 <- emmeans(d0.3, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
 # Cohen's d
-sprintf("Cohen's D for DASS-Depression | PMS vs noPMS: %.2f", cohens_d_trait(data$DASS_Depression, "noPMS", "PMS"))
-sprintf("Cohen's D for DASS-Depression | PMS vs PMDD: %.2f", cohens_d_trait(data$DASS_Depression, "PMS", "PMDD"))
-sprintf("Cohen's D for DASS-Depression | PMDD vs noPMS: %.2f", cohens_d_trait(data$DASS_Depression, "PMDD", "noPMS"))
+print("Cohen's D for DASS-Depression | PMS vs noPMS:")
+cohens_d_trait(data, "DASS_Depression", "noPMS", "PMS")
+
+print("Cohen's D for DASS-Depression | PMS vs PMDD:")
+cohens_d_trait(data, "DASS_Depression", "PMS", "PMDD")
+
+print("Cohen's D for DASS-Depression | PMDD vs noPMS:")
+cohens_d_trait(data, "DASS_Depression", "PMDD", "noPMS")
 
 ## Visualisation
 max_y1<-max(data$DASS_Depression)
@@ -158,9 +168,14 @@ emmeans0.1 <- emmeans(d0.2, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
 # Cohen's d
-sprintf("Cohen's D for DASS-Anxiety | PMS vs noPMS: %.2f", cohens_d_trait(data$DASS_Anxiety, "noPMS", "PMS"))
-sprintf("Cohen's D for DASS-Anxiety | PMS vs PMDD: %.2f", cohens_d_trait(data$DASS_Anxiety, "PMS", "PMDD"))
-sprintf("Cohen's D for DASS-Anxiety | PMDD vs noPMS: %.2f", cohens_d_trait(data$DASS_Anxiety, "PMDD", "noPMS"))
+print("Cohen's D for DASS-Anxiety | PMS vs noPMS:")
+cohens_d_trait(data, "DASS_Anxiety", "noPMS", "PMS")
+
+print("Cohen's D for DASS-Anxiety | PMS vs PMDD:") 
+cohens_d_trait(data, "DASS_Anxiety", "PMS", "PMDD")
+
+print("Cohen's D for DASS-Anxiety | PMDD vs noPMS:")
+cohens_d_trait(data, "DASS_Anxiety", "PMDD", "noPMS")
 
 ## Visualisation
 max_y2<-max(data$DASS_Anxiety)
@@ -197,9 +212,14 @@ emmeans0.1 <- emmeans(d0.3, pairwise ~ PMS, adjust ="fdr", type = "response")
 emm0.1 <- summary(emmeans0.1)$emmeans
 emmeans0.1$contrasts
 # Cohen's d
-sprintf("Cohen's D for DASS-Stress | PMS vs noPMS: %.2f", cohens_d_trait(data$DASS_Stress, "noPMS", "PMS"))
-sprintf("Cohen's D for DASS-Stress | PMS vs PMDD: %.2f", cohens_d_trait(data$DASS_Stress, "PMS", "PMDD"))
-sprintf("Cohen's D for DASS-Stress | PMDD vs noPMS: %.2f", cohens_d_trait(data$DASS_Stress, "PMDD", "noPMS"))
+print("Cohen's D for DASS-Stress | PMS vs noPMS:")
+cohens_d_trait(data, "DASS_Stress", "noPMS", "PMS")
+
+print("Cohen's D for DASS-Stress | PMS vs PMDD:")
+cohens_d_trait(data, "DASS_Stress", "PMS", "PMDD")
+
+print("Cohen's D for DASS-Stress | PMDD vs noPMS:")
+cohens_d_trait(data, "DASS_Stress", "PMDD", "noPMS")
 
 ## Visualisation
 max_y3<-max(data$DASS_Stress)
