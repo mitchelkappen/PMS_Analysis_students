@@ -92,11 +92,11 @@ cohens_d_state(data, 'PSS', 'Foll', 'PMS', 'PMDD')
 print("Cohen's D for PSS at Luteal | PMS vs noPMS:") 
 cohens_d_state(data, 'PSS', 'Lut', 'PMS', 'noPMS')
 
-print("Cohen's D for PSS at Luteal | PMS vs PMDD:") 
-cohens_d_state(data, 'PSS', 'Lut', 'PMS', 'PMDD')
-
 print("Cohen's D for PSS at Luteal | PMDD vs noPMS:") 
 cohens_d_state(data, 'PSS', 'Lut', 'PMDD', 'noPMS')
+
+print("Cohen's D for PSS at Luteal | PMS vs PMDD:") 
+cohens_d_state(data, 'PSS', 'Lut', 'PMS', 'PMDD')
 
 ### Between timepoints for groups
 emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
@@ -152,21 +152,21 @@ emmeans0.1$contrasts
 print("Cohen's D for PTQ at Follicular | PMS vs noPMS:") 
 cohens_d_state(data, 'PTQ', 'Foll', 'PMS', 'noPMS') #PMS-noPMS
 
-print("Cohen's D for PTQ at Follicular | PMDD vs noPMS:") 
-cohens_d_state(data, 'PTQ', 'Foll', 'PMDD', 'noPMS')
-
 print("Cohen's D for PTQ at Follicular | PMS vs PMDD:") 
 cohens_d_state(data, 'PTQ', 'Foll', 'PMS', 'PMDD')
+
+print("Cohen's D for PTQ at Follicular | PMDD vs noPMS:") 
+cohens_d_state(data, 'PTQ', 'Foll', 'PMDD', 'noPMS')
 
 # Cohen's d Moment = Luteal
 print("Cohen's D for PTQ at Luteal | PMS vs noPMS:") 
 cohens_d_state(data, 'PTQ', 'Lut', 'PMS', 'noPMS')
 
-print("Cohen's D for PTQ at Luteal | PMDD vs noPMS:") 
-cohens_d_state(data, 'PTQ', 'Lut', 'PMDD', 'noPMS')
-
 print("Cohen's D for PTQ at Luteal | PMS vs PMDD:") 
 cohens_d_state(data, 'PTQ', 'Lut', 'PMS', 'PMDD')
+
+print("Cohen's D for PTQ at Luteal | PMDD vs noPMS:") 
+cohens_d_state(data, 'PTQ', 'Lut', 'PMDD', 'noPMS')
 
 ## Between timepoints for groups
 emmeans0.2 <- emmeans(chosenModel[[1]], pairwise ~ Moment | PMS, adjust ="fdr", type = "response")
