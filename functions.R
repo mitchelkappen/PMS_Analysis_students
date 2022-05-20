@@ -201,34 +201,27 @@ overall_corr <- function(PSS, PTQ, x_lab, y_lab) {
 }
 
 ###### Statistics ######
-### Cohen's d for traits - between groups ####
-# cohens_d_trait <- function (var, group1, group2){
-#   group1_mu <-mean(data$var[data$PMS==group1], na.rm=TRUE)
-#   group2_f <- as.numeric(as.character(data$var[data$PMS==group2]))
-#   return(cohensD(group1_mu, group2_f))
-# }
-
-cohens_d_trait <- function (var, group1, group2){
-  group1 <- var[data$PMS==group1]
-  group2 <- var[data$PMS==group2]
-  return(cohensD(group1, group2))
+# Cohens'd with CI's
+# Trait
+cohens_d_trait <- function (dataframe, var, group1, group2){
+  temp = dataframe[dataframe$PMS == group1 | dataframe$PMS == group2,] # Create a dataframe with only relevant data
+  formula <- as.formula(paste0(var, ' ~ PMS')) # Create formula of interest with as.formula()
+  return(cohen.d(formula, data = temp, alpha=.05))
 }
+# cohens_d_trait(data, "RRS", "noPMS", "PMS" )
 
-### Cohen's d for states - between groups ####
-cohens_d_state <- function (var, testmoment, group1, group2){
-  group1_mu <- mean(var[data$PMS==group1 & data$Moment==testmoment], na.rm=TRUE)
-  group2_f <- as.numeric(as.character(var[data$PMS==group2& data$Moment==testmoment]))
-  return(cohensD(group1_mu, group2_f))
+# State - at moment between group
+cohens_d_state <- function(dataframe, var, testmoment, group1, group2){
+  temp = dataframe[dataframe$PMS == group1 & dataframe$Moment == testmoment | dataframe$PMS == group2 & dataframe$Moment == testmoment ,] # Create a dataframe with only relevant data
+  formula <- as.formula(paste0(var, ' ~ PMS')) # Create formula of interest with as.formula()
+  return(cohen.d(formula, data = temp, alpha=.05))
 }
+# cohens_d_state(data, "PSS", "Foll", "noPMS", "PMS")
 
-### Cohen's d for states - between moment ####
-cohens_d_moments <- function(var, PMSgroup){
-  lut <- mean(var[data$PMS==PMSgroup & data$Moment=='Lut'])
-  fol <- as.numeric(as.character(var[data$PMS==PMSgroup& data$Moment=='Foll']))
-  return(cohensD(fol, lut))
+# State - for group between moments
+cohens_d_moments_new <- function(dataframe, var, PMSgroup){
+  temp = dataframe[dataframe$PMS == PMSgroup, ] # Create a dataframe with only relevant data
+  formula <- as.formula(paste0(var, ' ~ Moment')) # Create formula of interest with as.formula()
+  return(cohen.d(formula, data = temp, alpha=.05))
 }
-
-### Phi (effect size for anova) ####
-phi_from_chisq <- function(anovatable,  N){
-  round(sqrt(anovatable[1] / N),2)
-}
+# cohens_d_moments(data, "PSS", "PMS")
