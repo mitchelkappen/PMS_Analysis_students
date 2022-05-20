@@ -219,7 +219,7 @@ cohens_d_state <- function(dataframe, var, testmoment, group1, group2){
 # cohens_d_state(data, "PSS", "Foll", "noPMS", "PMS")
 
 # State - for group between moments
-cohens_d_moments_new <- function(dataframe, var, PMSgroup){
+cohens_d_moments <- function(dataframe, var, PMSgroup){
   temp = dataframe[dataframe$PMS == PMSgroup, ] # Create a dataframe with only relevant data
   formula <- as.formula(paste0(var, ' ~ Moment')) # Create formula of interest with as.formula()
   return(cohen.d(formula, data = temp, alpha=.05))
