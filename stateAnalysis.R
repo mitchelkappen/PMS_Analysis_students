@@ -21,9 +21,9 @@ library(emmeans) # estimated marginal means
 library(tidyverse) # transform data
 library(car) # anova
 library(ggplot2) # figures
-library(lsr) # cohen's d
 library(ggpubr) #correlations
 library(effectsize)#phi
+library(psych) # Cohen.d
 
 ##### General settings #####
 # Get and declare functions
